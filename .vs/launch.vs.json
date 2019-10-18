@@ -1,0 +1,42 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.csproj",
+      "name": "Process_Export_Import.csproj"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.svc.cs",
+      "name": "Process_Export_Import.svc.cs"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.svc.cs",
+      "name": "Process_Export_Import.svc.cs(1)"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.csproj",
+      "name": "Process_Export_Import.csproj(1)"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.csproj",
+      "name": "Process_Export_Import.csproj(2)"
+    },
+    {
+      "type": "dll",
+      "exe": "",
+      "project": "Process_Export_Import.svc",
+      "name": "Process_Export_Import.svc"
+    }
+  ]
+}
