@@ -163,7 +163,7 @@ namespace Process_Export_Import
 			string importDbInformations;
 			string targetDbInformations;
 			string processName = "";
-
+            int process_id_in_tartger_db;
 			tableInfoInImportDb = checkTableInfoInDbFile();
 			tableInfoInTargetDb = checkTableInfoInTargetDb();
 
@@ -173,8 +173,13 @@ namespace Process_Export_Import
 				if (Differences.ContainsKey("No Difference Spotted"))
 				{
 					processName = detectProcessNameFromDbFile();
-
-				}
+                    Differences.Add("processName:", processName);
+                    process_id_in_tartger_db = detectProcessIdIfProcessExistInTargetDb(processName);
+                    if (process_id_in_tartger_db != 1 || process_id_in_tartger_db != 0)
+                    {
+                        Differences.Add("process_id:", process_id_in_tartger_db.ToString());
+                    }
+                }
 			}
 			catch(Exception ex)
 			{
@@ -404,8 +409,44 @@ namespace Process_Export_Import
 		}
 	}
 
-		
-		public bool checkIfImportedPorcessExistInTargetDb(string processName)
+        public int detectProcessIdIfProcessExistInTargetDb(string ProcessName)
+        {
+            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+            string commandTxt = "SELECT process_id from T_PROCESS where name = @parameter; ";
+            SqlDataReader reader;
+            int processId = 0;
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                SqlCommand command = new SqlCommand(commandTxt, connection);
+                command.Parameters.AddWithValue("@parameter", ProcessName);
+                try
+                {
+
+                    command.CommandText = commandTxt;
+                    connection.Open();
+                    reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        processId = (int)reader[0];
+
+
+                    }
+                    reader.Close();
+                }
+                catch (Exception ex)
+                {
+
+
+                    return processId = -1;
+
+                }
+
+                return processId;
+            }
+        }
+
+        public bool checkIfImportedPorcessExistInTargetDb(string processName)
 		{
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
 			string commandTxt = "SELECT count(*) FROM T_PROCESS WHERE NAME = @parameter";

@@ -95,7 +95,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="Tables_cwp.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="OpenAndReadDBFile.cs" />
