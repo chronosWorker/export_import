@@ -160,7 +160,8 @@ namespace Process_Export_Import
 			Dictionary<string, string> isEqualResult = new Dictionary<string, string>();
 			Dictionary<string, string> difference = new Dictionary<string, string>();
 			Dictionary<string, string> Differences =  new Dictionary<string, string>();
-			string importDbInformations;
+            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+            string importDbInformations;
 			string targetDbInformations;
 			string processName = "";
             int process_id_in_tartger_db;
@@ -177,13 +178,18 @@ namespace Process_Export_Import
                     process_id_in_tartger_db = detectProcessIdIfProcessExistInTargetDb(processName);
                     if (process_id_in_tartger_db != 1 || process_id_in_tartger_db != 0)
                     {
-                        Differences.Add("process_id:", process_id_in_tartger_db.ToString());
+                        Differences.Add("process_id_in_target_db:", process_id_in_tartger_db.ToString());
                     }
                 }
-			}
+                columnTypes = writeDbFileContentToTargetDb("T_PROCESS");
+                string[] test_string_array = { "egy", "ketto", "3", "4", "öt" };
+                string test_cmd_txt = insertIntoTargetDb("T_PROCESS", test_string_array);
+                Differences.Add("command_txt", test_cmd_txt);
+            }
 			catch(Exception ex)
 			{
 				exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
+
 				return exception;
 			}
 		
@@ -193,8 +199,79 @@ namespace Process_Export_Import
 			return Differences;
 
 		}
+        public string insertIntoTargetDb(string tableName, string[] values)
+        {
+            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+            string commandTxt = "INSERT INTO @parameter (";
+            bool insertWasSuccesFull = false;
+            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+            SqlConnection connection = new SqlConnection(connectionString);
+            SqlCommand command = new SqlCommand(commandTxt, connection);
+            SqlDataReader reader;
+            command.Parameters.AddWithValue("@parameter", tableName);
+             
+            try
+            {
+                columnTypes = getColumnTypesDictionary(tableName);
+                foreach (KeyValuePair<string, string> entry in columnTypes)
+                {
+                    switch (entry.Value)
+                    {
+                        case "binary":
+                        case "varbinary":
 
-		public Dictionary<string, string> compareTwoObjectsAndGetDifferences(List<Tables_cwp> A, List<Tables_cwp> B)
+                            break;
+                        case "image":
+                            break;
+                        default:
+                            {
+                                commandTxt +=  string.Join(",", entry.Key) + ", "; ;
+                                break;
+                            }
+                    }
+                }
+                commandTxt += " )  Values ( ";
+                foreach (string value in values)
+                {
+                    commandTxt += string.Join(", ", value) + ", "; 
+                }
+                commandTxt += " )";
+                command.CommandText = commandTxt;
+                connection.Open();
+                reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+                     
+
+                }
+                reader.Close(); HandleInheritability b j
+            }
+            catch (Exception ex)
+            {
+                return commandTxt;
+            }
+
+                return commandTxt;
+            
+
+        }
+
+        public Dictionary<string, string> writeDbFileContentToTargetDb(string tableName)
+        {
+            Dictionary<string, string> columnTypes = new Dictionary<string, string>(); 
+            columnTypes = getColumnTypesDictionary(tableName);
+            string commandText = "SELECT * from @paramater";
+            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+            SQLiteCommand command = new SQLiteCommand(connSqlite);
+            command.Parameters.AddWithValue("@parameter", tableName);
+            return columnTypes;
+
+
+        }
+
+        public Dictionary<string, string> compareTwoObjectsAndGetDifferences(List<Tables_cwp> A, List<Tables_cwp> B)
 		{
 			int firstObjectLength  = A.Count;
 			int secondObjectLength = B.Count;
@@ -1301,7 +1378,7 @@ namespace Process_Export_Import
 		  SqlCommand cmdMsSqlDataChild;
 		  SqlCommand cmdMsSqlDataGrandChild;
 		  SqlDataReader readerMsSqlData;
-		  SqlDataReader readerMsSqlDataChild;
+		  SqlDataReader readerMsSqlDataChild;   
 		  SqlDataReader readerMsSqlDataGrandChild;
 
 		  string currType = "";
