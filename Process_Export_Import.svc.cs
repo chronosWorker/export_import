@@ -160,11 +160,13 @@ namespace Process_Export_Import
 			Dictionary<string, string> isEqualResult = new Dictionary<string, string>();
 			Dictionary<string, string> difference = new Dictionary<string, string>();
 			Dictionary<string, string> Differences =  new Dictionary<string, string>();
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-            string importDbInformations;
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+			Dictionary<string, string> values = new Dictionary<string, string>();
+			string importDbInformations;
 			string targetDbInformations;
 			string processName = "";
-            int process_id_in_tartger_db;
+			string insert = "";
+			int process_id_in_tartger_db;
 			tableInfoInImportDb = checkTableInfoInDbFile();
 			tableInfoInTargetDb = checkTableInfoInTargetDb();
 
@@ -174,18 +176,32 @@ namespace Process_Export_Import
 				if (Differences.ContainsKey("No Difference Spotted"))
 				{
 					processName = detectProcessNameFromDbFile();
-                    Differences.Add("processName:", processName);
-                    process_id_in_tartger_db = detectProcessIdIfProcessExistInTargetDb(processName);
-                    if (process_id_in_tartger_db != 1 || process_id_in_tartger_db != 0)
-                    {
-                        Differences.Add("process_id_in_target_db:", process_id_in_tartger_db.ToString());
-                    }
-                }
-                columnTypes = writeDbFileContentToTargetDb("T_PROCESS");
-                string[] test_string_array = { "egy", "ketto", "3", "4", "öt" };
-                string test_cmd_txt = insertIntoTargetDb("T_PROCESS", test_string_array);
-                Differences.Add("command_txt", test_cmd_txt);
-            }
+					Differences.Add("processName:", processName);
+					process_id_in_tartger_db = detectProcessIdIfProcessExistInTargetDb(processName);
+					if (process_id_in_tartger_db != 1 || process_id_in_tartger_db != 0)
+					{
+						Differences.Add("process_id_in_target_db:", process_id_in_tartger_db.ToString());
+					}
+				}
+				columnTypes = writeDbFileContentToTargetDb("T_PROCESS");
+				values = getValuesFromTableInDbFile("T_PROCESS");
+				string[] valueArray = new string[values.Count];
+				for (int i = 0; i < values.Count; i++)
+				{
+					valueArray[i] = values.ElementAt(i).Value;
+
+				}
+
+				string test_cmd_txt = insertIntoTargetDb("T_PROCESS", valueArray);
+				Differences.Add("command_txt", test_cmd_txt);
+				insert = executeInsert(test_cmd_txt);
+				Differences.Add("insert", insert.ToString());
+			}
+
+			//	Differences.Add("values", values);
+
+
+			
 			catch(Exception ex)
 			{
 				exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
@@ -199,79 +215,171 @@ namespace Process_Export_Import
 			return Differences;
 
 		}
-        public string insertIntoTargetDb(string tableName, string[] values)
-        {
-            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-            string commandTxt = "INSERT INTO @parameter (";
-            bool insertWasSuccesFull = false;
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-            SqlConnection connection = new SqlConnection(connectionString);
-            SqlCommand command = new SqlCommand(commandTxt, connection);
-            SqlDataReader reader;
-            command.Parameters.AddWithValue("@parameter", tableName);
-             
-            try
-            {
-                columnTypes = getColumnTypesDictionary(tableName);
-                foreach (KeyValuePair<string, string> entry in columnTypes)
-                {
-                    switch (entry.Value)
-                    {
-                        case "binary":
-                        case "varbinary":
+		public string executeInsert(string commandText)
+		{
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			SqlConnection connection = new SqlConnection(connectionString);
+			SqlCommand command = new SqlCommand(commandText, connection);
+			bool insertWasSuccesFull = false;
+			try
+			{
+				connection.Open();
+				command.ExecuteNonQuery();
+				insertWasSuccesFull = true;
 
-                            break;
-                        case "image":
-                            break;
-                        default:
-                            {
-                                commandTxt +=  string.Join(",", entry.Key) + ", "; ;
-                                break;
-                            }
-                    }
-                }
-                commandTxt += " )  Values ( ";
-                foreach (string value in values)
-                {
-                    commandTxt += string.Join(", ", value) + ", "; 
-                }
-                commandTxt += " )";
-                command.CommandText = commandTxt;
-                connection.Open();
-                reader = command.ExecuteReader();
+			}
+			catch (Exception ex)
+			{
+				return ex.Message.ToString() + ex.StackTrace.ToString();
 
-                while (reader.Read())
-                {
-                     
+			}
+			return "1";
+		}
 
-                }
-                reader.Close(); HandleInheritability b j
-            }
-            catch (Exception ex)
-            {
-                return commandTxt;
-            }
+		public string insertIntoTargetDb(string tableName, string[] values)
+		{
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			string commandTxt = " SET IDENTITY_INSERT T_PROCESS ON; INSERT INTO " + tableName + " (";
+			bool insertWasSuccesFull = false;
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+			SqlConnection connection = new SqlConnection(connectionString);
+			SqlCommand command = new SqlCommand(commandTxt, connection);
+			SqlDataReader reader;
+			command.Parameters.AddWithValue("@parameter", tableName);
+			 
+			try
+			{
+				columnTypes = getColumnTypesDictionary(tableName);
+				for (int i = 0; i < columnTypes.Count; i++)
+				{
+					switch (columnTypes.ElementAt(i).Value)
+					{
+						case "binary":
+						case "varbinary":
+						
 
-                return commandTxt;
-            
+							break;
+						case "image":
+							break;
+						default:
+							{
+								if (i == columnTypes.Count - 1)
+								{
+									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString()) ;
+								}
+								else
+								{
+									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString()) + ", "; 
+								}
+								break;
+							}
+					}
+				}
+				commandTxt += " )  Values ( ";
+				for (int i = 0; i < values.Length; i++)
+				{
+					if (i == values.Length - 1) {
+						commandTxt += string.Join(", ", values[i]) ;
 
-        }
+					}
+					else
+					{
+						commandTxt += string.Join(", ", values[i]) + ", ";
+					}
 
-        public Dictionary<string, string> writeDbFileContentToTargetDb(string tableName)
-        {
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>(); 
-            columnTypes = getColumnTypesDictionary(tableName);
-            string commandText = "SELECT * from @paramater";
-            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-            SQLiteCommand command = new SQLiteCommand(connSqlite);
-            command.Parameters.AddWithValue("@parameter", tableName);
-            return columnTypes;
+				}
+		//		foreach (string value in values)
+		//		{
+		//			commandTxt += string.Join(", ", value) + ", "; 
+		//		}
+				commandTxt += " )";
+				command.CommandText = commandTxt;
+				connection.Open();
+				reader = command.ExecuteReader();
+
+				while (reader.Read())
+				{
+					 
+
+				}
+				reader.Close(); 
+			}
+			catch (Exception ex)
+			{
+				return commandTxt;
+			}
+
+				return commandTxt.Trim();
+			
+
+		}
+
+		public Dictionary<string, string> writeDbFileContentToTargetDb(string tableName)
+		{
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>(); 
+			columnTypes = getColumnTypesDictionary(tableName);
+			string commandText = "SELECT * from @paramater";
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			command.Parameters.AddWithValue("@parameter", tableName);
+			return columnTypes;
 
 
-        }
+		}
+		public Dictionary<string, string> getValuesFromTableInDbFile(string tableName)
+		{
+			
+			string commandText = "SELECT *  FROM  "; 
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			command.CommandText = commandText + tableName;
+			//command.Parameters.AddWithValue("@tableName", tableName);
+			Dictionary<string, string> valueDictionary = new Dictionary<string, string>();
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+			columnTypes = getColumnTypesDictionary(tableName);
+			string alma = "alma";
+				connSqlite.Open();
+				SQLiteDataReader sqReader = command.ExecuteReader();
+				while (sqReader.Read())
+				{
+					for (int i = 0; i < columnTypes.Count; i++)
+					{
+						string columnName = columnTypes.ElementAt(i).Key.ToString();
+						if (columnTypes.ElementAt(i).Key.ToString() == "Process_ID")
+						{
+							valueDictionary.Add(columnName, "1223");
+						}
+						else if(sqReader[columnName] == "")
+						{
+							valueDictionary.Add(columnName, "null");
+						}
 
-        public Dictionary<string, string> compareTwoObjectsAndGetDifferences(List<Tables_cwp> A, List<Tables_cwp> B)
+						else if(columnTypes.ElementAt(i).Value == "varchar" || columnTypes.ElementAt(i).Value == "nvarchar" || columnTypes.ElementAt(i).Value == "bit")
+						{
+							valueDictionary.Add(columnName, "'" + sqReader[columnName].ToString() + "'");
+						}
+
+						else
+						{
+							valueDictionary.Add(columnName, sqReader[columnName].ToString());
+						}
+
+					}
+				}
+				sqReader.Close();
+
+			
+		
+				//valueArray.Add(ex.Message.ToString(), ex.StackTrace.ToString());
+
+			
+			 return valueDictionary;
+		}
+
+
+		public Dictionary<string, string> compareTwoObjectsAndGetDifferences(List<Tables_cwp> A, List<Tables_cwp> B)
 		{
 			int firstObjectLength  = A.Count;
 			int secondObjectLength = B.Count;
@@ -486,44 +594,44 @@ namespace Process_Export_Import
 		}
 	}
 
-        public int detectProcessIdIfProcessExistInTargetDb(string ProcessName)
-        {
-            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-            string commandTxt = "SELECT process_id from T_PROCESS where name = @parameter; ";
-            SqlDataReader reader;
-            int processId = 0;
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            {
-                SqlCommand command = new SqlCommand(commandTxt, connection);
-                command.Parameters.AddWithValue("@parameter", ProcessName);
-                try
-                {
+		public int detectProcessIdIfProcessExistInTargetDb(string ProcessName)
+		{
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			string commandTxt = "SELECT process_id from T_PROCESS where name = @parameter; ";
+			SqlDataReader reader;
+			int processId = 0;
+			using (SqlConnection connection = new SqlConnection(connectionString))
+			{
+				SqlCommand command = new SqlCommand(commandTxt, connection);
+				command.Parameters.AddWithValue("@parameter", ProcessName);
+				try
+				{
 
-                    command.CommandText = commandTxt;
-                    connection.Open();
-                    reader = command.ExecuteReader();
+					command.CommandText = commandTxt;
+					connection.Open();
+					reader = command.ExecuteReader();
 
-                    while (reader.Read())
-                    {
-                        processId = (int)reader[0];
-
-
-                    }
-                    reader.Close();
-                }
-                catch (Exception ex)
-                {
+					while (reader.Read())
+					{
+						processId = (int)reader[0];
 
 
-                    return processId = -1;
+					}
+					reader.Close();
+				}
+				catch (Exception ex)
+				{
 
-                }
 
-                return processId;
-            }
-        }
+					return processId = -1;
 
-        public bool checkIfImportedPorcessExistInTargetDb(string processName)
+				}
+
+				return processId;
+			}
+		}
+
+		public bool checkIfImportedPorcessExistInTargetDb(string processName)
 		{
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
 			string commandTxt = "SELECT count(*) FROM T_PROCESS WHERE NAME = @parameter";
