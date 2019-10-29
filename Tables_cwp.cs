@@ -11,6 +11,9 @@ namespace Process_Export_Import
         public string TableName { get; set; }
         public List<string> ColumnName { get; set; } = new List<string>();
         public List<string> ColumDataType { get; set; } = new List<string>();
+        public List<string> Values { get; set; } = new List<string>();
+
+        public int rowCount { get; set; }
 
         public string Exception { get; set; }
 

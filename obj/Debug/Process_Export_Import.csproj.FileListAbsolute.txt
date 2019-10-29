@@ -59,7 +59,6 @@ D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.csproj.CopyComplete
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.dll
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.pdb
-D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
 C:\Users\Devnotebook\Desktop\git_chr\export_import\bin\Process_Export_Import.dll.config
 C:\Users\Devnotebook\Desktop\git_chr\export_import\bin\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_chr\export_import\bin\Process_Export_Import.pdb
@@ -77,3 +76,4 @@ C:\Users\Devnotebook\Desktop\git_chr\export_import\obj\Debug\Process_Export_Impo
 C:\Users\Devnotebook\Desktop\git_chr\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_chr\export_import\obj\Debug\Process_Export_Import.pdb
 C:\Users\Devnotebook\Desktop\git_chr\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
+D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
