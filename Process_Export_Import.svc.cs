@@ -212,33 +212,63 @@ namespace Process_Export_Import
         public Tables_cwp Import_Process()
         {
 
-            Tables_cwp tableInfoInImportDb = new Tables_cwp();
-            tableInfoInImportDb = getColumnsAndValuesFromTableInDbFile("T_PROCESS");
-            string[] valueListForSpecificTable;
-            int rowCounter;
+            //Csak egy táblára elöször
+            Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
+            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+            List<string> valuesInTable = new List<string>();
+            string firstTable = "T_PROCESS";
+            string secondTable = "T_ACTIVITY";
+            tableInfoInImportDbT_Proc.TableName = secondTable;
             try
             {
-                string commandText = "SELECT count(*)  FROM  ";
-                string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-                SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-                SQLiteCommand command = new SQLiteCommand(connSqlite);
-                command.CommandText = commandText + "T_ACTIVITY" + " where Process_Id  = " + 1022.ToString();
-                connSqlite.Open();
-                SQLiteDataReader sqReader = command.ExecuteReader();
-
-                while (sqReader.Read())
+                tableInfoInImportDbT_Proc.rowCounter = getNumberOfRowsWhereFKIsProcessIdInDBFile(secondTable, 1022);
+                columnTypes = getColumnTypesDictionary(secondTable);
+                foreach (KeyValuePair<string, string> column in columnTypes)
                 {
-                    tableInfoInImportDb.rowCount = Convert.ToInt32(sqReader[0]);
-
+                    tableInfoInImportDbT_Proc.ColumDataType.Add(column.Value);
+                    tableInfoInImportDbT_Proc.ColumnName.Add(column.Key);
                 }
-                
-                
+                valuesInTable = getValuesFromTable(tableInfoInImportDbT_Proc);
+                tableInfoInImportDbT_Proc.Values = valuesInTable;
             }
             catch (Exception ex)
             {
-                tableInfoInImportDb.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+                   tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
             }
-            return tableInfoInImportDb;
+            return tableInfoInImportDbT_Proc;
+
+            /* Tables_cwp tableInfoInImportDb = new Tables_cwp();
+
+
+
+
+
+             tableInfoInImportDb = getColumnsAndValuesFromTableInDbFile("T_PROCESS");
+             string[] valueListForSpecificTable;
+             int rowCounter;
+             try
+             {
+                 string commandText = "SELECT count(*)  FROM  ";
+                 string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+                 SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+                 SQLiteCommand command = new SQLiteCommand(connSqlite);
+                 command.CommandText = commandText + "T_ACTIVITY" + " where Process_Id  = " + 1022.ToString();
+                 connSqlite.Open();
+                 SQLiteDataReader sqReader = command.ExecuteReader();
+
+                 while (sqReader.Read())
+                 {
+                     tableInfoInImportDb.rowCount = Convert.ToInt32(sqReader[0]);
+
+                 }
+
+
+             }
+             catch (Exception ex)
+             {
+                 tableInfoInImportDb.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+             }
+             return tableInfoInImportDb;*/
         }
         public string executeInsert(string commandText)
 		{
@@ -257,19 +287,6 @@ namespace Process_Export_Import
 			}
 			return "1";
 		}
-        public Tables_cwp getColumnsAndValuesFromTableInDbFile(string tableName)
-        {
-            Tables_cwp tableInfoInTargetDb = new Tables_cwp();
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-            columnTypes = getColumnTypesDictionary(tableName);
-            foreach (KeyValuePair<string, string> colummn in columnTypes)
-            {
-                tableInfoInTargetDb.ColumnName.Add(colummn.Key);
-                tableInfoInTargetDb.ColumDataType.Add(colummn.Value);
-            }
-
-            return tableInfoInTargetDb;
-        }
 
         public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
 		{
@@ -352,7 +369,7 @@ namespace Process_Export_Import
 
 
 		}
-        public int getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName,int processId)
+        public string getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName,int processId)
         {
             int rowCount = 2;
             string commandText = "SELECT count(*)  FROM  ";
@@ -366,33 +383,60 @@ namespace Process_Export_Import
             {
                 if(sqReader.Read())
                 {
-                    rowCount = (int)sqReader[0];
-
-
+                    rowCount = Convert.ToInt32(sqReader[0]); 
                 }
                 
-                return rowCount;
+              //  return rowCount;
                 
             }
             catch (Exception ex)
             {
-                return 0;
+                return  ex.Message.ToString() + ex.StackTrace.ToString();
             }
+            return rowCount.ToString();
            // return 0;
             //    return rowCount;
         }
-        public List<string> getValuesFromTable(string tableName)
+        public List<string> getValuesFromTable(Tables_cwp table)
         {
             List<string> valuesInTable = new List<string>();
+
             string commandText = "SELECT *  FROM  ";
             string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
             SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
             SQLiteCommand command = new SQLiteCommand(connSqlite);
-            command.CommandText = commandText + tableName;
+            command.CommandText = commandText + table.TableName;
+            connSqlite.Open();
             SQLiteDataReader sqReader = command.ExecuteReader();
-            while (sqReader.Read())
+            try
             {
-                //valuesInTable.Add()
+                while (sqReader.Read())
+                {
+                    foreach (string colum in table.ColumnName)
+                    {
+                    List<string> TEMPvaluesInTable = new List<string>();
+
+                        if (sqReader[colum] == "")
+                        {
+                            TEMPvaluesInTable.Add("null"); 
+                          //  index++;
+                        }
+                        else
+                        {
+                            TEMPvaluesInTable.Add(sqReader[colum].ToString());
+                        }
+                        valuesInTable.AddRange(TEMPvaluesInTable);
+                        
+                    }
+                 //   if ((totalNumberOfRecord - 1) == index)
+                 //   {
+                        //     break;
+                 //   }
+                }
+            }
+            catch (Exception ex)
+            {
+                valuesInTable.Add(ex.Message.ToString() + ex.StackTrace.ToString());
             }
             return valuesInTable;
         }

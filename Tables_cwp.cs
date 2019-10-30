@@ -9,13 +9,13 @@ namespace Process_Export_Import
     public class Tables_cwp
     {
         public string TableName { get; set; }
+        public int rowCount { get; set; }
+
+        public string rowCounter { get; set; }
+        public string Exception { get; set; }
         public List<string> ColumnName { get; set; } = new List<string>();
         public List<string> ColumDataType { get; set; } = new List<string>();
         public List<string> Values { get; set; } = new List<string>();
-
-        public int rowCount { get; set; }
-
-        public string Exception { get; set; }
 
         public string[] tablenames = {
         "T_PROCESS",
