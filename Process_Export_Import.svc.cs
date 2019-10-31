@@ -200,77 +200,144 @@ namespace Process_Export_Import
 			catch(Exception ex)
 			{
 				exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
-                Differences.Add("exception", ex.Message.ToString() + ex.StackTrace.ToString());
+				Differences.Add("exception", ex.Message.ToString() + ex.StackTrace.ToString());
 
-                return exception;
+				return exception;
 			}
 		
 			return Differences;
 
 		}*/
 
-        public Tables_cwp Import_Process()
-        {
+		public List<Tables_cwp> Import_Process()
+		{
 
-            //Csak egy táblára elöször
-            Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-            List<string> valuesInTable = new List<string>();
-            string firstTable = "T_PROCESS";
-            string secondTable = "T_ACTIVITY";
-            tableInfoInImportDbT_Proc.TableName = secondTable;
-            try
-            {
-                tableInfoInImportDbT_Proc.rowCounter = getNumberOfRowsWhereFKIsProcessIdInDBFile(secondTable, 1022);
-                columnTypes = getColumnTypesDictionary(secondTable);
-                foreach (KeyValuePair<string, string> column in columnTypes)
-                {
-                    tableInfoInImportDbT_Proc.ColumDataType.Add(column.Value);
-                    tableInfoInImportDbT_Proc.ColumnName.Add(column.Key);
-                }
-                valuesInTable = getValuesFromTable(tableInfoInImportDbT_Proc);
-                tableInfoInImportDbT_Proc.Values = valuesInTable;
-            }
-            catch (Exception ex)
-            {
-                   tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-            }
-            return tableInfoInImportDbT_Proc;
+			// elöször t-process tábla kézzel 
+				Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
+				List<Tables_cwp> tableListInDbFile =  new List<Tables_cwp>();
+			string[] allTableList = {
+			"T_PROCESS",
+			"T_PROCESS_DESIGN",
+			"T_PROC_DESIGN_DRAW",
+			"T_PROC_DESIGN_DRAW_PART",
+			"T_PROC_DESIGN_DRAW_PART_TYPE",
+			"T_ROUTING",
+			"T_FIELD",
+			"T_FIELD_CONDITION_GROUP",
+			"T_FIELD_DATE_TYPE",
+			"T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE",
+			"T_FIELD_TEXT_FORMAT_TYPE",
+			"T_FIELD_TO_FIELD_DEPENDENCY_TYPE",
+			"T_FIELD_TYPE",
+			"T_FILE_FIELD_TYPE",
+			"T_ACTIVITY",
+			"T_ACTIVITY_FIELDS_UI_PARAMETERS",
+			"T_NOTIFICATION",
+			"T_PERSON",
+			"T_DEPARTMENT",
+			"T_DEPARTMENT_MEMBERS",
+			"T_CALCULATED_FIELD_RESULT_TYPE_ID",
+			"T_CATEGORY",
+			"T_PROCESS_OWNER",
+			"T_PROCESS_READER",
+			"T_ROLE",
+			"T_ROLE_MEMBERS",
+			"T_REPORT_GROUP",
+			"T_REPORT_GROUP_ADMINISTRATOR",
+			"T_REPORT_OWNERS",
+			"T_PROC_DESIGN_DRAW_PART_DETAIL",
+			"T_ROUTING_CONDITION",
+			"T_ROUTING_CONDITION_GROUP",
+			"T_ROUTING_DESIGN",
+			"T_FIELD_CONDITION",
+			"T_FIELD_DATE_CONSTRAINT",
+			"T_FIELD_EXTENSION_NUMBER",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS",
+			"T_FIELD_LABEL_TRANSLATION",
+			"T_FIELD_VALUE",
+			"T_ACTIVITY_DESIGN",
+			"T_ACTIVITY_FIELDS",
+			"T_ACTIVITY_FIELDS_FOR_ESIGNING",
+			"T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION",
+			"T_ACTIVITY_DEPENDENT_COMPONENTS",
+			"T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION",
+			"T_DYNAMIC_ROUTING",
+			"T_CALCFIELD_FORMULA_STEPS",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS",
+			"T_USER_DEFINED_TABLE",
+			"T_FORMULA_STEPS",
+			"T_OPERAND",
+			"T_PROCFIELD_PARTICIPANT",
+			"T_PROCFIELD_WORD_MERGE",
+			"T_PROCFIELD_WORD_MERGE_FIELD",
+			"T_REPORT_FIELD",
+			"T_REPORT",
+			"T_REPORT_2_FIELD_COND_GROUP",
+			"T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE",
+			"T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE",
+			"T_REPORT_EDIT_OWNER",
+			"T_REPORT_FIELD_UDT_COLUMNS",
+			"T_REPORT_FILTER",
+			"T_REPORT_REFERENCED_FIELD_LOCATION",
+			"T_SUBPROCESS",
+			"T_ACTIVITY_OWNER_BY_CONDITION",
+			"T_ACTIVITY_OWNER_BY_COND_PARTICIPANT",
+			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION",
+			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP",
+			"T_ACTIVITY_PARTICIPANT",
+			"T_ACTIVITY_UI_COMPONENT",
+			"T_AUTOMATIC_PROCESS"  ,
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY",
+			"T_FIELD_TO_FIELD_DEPENDENCY",
+			"T_FIELD_VALUE_TRANSLATION",
+			"T_CHART_TYPE",
+			"T_CHART_FIELD_TYPE",
+			"T_LANGUAGE",
+			"T_REPORT_TYPE",
+			"T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
+			"T_ACTIVITY_FINISH_STEP_MODE",
+			"T_ACTIVITY_PARTICIPANT_TYPE",
+			"T_CALCULATED_FIELD_CONSTANT_TYPE",
+			"T_COMPARE_OPERATION",
+			"T_DB_CONNECTION",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
 
-            /* Tables_cwp tableInfoInImportDb = new Tables_cwp();
+		  };
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+				List<string> valuesInTable = new List<string>();
+				try
+				{
+					foreach (string tableName in allTableList)
+					{
+						Tables_cwp tempTableHodler = new Tables_cwp();
+						tempTableHodler.TableName = tableName;
+						tempTableHodler.rowCounter = getNumberOfRowsInDBFile(tableName);
+						columnTypes = getColumnTypesDictionary(tableName);
+						foreach (KeyValuePair<string, string> column in columnTypes)
+						{
+							tempTableHodler.ColumDataType.Add(column.Value);
+							tempTableHodler.ColumnName.Add(column.Key);
+						}
+						valuesInTable = getValuesFromTable(tempTableHodler);
+						tempTableHodler.Values = valuesInTable;
+						tableListInDbFile.Add(tempTableHodler);
 
+					}
+				}
+				catch (Exception ex)
+				{
+					tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+					tableListInDbFile.Add(tableInfoInImportDbT_Proc);
+					return tableListInDbFile;
+				}
+					return tableListInDbFile;
 
-
-
-
-             tableInfoInImportDb = getColumnsAndValuesFromTableInDbFile("T_PROCESS");
-             string[] valueListForSpecificTable;
-             int rowCounter;
-             try
-             {
-                 string commandText = "SELECT count(*)  FROM  ";
-                 string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-                 SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-                 SQLiteCommand command = new SQLiteCommand(connSqlite);
-                 command.CommandText = commandText + "T_ACTIVITY" + " where Process_Id  = " + 1022.ToString();
-                 connSqlite.Open();
-                 SQLiteDataReader sqReader = command.ExecuteReader();
-
-                 while (sqReader.Read())
-                 {
-                     tableInfoInImportDb.rowCount = Convert.ToInt32(sqReader[0]);
-
-                 }
-
-
-             }
-             catch (Exception ex)
-             {
-                 tableInfoInImportDb.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-             }
-             return tableInfoInImportDb;*/
-        }
-        public string executeInsert(string commandText)
+		}
+		public string executeInsert(string commandText)
 		{
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
 			SqlConnection connection = new SqlConnection(connectionString);
@@ -288,13 +355,13 @@ namespace Process_Export_Import
 			return "1";
 		}
 
-        public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
+		public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
 		{
-            string commandTxt = "";
-            if (requireIdentityInsert)
-            {
-                commandTxt = " SET IDENTITY_INSERT " + tableName + " ON;";
-            }
+			string commandTxt = "";
+			if (requireIdentityInsert)
+			{
+				commandTxt = " SET IDENTITY_INSERT " + tableName + " ON;";
+			}
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
 			commandTxt += "INSERT INTO " + tableName + " (";
 			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
@@ -369,77 +436,108 @@ namespace Process_Export_Import
 
 
 		}
-        public string getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName,int processId)
-        {
-            int rowCount = 2;
-            string commandText = "SELECT count(*)  FROM  ";
-            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-            SQLiteCommand command = new SQLiteCommand(connSqlite);
-            command.CommandText = commandText + tableName + " where Process_Id  = " + processId;
-            connSqlite.Open();
-            SQLiteDataReader sqReader = command.ExecuteReader();
-            try
-            {
-                if(sqReader.Read())
-                {
-                    rowCount = Convert.ToInt32(sqReader[0]); 
-                }
-                
-              //  return rowCount;
-                
-            }
-            catch (Exception ex)
-            {
-                return  ex.Message.ToString() + ex.StackTrace.ToString();
-            }
-            return rowCount.ToString();
-           // return 0;
-            //    return rowCount;
-        }
-        public List<string> getValuesFromTable(Tables_cwp table)
-        {
-            List<string> valuesInTable = new List<string>();
+		public string getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName,int processId)
+		{
+			int rowCount = 2;
+			string commandText = "SELECT count(*)  FROM  ";
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			command.CommandText = commandText + tableName + " where Process_Id  = " + processId;
+			connSqlite.Open();
+			SQLiteDataReader sqReader = command.ExecuteReader();
+			try
+			{
+				if(sqReader.Read())
+				{
+					rowCount = Convert.ToInt32(sqReader[0]); 
+				}
+				
+			  //  return rowCount;
+				
+			}
+			catch (Exception ex)
+			{
+				return  ex.Message.ToString() + ex.StackTrace.ToString();
+			}
+			return rowCount.ToString();
+		   // return 0;
+			//    return rowCount;
+		}
 
-            string commandText = "SELECT *  FROM  ";
-            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-            SQLiteCommand command = new SQLiteCommand(connSqlite);
-            command.CommandText = commandText + table.TableName;
-            connSqlite.Open();
-            SQLiteDataReader sqReader = command.ExecuteReader();
-            try
-            {
-                while (sqReader.Read())
-                {
-                    foreach (string colum in table.ColumnName)
-                    {
-                    List<string> TEMPvaluesInTable = new List<string>();
+		public string getNumberOfRowsInDBFile(string tableName)
+		{
+			int rowCount = 0;
+			string commandText = "SELECT count(*)  FROM  ";
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			command.CommandText = commandText + tableName ;
+			connSqlite.Open();
+			SQLiteDataReader sqReader = command.ExecuteReader();
+			try
+			{
+				if (sqReader.Read())
+				{
+					rowCount = Convert.ToInt32(sqReader[0]);
+				}
 
-                        if (sqReader[colum] == "")
-                        {
-                            TEMPvaluesInTable.Add("null"); 
-                          //  index++;
-                        }
-                        else
-                        {
-                            TEMPvaluesInTable.Add(sqReader[colum].ToString());
-                        }
-                        valuesInTable.AddRange(TEMPvaluesInTable);
-                        
-                    }
-                 //   if ((totalNumberOfRecord - 1) == index)
-                 //   {
-                        //     break;
-                 //   }
-                }
-            }
-            catch (Exception ex)
-            {
-                valuesInTable.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-            }
-            return valuesInTable;
-        }
+				//  return rowCount;
+
+			}
+			catch (Exception ex)
+			{
+				return ex.Message.ToString() + ex.StackTrace.ToString();
+			}
+			return rowCount.ToString();
+			// return 0;
+			//    return rowCount;
+		}
+
+
+		public List<string> getValuesFromTable(Tables_cwp table)
+		{
+			List<string> valuesInTable = new List<string>();
+
+			string commandText = "SELECT *  FROM  ";
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			command.CommandText = commandText + table.TableName;
+			connSqlite.Open();
+			SQLiteDataReader sqReader = command.ExecuteReader();
+			try
+			{
+				while (sqReader.Read())
+				{
+					foreach (string colum in table.ColumnName)
+					{
+					List<string> TEMPvaluesInTable = new List<string>();
+
+						if (sqReader[colum] == "")
+						{
+							TEMPvaluesInTable.Add("null"); 
+						  //  index++;
+						}
+						else
+						{
+							TEMPvaluesInTable.Add(sqReader[colum].ToString());
+						}
+						valuesInTable.AddRange(TEMPvaluesInTable);
+						
+					}
+				 //   if ((totalNumberOfRecord - 1) == index)
+				 //   {
+						//     break;
+				 //   }
+				}
+			}
+			catch (Exception ex)
+			{
+				valuesInTable.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			}
+			return valuesInTable;
+		}
 		public Dictionary<string, string> getValuesFromTableInDbFile(string tableName)
 		{
 			
@@ -518,7 +616,7 @@ namespace Process_Export_Import
 			}
 		}
 
-		public List<Tables_cwp>  checkTableInfoInDbFile()
+		/*public List<Tables_cwp>  checkTableInfoInDbFile()
 		{
 	
 			Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
@@ -533,7 +631,7 @@ namespace Process_Export_Import
 			Tables_cwp tables = new Tables_cwp();
 			Tables_cwp dbInformationForEachTables = new Tables_cwp();
 
-			string[] tableList = tables.getCWPTableList();
+		
 			int tableListLength = tableList.Length;
 
 			var tableParameterList = new List<string>();
@@ -594,7 +692,7 @@ namespace Process_Export_Import
 
 			return tableObjectList;
 
-		}
+		}*/
 		public string  detectProcessNameFromDbFile()
 		{
 	
@@ -643,7 +741,7 @@ namespace Process_Export_Import
 		string columnName = "";
 		string dataType = "";
 		Tables_cwp tables = new Tables_cwp();
-		string[] tableList = tables.getCWPTableList();
+			string[] tableList = new string[1] { "T_PROCESS" };
 		var tableParameterList = new List<string>();
 		var index = 0;
 		List<Tables_cwp> tableObjectList = new List<Tables_cwp>();
@@ -3491,7 +3589,7 @@ namespace Process_Export_Import
 		}
 		}
 		#endregion
-		/*
+		
 		#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 		columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
 		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -3549,7 +3647,7 @@ namespace Process_Export_Import
 			}
 		}
 					#endregion
-					/*#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
+					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
 					for (var i = 0; i < activities.Count; i++)
 					{
@@ -3603,7 +3701,7 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 
 						}
-					}*/
+					}
 
 					connSqlite.Close();
 				}
@@ -4509,3 +4607,4 @@ namespace Process_Export_Import
 
 #endregion
 
+#endregion
