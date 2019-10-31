@@ -213,31 +213,10 @@ namespace Process_Export_Import
 		{
 
 			// elöször t-process tábla kézzel 
-				Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
-				List<Tables_cwp> tableListInDbFile =  new List<Tables_cwp>();
+			
 			string[] allTableList = {
 			"T_PROCESS",
-			"T_PROCESS_DESIGN",
-			"T_PROC_DESIGN_DRAW",
-			"T_PROC_DESIGN_DRAW_PART",
-			"T_PROC_DESIGN_DRAW_PART_TYPE",
-			"T_ROUTING",
-			"T_FIELD",
-			"T_FIELD_CONDITION_GROUP",
-			"T_FIELD_DATE_TYPE",
-			"T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE",
-			"T_FIELD_TEXT_FORMAT_TYPE",
-			"T_FIELD_TO_FIELD_DEPENDENCY_TYPE",
-			"T_FIELD_TYPE",
-			"T_FILE_FIELD_TYPE",
-			"T_ACTIVITY",
-			"T_ACTIVITY_FIELDS_UI_PARAMETERS",
 			"T_NOTIFICATION",
-			"T_PERSON",
 			"T_DEPARTMENT",
 			"T_DEPARTMENT_MEMBERS",
 			"T_CALCULATED_FIELD_RESULT_TYPE_ID",
@@ -245,59 +224,7 @@ namespace Process_Export_Import
 			"T_PROCESS_OWNER",
 			"T_PROCESS_READER",
 			"T_ROLE",
-			"T_ROLE_MEMBERS",
 			"T_REPORT_GROUP",
-			"T_REPORT_GROUP_ADMINISTRATOR",
-			"T_REPORT_OWNERS",
-			"T_PROC_DESIGN_DRAW_PART_DETAIL",
-			"T_ROUTING_CONDITION",
-			"T_ROUTING_CONDITION_GROUP",
-			"T_ROUTING_DESIGN",
-			"T_FIELD_CONDITION",
-			"T_FIELD_DATE_CONSTRAINT",
-			"T_FIELD_EXTENSION_NUMBER",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS",
-			"T_FIELD_LABEL_TRANSLATION",
-			"T_FIELD_VALUE",
-			"T_ACTIVITY_DESIGN",
-			"T_ACTIVITY_FIELDS",
-			"T_ACTIVITY_FIELDS_FOR_ESIGNING",
-			"T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION",
-			"T_ACTIVITY_DEPENDENT_COMPONENTS",
-			"T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION",
-			"T_DYNAMIC_ROUTING",
-			"T_CALCFIELD_FORMULA_STEPS",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS",
-			"T_USER_DEFINED_TABLE",
-			"T_FORMULA_STEPS",
-			"T_OPERAND",
-			"T_PROCFIELD_PARTICIPANT",
-			"T_PROCFIELD_WORD_MERGE",
-			"T_PROCFIELD_WORD_MERGE_FIELD",
-			"T_REPORT_FIELD",
-			"T_REPORT",
-			"T_REPORT_2_FIELD_COND_GROUP",
-			"T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE",
-			"T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE",
-			"T_REPORT_EDIT_OWNER",
-			"T_REPORT_FIELD_UDT_COLUMNS",
-			"T_REPORT_FILTER",
-			"T_REPORT_REFERENCED_FIELD_LOCATION",
-			"T_SUBPROCESS",
-			"T_ACTIVITY_OWNER_BY_CONDITION",
-			"T_ACTIVITY_OWNER_BY_COND_PARTICIPANT",
-			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION",
-			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP",
-			"T_ACTIVITY_PARTICIPANT",
-			"T_ACTIVITY_UI_COMPONENT",
-			"T_AUTOMATIC_PROCESS"  ,
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY",
-			"T_FIELD_TO_FIELD_DEPENDENCY",
-			"T_FIELD_VALUE_TRANSLATION",
-			"T_CHART_TYPE",
-			"T_CHART_FIELD_TYPE",
-			"T_LANGUAGE",
-			"T_REPORT_TYPE",
 			"T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
 			"T_ACTIVITY_FINISH_STEP_MODE",
 			"T_ACTIVITY_PARTICIPANT_TYPE",
@@ -307,24 +234,92 @@ namespace Process_Export_Import
 			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
 
 		  };
-			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+			string[] tablesWithProcId = {
+			"T__CWP_LOG",
+			"T_ACTIVITY",
+			"T_ACTIVITY_FIELDS_UI_PARAMETERS",
+			"T_DB_CONNECTION",
+			"T_FIELD",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
+			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
+			"T_JOB",
+			"T_JOB_ACTIVITY_SUBPROCESS",
+			"T_JOB_DELETE_LOG",
+			"T_NOTIFICATION",
+			"T_PROCESS",
+			"T_PROCESS_OWNER",
+			"T_PROCESS_READER",
+			"T_PROCESS_SCHEDULE",
+			"T_PROCESS_TREE",
+			"T_PROCESS_WIZARD",
+			"T_REPORT",
+			"T_REPORT_FIELD",
+			"T_ROUTING",
+			"T_STARTPAGE_FILTER",
+			"T_SUBPROCESS",
+			"T_SUBSTITUTION_PROCESS_LEVEL",
+			"T_SYSTEM_INTERFACE",
+			};
+
+				Dictionary<string, string> columnTypes = new Dictionary<string, string>();
 				List<string> valuesInTable = new List<string>();
-				try
+				List<string> valuesInTableInServer = new List<string>();
+				Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
+				List<Tables_cwp> tableListInDbFile = new List<Tables_cwp>();
+				List<Tables_cwp> tableListInServer = new List<Tables_cwp>();
+
+			try
 				{
 					foreach (string tableName in allTableList)
 					{
-						Tables_cwp tempTableHodler = new Tables_cwp();
-						tempTableHodler.TableName = tableName;
-						tempTableHodler.rowCounter = getNumberOfRowsInDBFile(tableName);
-						columnTypes = getColumnTypesDictionary(tableName);
-						foreach (KeyValuePair<string, string> column in columnTypes)
+					//////////////////////////DB FILE////////////////////////////////////////
+					Tables_cwp tempTableHodler = new Tables_cwp();
+					tempTableHodler.TableName = tableName;
+					tempTableHodler.rowCounter = getNumberOfRowsInDBFile(tableName);
+					
+					/////////////////////////SQL SERVER/////////////////////////////////////////////
+					///
+	//				Tables_cwp tempTableHodlerFromServer = new Tables_cwp();
+	//				tempTableHodlerFromServer.TableName = tableName;
+	//				tempTableHodlerFromServer.rowCounter = getNumberOfRowsFromSQLServer(tableName);
+
+
+					columnTypes = getColumnTypesDictionary(tableName); //Nem jó mert szerverre csatlakozik
+
+					foreach (KeyValuePair<string, string> column in columnTypes)
 						{
 							tempTableHodler.ColumDataType.Add(column.Value);
 							tempTableHodler.ColumnName.Add(column.Key);
+
+				//			tempTableHodlerFromServer.ColumDataType.Add(column.Value);
+				//			tempTableHodlerFromServer.ColumnName.Add(column.Key);
 						}
+
 						valuesInTable = getValuesFromTable(tempTableHodler);
+/*
+					foreach (string procIdTable in tablesWithProcId)
+					{
+						if (procIdTable.Equals(tableName))
+						{
+							valuesInTableInServer = getValuesFromTablesWhichHasProcessIdInSQLServer(tempTableHodlerFromServer, 1022);
+						}
+						else
+						{
+						   valuesInTableInServer = getValuesFromTableInSQLServer(tempTableHodlerFromServer);
+
+						}
+
+					}
+					*/
+
+
 						tempTableHodler.Values = valuesInTable;
+					//	tempTableHodlerFromServer.Values = valuesInTableInServer;
+
+
 						tableListInDbFile.Add(tempTableHodler);
+					//	tableListInServer.Add(tempTableHodlerFromServer);
+
 
 					}
 				}
@@ -332,9 +327,14 @@ namespace Process_Export_Import
 				{
 					tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
 					tableListInDbFile.Add(tableInfoInImportDbT_Proc);
+
+				//	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+			//		tableListInServer.Add(tableInfoInImportDbT_Proc);
+
 					return tableListInDbFile;
 				}
-					return tableListInDbFile;
+
+			return tableListInDbFile;
 
 		}
 		public string executeInsert(string commandText)
@@ -493,7 +493,40 @@ namespace Process_Export_Import
 			// return 0;
 			//    return rowCount;
 		}
+		public string getNumberOfRowsFromSQLServer(string tableName)
+		{
 
+
+
+			int rowCount = 0;
+			string commandText = "SELECT count(*)  FROM  ";
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			SqlDataReader reader;
+			Tables_cwp tables = new Tables_cwp();
+			using (SqlConnection connection = new SqlConnection(connectionString))
+			{
+				SqlCommand command = new SqlCommand(commandText, connection);
+				try
+				{
+					connection.Open();
+					reader = command.ExecuteReader();
+					if (reader.Read())
+					{
+						rowCount = Convert.ToInt32(reader[0]);
+					}
+
+					//  return rowCount;
+
+				}
+				catch (Exception ex)
+				{
+					return ex.Message.ToString() + ex.StackTrace.ToString();
+				}
+				return rowCount.ToString();
+				// return 0;
+				//    return rowCount;
+			}
+		}
 
 		public List<string> getValuesFromTable(Tables_cwp table)
 		{
@@ -538,6 +571,102 @@ namespace Process_Export_Import
 			}
 			return valuesInTable;
 		}
+
+		public List<string> getValuesFromTableInSQLServer(Tables_cwp table)
+		{
+			List<string> valuesInTable = new List<string>();
+
+			string commandText = "SELECT *  FROM  ";
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			SqlDataReader reader;
+			SqlConnection connection = new SqlConnection(connectionString);
+			SqlCommand command = new SqlCommand(commandText, connection);
+
+			command.CommandText = commandText + table.TableName;
+
+			try
+			{
+
+				connection.Open();
+				reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					foreach (string colum in table.ColumnName)
+					{
+						List<string> TEMPvaluesInTable = new List<string>();
+
+						if (reader[colum] == "")
+						{
+							TEMPvaluesInTable.Add("null");
+							//  index++;
+						}
+						else
+						{
+							TEMPvaluesInTable.Add(reader[colum].ToString());
+						}
+						valuesInTable.AddRange(TEMPvaluesInTable);
+
+					}
+					//   if ((totalNumberOfRecord - 1) == index)
+					//   {
+					//     break;
+					//   }
+				}
+			}
+			catch (Exception ex)
+			{
+				valuesInTable.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			}
+			return valuesInTable;
+		}
+
+		public List<string> getValuesFromTablesWhichHasProcessIdInSQLServer(Tables_cwp table, int process_id)
+		{
+			List<string> valuesInTable = new List<string>();
+
+			string commandText = "SELECT *  FROM  ";
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			SqlDataReader reader;
+			SqlConnection connection = new SqlConnection(connectionString);
+			SqlCommand command = new SqlCommand(commandText, connection);
+			command.CommandText = commandText + table.TableName + " where process_id = " + process_id;
+
+			try
+			{
+
+				connection.Open();
+				reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					foreach (string colum in table.ColumnName)
+					{
+						List<string> TEMPvaluesInTable = new List<string>();
+
+						if (reader[colum] == "")
+						{
+							TEMPvaluesInTable.Add("null");
+							//  index++;
+						}
+						else
+						{
+							TEMPvaluesInTable.Add(reader[colum].ToString());
+						}
+						valuesInTable.AddRange(TEMPvaluesInTable);
+
+					}
+					//   if ((totalNumberOfRecord - 1) == index)
+					//   {
+					//     break;
+					//   }
+				}
+			}
+			catch (Exception ex)
+			{
+				valuesInTable.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			}
+			return valuesInTable;
+		}
+
 		public Dictionary<string, string> getValuesFromTableInDbFile(string tableName)
 		{
 			

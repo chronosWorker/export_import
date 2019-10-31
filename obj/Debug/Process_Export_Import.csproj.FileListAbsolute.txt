@@ -77,8 +77,6 @@ D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.dll
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.pdb
 D:\Chronos\git_repos\exp_imp_repo\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
-C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.EF6.dll
-C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.xml
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.dll.config
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.pdb
@@ -86,10 +84,13 @@ C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\EntityFramework.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\EntityFramework.SqlServer.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Microsoft.Web.Infrastructure.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.dll
+C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.EF6.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.Linq.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\EntityFramework.xml
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\EntityFramework.SqlServer.xml
+C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\System.Data.SQLite.xml
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.csproj.CoreCompileInputs.cache
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.csproj.CopyComplete
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.pdb
+C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
