@@ -160,25 +160,55 @@ namespace Process_Export_Import
 		{
 
 			List<string> insertResultInfo = new List<string>();
-			List<string> tableInfoInDBFile = tableInfoListFromDBFile();
-			List<string> tableInfoInSQLServer = tableInfoListFromSQLServer();
-			List<string> comparingDBStructuresInfo = compareTwoStringList(tableInfoInDBFile, tableInfoInSQLServer);
-			insertResultInfo.AddRange(comparingDBStructuresInfo);
-			try
-			{
-				insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_DEPARTMENT", true));
-			}
-			catch (Exception ex)
-			{
+			List<string> dBStructureDifferencesList = new List<string>();
+			bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences());
 
-				insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-				return insertResultInfo;
+			if (isTheDBStructuresAreTheSame)
+			{
+				try
+				{
+					insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_DEPARTMENT", true));
+				}
+				catch (Exception ex)
+				{
+					insertResultInfo.AddRange(checkingDBStructureDifferences());
+					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+					return insertResultInfo;
+				}
 			}
+			insertResultInfo.AddRange(checkingDBStructureDifferences());
 			return insertResultInfo;
 
 
 		}
+		public List<string> checkingDBStructureDifferences()
+		{
+			List<string> comparingDBStructuresInfo = new List<string>();
+			List<string> tableInfoInDBFile = new List<string>();
+			List<string> tableInfoInSQLServer = new List<string>();
+			try
+			{
+			   tableInfoInDBFile.AddRange(tableInfoListFromDBFile());
+			   tableInfoInSQLServer.AddRange(tableInfoListFromSQLServer());
+			   comparingDBStructuresInfo.AddRange(compareTwoStringList(tableInfoInDBFile, tableInfoInSQLServer));
+			}
+			catch (Exception ex)
+			{
+				comparingDBStructuresInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return comparingDBStructuresInfo;
+			}
+			return comparingDBStructuresInfo;
+		}
+		public bool verifyThatDBStructuresAreTheSame(List<string> inputList)
+		{
+			bool theDbStructuresAreTheSame = false;
+			if (inputList.Contains("No Difference Spotted"))
+			{
+				theDbStructuresAreTheSame = true;
+			}
+			return theDbStructuresAreTheSame;
 
+		}
 		public List<string> compareTwoStringList(List<string> dbFile, List<string> sqlServer)
 		{
 			List<string> resultInfo = new List<string>();
