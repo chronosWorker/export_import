@@ -21,32 +21,33 @@ namespace Process_Export_Import
 	[AspNetCompatibilityRequirements(RequirementsMode = AspNetCompatibilityRequirementsMode.Allowed)]
 
 	public class Process_Export_Import
-  {
+	{
 
 
-	private List<ProcessListItem> processes = new List<ProcessListItem>();
-	private List<TableNameAndCondition> tables = new List<TableNameAndCondition>();
-	private List<long> fieldsForProcess = new List<long>();
-	private List<long> operands = new List<long>();
-	private List<long> udts = new List<long>();
-	private List<ReportListItem> reports = new List<ReportListItem>();
-	private List<long> t_report_calculated_field_formula_tree_nodes = new List<long>();
-	private List<long> reportFields = new List<long>();
-	private List<long> udtReportFields = new List<long>();
-	private List<long> activities = new List<long>();
-	private List<long> activityOwnerByCondition = new List<long>();
-	
-	string connStrSQLite;
-	SQLiteConnection connSqlite ;
-	string sqliteDbPath;
+		private List<ProcessListItem> processes = new List<ProcessListItem>();
+		private List<TableNameAndCondition> tables = new List<TableNameAndCondition>();
+		private List<long> fieldsForProcess = new List<long>();
+		private List<long> operands = new List<long>();
+		private List<long> udts = new List<long>();
+		private List<ReportListItem> reports = new List<ReportListItem>();
+		private List<long> t_report_calculated_field_formula_tree_nodes = new List<long>();
+		private List<long> reportFields = new List<long>();
+		private List<long> udtReportFields = new List<long>();
+		private List<long> activities = new List<long>();
+		private List<long> activityOwnerByCondition = new List<long>();
 
-	public Process_Export_Import() {
-	 ServiceCallResult res =  new ServiceCallResult { Code = 0, Description = "OK" };
-	 connSqlite = new SQLiteConnection();
-	  
-	}
+		string connStrSQLite;
+		SQLiteConnection connSqlite;
+		string sqliteDbPath;
 
-	
+		public Process_Export_Import()
+		{
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			connSqlite = new SQLiteConnection();
+
+		}
+
+
 
 
 		[DataContract]
@@ -75,7 +76,7 @@ namespace Process_Export_Import
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			res = getSqlitePath(processId);
 			sqliteDbPath = res.Description;
-			bool processIdExistInLocalDb = CheckIfProcessExistInDatabase(processId) ; 
+			bool processIdExistInLocalDb = CheckIfProcessExistInDatabase(processId);
 			connSqlite.ConnectionString = string.Format("Data Source={0} ;Version=3;", res.Description);
 			res = createDatabaseAndTables(processId);
 			if (res.Code != 0)
@@ -98,7 +99,8 @@ namespace Process_Export_Import
 					}
 				}
 
-				if (processIdExistInLocalDb) {
+				if (processIdExistInLocalDb)
+				{
 
 					res.Description = "MAXiD:" + detectMaxProcessId() + ".";
 
@@ -117,11 +119,12 @@ namespace Process_Export_Import
 
 		}
 
-	public ServiceCallResult Import_Process_teszt(string name) {
-	 string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
-	 string strSQL = "SELECT count(*) from T_PROCESS WHERE   Name = @parameter ";
-	 bool processNameFound = false;
-			ServiceCallResult res = new ServiceCallResult {Code=0,Description="OK" };
+		public ServiceCallResult Import_Process_teszt(string name)
+		{
+			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
+			string strSQL = "SELECT count(*) from T_PROCESS WHERE   Name = @parameter ";
+			bool processNameFound = false;
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			using (SqlConnection connection = new SqlConnection(connstrRe))
 			{
 				SqlCommand command = new SqlCommand(strSQL, connection);
@@ -132,10 +135,10 @@ namespace Process_Export_Import
 					SqlDataReader reader;
 					reader = command.ExecuteReader();
 					reader.Read();
-				if ((int)reader[0] == 1)
-				{
-					processNameFound = true;
-				}
+					if ((int)reader[0] == 1)
+					{
+						processNameFound = true;
+					}
 
 					reader.Close();
 				}
@@ -147,168 +150,187 @@ namespace Process_Export_Import
 			res.Description = "van ilyen?" + processNameFound.ToString();
 
 			return res;
-		   
-	}
+
+		}
 		[OperationContract]
-	//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
+		//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
 
-	/*	public Dictionary<string, string> Import_Process()
-		{
-			List<Tables_cwp> tableInfoInTargetDb = new List<Tables_cwp>();
-			List<Tables_cwp> tableInfoInImportDb = new List<Tables_cwp>();
-			Dictionary<string, string> exception = new Dictionary<string, string>();
-			Dictionary<string, string> isEqualResult = new Dictionary<string, string>();
-			Dictionary<string, string> difference = new Dictionary<string, string>();
-			Dictionary<string, string> Differences =  new Dictionary<string, string>();
-			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-			Dictionary<string, string> values = new Dictionary<string, string>();
-			string importDbInformations;
-			string targetDbInformations;
-			string processName = "";
-			string insert = "";
-			int process_id_in_tartger_db;
-			tableInfoInImportDb = checkTableInfoInDbFile();
-			tableInfoInTargetDb = checkTableInfoInTargetDb();
-
-			try
-			{
-				Differences = compareTwoObjectsAndGetDifferences(tableInfoInImportDb, tableInfoInTargetDb);
-				if (Differences.ContainsKey("No Difference Spotted"))
-				{
-					processName = detectProcessNameFromDbFile();
-					Differences.Add("processName:", processName);
-					process_id_in_tartger_db = detectProcessIdIfProcessExistInTargetDb(processName);
-					if (process_id_in_tartger_db != 1 || process_id_in_tartger_db != 0)
-					{
-						Differences.Add("process_id_in_target_db:", process_id_in_tartger_db.ToString());
-					}
-
-				}
-				values = getValuesFromTableInDbFile("T_ACTIVITY");
-				string[] valueArray = new string[values.Count];
-				for (int i = 0; i < values.Count; i++)
-				{
-					valueArray[i] = values.ElementAt(i).Value;
-
-				}
-
-				string insert_cmd_txt = insertIntoTargetDb("T_ACTIVITY", valueArray, true);
-				Differences.Add("command_txt", insert_cmd_txt);
-				insert = executeInsert(insert_cmd_txt);
-				Differences.Add("insert", insert.ToString());
-			}
-			catch(Exception ex)
-			{
-				exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
-				Differences.Add("exception", ex.Message.ToString() + ex.StackTrace.ToString());
-
-				return exception;
-			}
-		
-			return Differences;
-
-		}*/
 
 		public List<string> Import_Process()
 		{
 
-            // elöször t-process tábla kézzel 
+			List<string> insertResultInfo = new List<string>();
+			List<string> tableInfoInDBFile = tableInfoListFromDBFile();
+			List<string> tableInfoInSQLServer = tableInfoListFromSQLServer();
+			List<string> comparingDBStructuresInfo = compareTwoStringList(tableInfoInDBFile, tableInfoInSQLServer);
+			insertResultInfo.AddRange(comparingDBStructuresInfo);
+			try
+			{
+				insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_DEPARTMENT", true));
+			}
+			catch (Exception ex)
+			{
 
-            /*	string[] allTableList = {
-                "T_PROCESS",
-                "T_NOTIFICATION",
-                "T_DEPARTMENT",
-                "T_DEPARTMENT_MEMBERS",
-                "T_CALCULATED_FIELD_RESULT_TYPE_ID",
-                "T_CATEGORY",
-                "T_PROCESS_OWNER",
-                "T_PROCESS_READER",
-                "T_ROLE",
-                "T_REPORT_GROUP",
-                "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
-                "T_ACTIVITY_FINISH_STEP_MODE",
-                "T_ACTIVITY_PARTICIPANT_TYPE",
-                "T_CALCULATED_FIELD_CONSTANT_TYPE",
-                "T_COMPARE_OPERATION",
-                "T_DB_CONNECTION",
-                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
-
-              };
-                string[] tablesWithProcId = {
-                "T__CWP_LOG",
-                "T_ACTIVITY",
-                "T_ACTIVITY_FIELDS_UI_PARAMETERS",
-                "T_DB_CONNECTION",
-                "T_FIELD",
-                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
-                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
-                "T_JOB",
-                "T_JOB_ACTIVITY_SUBPROCESS",
-                "T_JOB_DELETE_LOG",
-                "T_NOTIFICATION",
-                "T_PROCESS",
-                "T_PROCESS_OWNER",
-                "T_PROCESS_READER",
-                "T_PROCESS_SCHEDULE",
-                "T_PROCESS_TREE",
-                "T_PROCESS_WIZARD",
-                "T_REPORT",
-                "T_REPORT_FIELD",
-                "T_ROUTING",
-                "T_STARTPAGE_FILTER",
-                "T_SUBPROCESS",
-                "T_SUBSTITUTION_PROCESS_LEVEL",
-                "T_SYSTEM_INTERFACE",
-                };*/
+				insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return insertResultInfo;
+			}
+			return insertResultInfo;
 
 
-            List<string> tableInfoInDBFile = tableInfoListFromDBFile();
-            List<string> tableInfoInSQLServer = tableInfoListFromSQLServer();
-            int tableInfoInDBFileLength = tableInfoInDBFile.Count;
-            int tableInfoInSQLsERVERLength = tableInfoInSQLServer.Count; 
-            List<string> resultInfo = new List<string>();
-            if (tableInfoInDBFileLength == tableInfoInSQLsERVERLength)
-            {
-                resultInfo.Add("No Difference Spotted    " + tableInfoInSQLsERVERLength.ToString() + "    " + tableInfoInDBFileLength.ToString());
+		}
 
-            }
-            else if (tableInfoInDBFileLength < tableInfoInSQLsERVERLength)
-            {
-               
-              //  resultInfo.Add(tableInfoInSQLServer.Except(tableInfoInDBFile));
-                resultInfo.AddRange(tableInfoInSQLServer.Except(tableInfoInDBFile));
-            }
-            else
-            {
-                resultInfo.AddRange(tableInfoInDBFile.Except(tableInfoInSQLServer));
-            }
-                
+		public List<string> compareTwoStringList(List<string> dbFile, List<string> sqlServer)
+		{
+			List<string> resultInfo = new List<string>();
+			int firstListLength = dbFile.Count;
+			int secondListLength = sqlServer.Count;
+			resultInfo.Add("Comparing The DB File And The Sql Server Result : ");
 
-            
-            //   List<string> valuesInTableInServer = new List<string>();
-
-
-            try
+			try
+			{
+				if (firstListLength == secondListLength)
 				{
-		
+					resultInfo.Add("No Difference Spotted");
 				}
-				catch (Exception ex)
+				else if (firstListLength > secondListLength)
 				{
-                //	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-                //	tableListInDbFile.Add(tableInfoInImportDbT_Proc);
-
-                //	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-                //		tableListInServer.Add(tableInfoInImportDbT_Proc);
-                // tableInfoInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-               
-                resultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-                    return resultInfo;
+					resultInfo.Add("The DB File Has More Column's");
+					resultInfo.AddRange(dbFile.Except(sqlServer));
 				}
+				else
+				{
+					resultInfo.Add("The SQL Server Has More Column's");
+					resultInfo.AddRange(sqlServer.Except(dbFile));
+				}
+
+			}
+			catch (Exception ex)
+			{
+				resultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return resultInfo;
+			}
 
 			return resultInfo;
-            
+		}
 
-        }
+		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn)
+		{
+			List<string> insertresultInfo = new List<string>();
+		
+			List<string> columnNamesInDbFile = new List<string>();
+			List<string> values = new List<string>();
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+			ConnectionManager connectionManager = new ConnectionManager();
+			string commandText = "INSERT INTO " + tableName + "  ( ";
+			try
+			{
+				connectionManager.openSqlServerConnection();
+				connectionManager.openSqLiteConnection();
+				columnTypes = getColumnTypesDictionary(tableName);
+
+				var reader = connectionManager.sqLiteDataReader("SELECT * FROM " + tableName);
+
+				for (var index = 0; index < columnTypes.Count; index++)
+				{
+					if (index == columnTypes.Count - 1)
+					{
+						commandText += columnTypes.ElementAt(index).Key;
+					}
+					else
+					{
+						commandText += columnTypes.ElementAt(index).Key + " ,";
+					}
+					columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
+				}
+
+
+				while (reader.Read())
+				{
+					for (var index = 0; index < columnTypes.Count; index++)
+					{
+						switch (columnTypes.ElementAt(index).Value)
+						{
+							case "NULL":
+								values.Add("0");
+								break;
+							case "binary":
+							case "varbinary":
+							case "image":
+							case "DateTime":
+							case "nvarchar":
+								values.Add("'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'");
+								break;
+
+							default:
+								values.Add(reader[columnTypes.ElementAt(index).Key.ToString()].ToString());
+								break;
+						}
+
+					}
+				}
+				int fieldCount = reader.FieldCount;
+
+				commandText += ") Values (";
+				for (var index = 0; index < values.Count; index++)
+				{
+					if ((index % fieldCount) == 0 && index != 0)
+					{
+						commandText += ") , (" + values[index].ToString() + ",";
+					}
+
+					else
+					{
+
+						if (values[index].ToString() == "")
+						{
+							if (index == values.Count - 1 || (index % fieldCount) == (fieldCount - 1))
+							{
+								commandText += "NULL";
+							}
+							else
+							{
+								commandText += "NULL ,";
+
+							}
+
+						}
+						else
+						{
+
+							if (index == values.Count - 1 && (index % fieldCount) != 0)
+							{
+								commandText += values[index].ToString();
+							}
+							else
+							{
+								commandText += values[index].ToString() + ",";
+							}
+						}
+					}
+				}
+				commandText += ")";
+				insertresultInfo.Add("Insert for the table: " + tableName + " has " + values.Count.ToString() +" values ");
+				insertresultInfo.Add("commandText: " + commandText);
+				insertresultInfo.Add(tableName + " has " + fieldCount.ToString() + " column's ");
+				if (needToSetIdentityInsertOn)
+				{
+					connectionManager.executeQueriesInSqlServer("SET IDENTITY_INSERT T_DEPARTMENT ON ;" + commandText);
+				}
+				else
+				{
+					connectionManager.executeQueriesInSqlServer(commandText);
+
+				}
+
+				insertresultInfo.Add(commandText);
+			}
+			catch (Exception ex)
+			{
+				insertresultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return insertresultInfo;
+			}
+			return insertresultInfo;
+		}
 		public string executeInsert(string commandText)
 		{
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
@@ -326,79 +348,79 @@ namespace Process_Export_Import
 			}
 			return "1";
 		}
-        public List<string> tableInfoListFromDBFile()
-        {
-            Tables_cwp table_info = new Tables_cwp();
-            string[] tableNames = table_info.getCWPTableList();
-            string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
-            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-            SQLiteCommand command = new SQLiteCommand(connSqlite);
-            List<string> tableInformationInDBFile = new List<string>();
-            for (int i = 0; i < tableNames.Length-1; i++)
-            {
-                commandText += "'" + tableNames[i] + "',";
-            }
-             commandText += "'" + tableNames[tableNames.Length-1] + "' )";
-             command.CommandText = commandText;
-             connSqlite.Open();
-             SQLiteDataReader sqReader = command.ExecuteReader();
-             try
-             {
-                 while (sqReader.Read())
-                 {
-                     string info = "table_name: " + sqReader["table_name"].ToString() + " column_name: " + sqReader["column_name"].ToString() + " data_type: " + sqReader["data_type"].ToString();
-                     tableInformationInDBFile.Add(info);
-                 }
+		public List<string> tableInfoListFromDBFile()
+		{
+			Tables_cwp table_info = new Tables_cwp();
+			string[] tableNames = table_info.getCWPTableList();
+			string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
+			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+			SQLiteCommand command = new SQLiteCommand(connSqlite);
+			List<string> tableInformationInDBFile = new List<string>();
+			for (int i = 0; i < tableNames.Length - 1; i++)
+			{
+				commandText += "'" + tableNames[i] + "',";
+			}
+			commandText += "'" + tableNames[tableNames.Length - 1] + "' )";
+			command.CommandText = commandText;
+			connSqlite.Open();
+			SQLiteDataReader sqReader = command.ExecuteReader();
+			try
+			{
+				while (sqReader.Read())
+				{
+					string info = "table_name: " + sqReader["table_name"].ToString() + " column_name: " + sqReader["column_name"].ToString() + " data_type: " + sqReader["data_type"].ToString();
+					tableInformationInDBFile.Add(info);
+				}
 
-             }
-             catch (Exception ex)
-             {
-                     tableInformationInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-                     return tableInformationInDBFile;
-             }
-            return tableInformationInDBFile;
+			}
+			catch (Exception ex)
+			{
+				tableInformationInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return tableInformationInDBFile;
+			}
+			return tableInformationInDBFile;
 
-        }
+		}
 
-        public List<string> tableInfoListFromSQLServer()
-        {
-            Tables_cwp table_info = new Tables_cwp();
-            string[] tableNames = table_info.getCWPTableList();
-            string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
-            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-            SqlConnection connection = new SqlConnection(connectionString);
-            SqlCommand command = new SqlCommand(commandTxt, connection);
-            List<string> tableInfoInSQLServer = new List<string>();
-            SqlDataReader reader;
-            for (int i = 0; i < tableNames.Length - 1; i++)
-            {
-                commandTxt += "'" + tableNames[i] + "',";
+		public List<string> tableInfoListFromSQLServer()
+		{
+			Tables_cwp table_info = new Tables_cwp();
+			string[] tableNames = table_info.getCWPTableList();
+			string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			SqlConnection connection = new SqlConnection(connectionString);
+			SqlCommand command = new SqlCommand(commandTxt, connection);
+			List<string> tableInfoInSQLServer = new List<string>();
+			SqlDataReader reader;
+			for (int i = 0; i < tableNames.Length - 1; i++)
+			{
+				commandTxt += "'" + tableNames[i] + "',";
 
-            }
-           // commandTxt += "' )";
-              commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
-            command.CommandText = commandTxt;
-            connection.Open();
-            reader = command.ExecuteReader();
-            try
-            {
-                while (reader.Read())
-                {
-                    string info = "table_name: " + reader["table_name"].ToString() + " column_name: " + reader["column_name"].ToString() + " data_type: " + reader["data_type"].ToString();
-                    tableInfoInSQLServer.Add(info);
-                }
+			}
+			// commandTxt += "' )";
+			commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
+			command.CommandText = commandTxt;
+			connection.Open();
+			reader = command.ExecuteReader();
+			try
+			{
+				while (reader.Read())
+				{
+					string info = "table_name: " + reader["table_name"].ToString() + " column_name: " + reader["column_name"].ToString() + " data_type: " + reader["data_type"].ToString();
+					tableInfoInSQLServer.Add(info);
+				}
 
-            }
-            catch (Exception ex)
-            {
-                tableInfoInSQLServer.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-                return tableInfoInSQLServer;
-            }
-            return tableInfoInSQLServer;
-        }
+			}
+			catch (Exception ex)
+			{
+				tableInfoInSQLServer.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+				return tableInfoInSQLServer;
+			}
+			return tableInfoInSQLServer;
+		}
 
-        public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
+		public string insertIntoTargetDb(string tableName, string[] values, bool requireIdentityInsert)
 		{
 			string commandTxt = "";
 			if (requireIdentityInsert)
@@ -411,7 +433,7 @@ namespace Process_Export_Import
 			SqlConnection connection = new SqlConnection(connectionString);
 			SqlCommand command = new SqlCommand(commandTxt, connection);
 			SqlDataReader reader;
-			 
+
 			try
 			{
 				columnTypes = getColumnTypesDictionary(tableName);
@@ -428,11 +450,11 @@ namespace Process_Export_Import
 							{
 								if (i == columnTypes.Count - 1)
 								{
-									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString()) ;
+									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString());
 								}
 								else
 								{
-									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString()) + ", "; 
+									commandTxt += string.Join(",", columnTypes.ElementAt(i).Key.ToString()) + ", ";
 								}
 								break;
 							}
@@ -441,8 +463,9 @@ namespace Process_Export_Import
 				commandTxt += " )  Values ( ";
 				for (int i = 0; i < values.Length; i++)
 				{
-					if (i == values.Length - 1) {
-						commandTxt += string.Join(", ", values[i]) ;
+					if (i == values.Length - 1)
+					{
+						commandTxt += string.Join(", ", values[i]);
 
 					}
 					else
@@ -461,14 +484,14 @@ namespace Process_Export_Import
 				return commandTxt;
 			}
 
-				return commandTxt.Trim();
-			
+			return commandTxt.Trim();
+
 
 		}
 
 		public Dictionary<string, string> writeDbFileContentToTargetDb(string tableName)
 		{
-			Dictionary<string, string> columnTypes = new Dictionary<string, string>(); 
+			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
 			columnTypes = getColumnTypesDictionary(tableName);
 			string commandText = "SELECT * from @paramater";
 			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
@@ -479,7 +502,7 @@ namespace Process_Export_Import
 
 
 		}
-		public string getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName,int processId)
+		public string getNumberOfRowsWhereFKIsProcessIdInDBFile(string tableName, int processId)
 		{
 			int rowCount = 2;
 			string commandText = "SELECT count(*)  FROM  ";
@@ -491,20 +514,20 @@ namespace Process_Export_Import
 			SQLiteDataReader sqReader = command.ExecuteReader();
 			try
 			{
-				if(sqReader.Read())
+				if (sqReader.Read())
 				{
-					rowCount = Convert.ToInt32(sqReader[0]); 
+					rowCount = Convert.ToInt32(sqReader[0]);
 				}
-				
-			  //  return rowCount;
-				
+
+				//  return rowCount;
+
 			}
 			catch (Exception ex)
 			{
-				return  ex.Message.ToString() + ex.StackTrace.ToString();
+				return ex.Message.ToString() + ex.StackTrace.ToString();
 			}
 			return rowCount.ToString();
-		   // return 0;
+			// return 0;
 			//    return rowCount;
 		}
 
@@ -515,7 +538,7 @@ namespace Process_Export_Import
 			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
 			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
 			SQLiteCommand command = new SQLiteCommand(connSqlite);
-			command.CommandText = commandText + tableName ;
+			command.CommandText = commandText + tableName;
 			connSqlite.Open();
 			SQLiteDataReader sqReader = command.ExecuteReader();
 			try
@@ -588,24 +611,24 @@ namespace Process_Export_Import
 				{
 					foreach (string colum in table.ColumnName)
 					{
-					List<string> TEMPvaluesInTable = new List<string>();
+						List<string> TEMPvaluesInTable = new List<string>();
 
 						if (sqReader[colum] == "")
 						{
-							TEMPvaluesInTable.Add("null"); 
-						  //  index++;
+							TEMPvaluesInTable.Add("null");
+							//  index++;
 						}
 						else
 						{
 							TEMPvaluesInTable.Add(sqReader[colum].ToString());
 						}
 						valuesInTable.AddRange(TEMPvaluesInTable);
-						
+
 					}
-				 //   if ((totalNumberOfRecord - 1) == index)
-				 //   {
-						//     break;
-				 //   }
+					//   if ((totalNumberOfRecord - 1) == index)
+					//   {
+					//     break;
+					//   }
 				}
 			}
 			catch (Exception ex)
@@ -712,8 +735,8 @@ namespace Process_Export_Import
 
 		public Dictionary<string, string> getValuesFromTableInDbFile(string tableName)
 		{
-			
-			string commandText = "SELECT *  FROM  "; 
+
+			string commandText = "SELECT *  FROM  ";
 			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
 			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
 			SQLiteCommand command = new SQLiteCommand(connSqlite);
@@ -724,40 +747,40 @@ namespace Process_Export_Import
 			string alma = "alma";
 			connSqlite.Open();
 			SQLiteDataReader sqReader = command.ExecuteReader();
-				while (sqReader.Read())
+			while (sqReader.Read())
+			{
+				for (int i = 0; i < columnTypes.Count; i++)
 				{
-					for (int i = 0; i < columnTypes.Count; i++)
+					string columnName = columnTypes.ElementAt(i).Key.ToString();
+					if (columnTypes.ElementAt(i).Key.ToString() == "Process_ID")
 					{
-						string columnName = columnTypes.ElementAt(i).Key.ToString();
-						if (columnTypes.ElementAt(i).Key.ToString() == "Process_ID")
-						{
-							valueDictionary.Add(columnName, "1224");
-						}
-						else if(sqReader[columnName] == "")
-						{
-							valueDictionary.Add(columnName, "null");
-						}
-
-						else if(columnTypes.ElementAt(i).Value == "varchar" || columnTypes.ElementAt(i).Value == "nvarchar" || columnTypes.ElementAt(i).Value == "bit")
-						{
-							valueDictionary.Add(columnName, "'" + sqReader[columnName].ToString() + "'");
-						}
-
-						else
-						{
-							valueDictionary.Add(columnName, sqReader[columnName].ToString());
-						}
-
+						valueDictionary.Add(columnName, "1224");
 					}
+					else if (sqReader[columnName] == "")
+					{
+						valueDictionary.Add(columnName, "null");
+					}
+
+					else if (columnTypes.ElementAt(i).Value == "varchar" || columnTypes.ElementAt(i).Value == "nvarchar" || columnTypes.ElementAt(i).Value == "bit")
+					{
+						valueDictionary.Add(columnName, "'" + sqReader[columnName].ToString() + "'");
+					}
+
+					else
+					{
+						valueDictionary.Add(columnName, sqReader[columnName].ToString());
+					}
+
 				}
-				sqReader.Close();	
-			 return valueDictionary;
+			}
+			sqReader.Close();
+			return valueDictionary;
 		}
 
 
 		public Dictionary<string, string> compareTwoObjectsAndGetDifferences(List<Tables_cwp> A, List<Tables_cwp> B)
 		{
-			int firstObjectLength  = A.Count;
+			int firstObjectLength = A.Count;
 			int secondObjectLength = B.Count;
 			Dictionary<string, string> Error = new Dictionary<string, string>();
 			Dictionary<string, string> Difference = new Dictionary<string, string>();
@@ -777,7 +800,7 @@ namespace Process_Export_Import
 					{
 						Difference.Add("Difference Spotted ", SortedListA[i].TableName.ToString());
 					}
-					
+
 				}
 				if (Difference.Count == 0)
 				{
@@ -865,9 +888,9 @@ namespace Process_Export_Import
 			return tableObjectList;
 
 		}*/
-		public string  detectProcessNameFromDbFile()
+		public string detectProcessNameFromDbFile()
 		{
-	
+
 			string commandText = "SELECT NAME FROM T_PROCESS ";
 			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
 			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
@@ -876,7 +899,7 @@ namespace Process_Export_Import
 			string exception;
 			try
 			{
-				
+
 				command.CommandText = commandText;
 				connSqlite.Open();
 				SQLiteDataReader sqReader = command.ExecuteReader();
@@ -901,74 +924,74 @@ namespace Process_Export_Import
 
 		}
 
-	public List<Tables_cwp> checkTableInfoInTargetDb()
-	{
-		string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-		string commandTxt = "SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME in ( {0})";
-
-		SqlDataReader reader;
-		Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
-		Dictionary<string, string> exception = new Dictionary<string, string>();
-		Tables_cwp dbInformationForEachTables = new Tables_cwp();
-		string columnName = "";
-		string dataType = "";
-		Tables_cwp tables = new Tables_cwp();
-			string[] tableList = new string[1] { "T_PROCESS" };
-		var tableParameterList = new List<string>();
-		var index = 0;
-		List<Tables_cwp> tableObjectList = new List<Tables_cwp>();
-		using (SqlConnection connection = new SqlConnection(connectionString))
+		public List<Tables_cwp> checkTableInfoInTargetDb()
 		{
-			SqlCommand command = new SqlCommand(commandTxt, connection);
-			try
+			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+			string commandTxt = "SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME in ( {0})";
+
+			SqlDataReader reader;
+			Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
+			Dictionary<string, string> exception = new Dictionary<string, string>();
+			Tables_cwp dbInformationForEachTables = new Tables_cwp();
+			string columnName = "";
+			string dataType = "";
+			Tables_cwp tables = new Tables_cwp();
+			string[] tableList = new string[1] { "T_PROCESS" };
+			var tableParameterList = new List<string>();
+			var index = 0;
+			List<Tables_cwp> tableObjectList = new List<Tables_cwp>();
+			using (SqlConnection connection = new SqlConnection(connectionString))
 			{
-			
-				foreach (string table in tableList)
+				SqlCommand command = new SqlCommand(commandTxt, connection);
+				try
 				{
-					var paramName = "@parameter" + index;
-					command.Parameters.AddWithValue(paramName, table);
-					tableParameterList.Add(paramName);
-					index++;
 
-					Tables_cwp tableObject = new Tables_cwp();
+					foreach (string table in tableList)
+					{
+						var paramName = "@parameter" + index;
+						command.Parameters.AddWithValue(paramName, table);
+						tableParameterList.Add(paramName);
+						index++;
 
-					tableObject.TableName = table;
-					tableObjectList.Add(tableObject);
+						Tables_cwp tableObject = new Tables_cwp();
+
+						tableObject.TableName = table;
+						tableObjectList.Add(tableObject);
+					}
+					command.CommandText = String.Format(commandTxt, string.Join(",", tableParameterList));
+					connection.Open();
+					reader = command.ExecuteReader();
+
+					while (reader.Read())
+					{
+						for (var i = 0; i < tableObjectList.Count; i++)
+						{
+							if (tableObjectList[i].TableName.Equals(reader["TABLE_NAME"].ToString()))
+							{
+								tableObjectList[i].ColumDataType.Add(reader["DATA_TYPE"].ToString());
+								tableObjectList[i].ColumnName.Add(reader["COLUMN_NAME"].ToString());
+								break;
+							}
+						}
+
+					}
+					reader.Close();
 				}
-				command.CommandText = String.Format(commandTxt, string.Join(",", tableParameterList));
-				connection.Open();
-				reader = command.ExecuteReader();
-					
-				while (reader.Read())
+				catch (Exception ex)
 				{
+					exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
 					for (var i = 0; i < tableObjectList.Count; i++)
 					{
-						if (tableObjectList[i].TableName.Equals(reader["TABLE_NAME"].ToString()))
-						{
-							tableObjectList[i].ColumDataType.Add(reader["DATA_TYPE"].ToString());
-							tableObjectList[i].ColumnName.Add(reader["COLUMN_NAME"].ToString());
-							break;
-						}
+						tableObjectList[i].Exception = ex.Message.ToString() + ex.StackTrace.ToString();
 					}
-			
-				}
-				reader.Close();
-			}
-			catch (Exception ex)
-			{
-				exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
-				for (var i = 0; i < tableObjectList.Count; i++)
-				{
-					tableObjectList[i].Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+
+					return tableObjectList;
+
 				}
 
 				return tableObjectList;
-
 			}
-
-			return tableObjectList;
 		}
-	}
 
 		public int detectProcessIdIfProcessExistInTargetDb(string ProcessName)
 		{
@@ -1044,35 +1067,36 @@ namespace Process_Export_Import
 		}
 
 		public bool CheckIfProcessExistInDatabase(Int64 process_Id)
-	{
-		string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
-		string strSQL = "SELECT  count(*) from T_PROCESS where Process_ID = @processId";
-		bool processIdFound = false;
-		ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-		using (SqlConnection connection = new SqlConnection(connstrRe))
 		{
-		   SqlCommand command = new SqlCommand(strSQL, connection);
-		   command.Parameters.AddWithValue("@processId", process_Id);
-			try
+			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
+			string strSQL = "SELECT  count(*) from T_PROCESS where Process_ID = @processId";
+			bool processIdFound = false;
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			using (SqlConnection connection = new SqlConnection(connstrRe))
 			{
-				connection.Open();
-				SqlDataReader reader;
-				reader = command.ExecuteReader();
-				reader.Read();
-					if ((int)reader[0] == 1) {
+				SqlCommand command = new SqlCommand(strSQL, connection);
+				command.Parameters.AddWithValue("@processId", process_Id);
+				try
+				{
+					connection.Open();
+					SqlDataReader reader;
+					reader = command.ExecuteReader();
+					reader.Read();
+					if ((int)reader[0] == 1)
+					{
 						processIdFound = true;
 					}
-				reader.Close();
-					
-			}
-			catch (Exception ex)
-			{
-				res = FillServiceCallResult(ex);
-			}
-		}
-		return processIdFound;
+					reader.Close();
 
-	}
+				}
+				catch (Exception ex)
+				{
+					res = FillServiceCallResult(ex);
+				}
+			}
+			return processIdFound;
+
+		}
 
 
 
@@ -1080,7 +1104,7 @@ namespace Process_Export_Import
 		{
 			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
 			string strSQL = "SELECT MAX(Process_ID) from T_PROCESS;";
-			int maxProcessId ;
+			int maxProcessId;
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			using (SqlConnection connection = new SqlConnection(connstrRe))
 			{
@@ -1098,7 +1122,7 @@ namespace Process_Export_Import
 				}
 				catch (Exception ex)
 				{
-				   
+
 
 				}
 			}
@@ -1107,2717 +1131,2735 @@ namespace Process_Export_Import
 		}
 
 
-	private ServiceCallResult getSqlitePath( Int64 process_Id) {
-	  string fileName       = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + "\\" ;
-	  string connStr        = ConfigurationManager.AppSettings.Get("connstr");
-	  string strSQL         = "SELECT Name FROM T_PROCESS WHERE Process_Id = @processId";
-	  string processName    = "";
-	  ServiceCallResult res = new ServiceCallResult {Code=0,Description="OK" }; 
-	  using (SqlConnection connection = new SqlConnection(connStr)) {
-		  SqlCommand command = new SqlCommand(strSQL, connection);
-		  command.Parameters.AddWithValue("@processId", process_Id);
-		  try
-		  {
-			connection.Open();
-			SqlDataReader reader;
-			reader = command.ExecuteReader();
-			reader.Read();
-			processName = reader["Name"].ToString();
-			reader.Close();
-		  }
-		  catch (Exception ex)
-		  {
-			res = FillServiceCallResult(ex);
-		  }
-		  //res.Description = 
-		  processName = processName.Replace(" ","_");
-		  fileName = fileName + processName + ".db";
-		  res.Description = fileName;
-	  }
-	  return   res;
-  }
-	
-		public ServiceCallResult FillServiceCallResult( Exception ex) {
-	  ServiceCallResult ret = new ServiceCallResult();
-	   ret.Code  = -1;
-	   ret.Source = ex.Source;
-
-	   ret.ExceptionContent = ex.ToString();
-	   if(ex.InnerException != null)
-	   {
-		 ret.InnerExceptionContent =ex.InnerException.ToString();
-	   }
-	  return ret;
-	}
-  
-
-	private ServiceCallResult TransferReport( int processId,bool recurs = false) {
-	  ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-	  string strSqLiteSQL = "";
-	  SQLiteCommand cmdSqlite;
-	  string strSQLiteValues = "";
-	  string strMsSQL = "";
-	  SqlCommand cmdMsSql;
-	  SqlDataReader readerMsSql;
-	  string strMsSQLData;
-	  string strMsSQLDataChild;
-	  string strMsSQLDataGrandChild;
-	  SqlCommand cmdMsSqlData;
-	  SqlCommand cmdMsSqlDataChild;
-	  SqlCommand cmdMsSqlDataGrandChild;
-	  SqlDataReader readerMsSqlData;
-	  SqlDataReader readerMsSqlDataChild;
-	  SqlDataReader readerMsSqlDataGrandChild;
-	  string currType = "";
-	  ServiceCallResult resGen;
-	
-	  Dictionary<string, string> columnTypes;
-	  string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-	  string sqliteDbPath;
-	  res = new ServiceCallResult { Code = 0, Description = "OK" };
-	  res = getSqlitePath(processId);
-	  if (res.Code != 0)
-	  {
-		return res;
-	  }
-	  sqliteDbPath = res.Description;
-	  string connStr = String.Format("Data Source={0} ;Version=3;", res.Description);
-	  SQLiteConnection connSqlite = new SQLiteConnection(connStr);
-	 
-	  try {
-		using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+		private ServiceCallResult getSqlitePath(Int64 process_Id)
 		{
-		  MSSQLConnection.Open();
-		  #region T_REPORT_FIELD
-
-		  columnTypes = getColumnTypesDictionary("T_REPORT_FIELD");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + "\\";
+			string connStr = ConfigurationManager.AppSettings.Get("connstr");
+			string strSQL = "SELECT Name FROM T_PROCESS WHERE Process_Id = @processId";
+			string processName = "";
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			using (SqlConnection connection = new SqlConnection(connStr))
 			{
-			  
-			  if( !IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()))) {
-				reports.Add ( new ReportListItem {ReportId  = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false });
-			  }
-			  reportFields.Add( Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
-			  if( readerMsSql["UDT_FIELD_ID"].ToString() !=  "") {
-				udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
-			  }
-			  strSqLiteSQL = "INSERT INTO T_REPORT_FIELD " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
+				SqlCommand command = new SqlCommand(strSQL, connection);
+				command.Parameters.AddWithValue("@processId", process_Id);
+				try
 				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
+					connection.Open();
+					SqlDataReader reader;
+					reader = command.ExecuteReader();
+					reader.Read();
+					processName = reader["Name"].ToString();
+					reader.Close();
+				}
+				catch (Exception ex)
 				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
+					res = FillServiceCallResult(ex);
 				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
+				//res.Description = 
+				processName = processName.Replace(" ", "_");
+				fileName = fileName + processName + ".db";
+				res.Description = fileName;
 			}
-		  }
-		  #endregion
-		  #region T_REPORT
-		  columnTypes = getColumnTypesDictionary("T_REPORT");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if ( IsReportInList( Convert.ToInt64(readerMsSql["Report_id"].ToString())))
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-		  #endregion
-		  #region T_REPORT_2_FIELD_COND_GROUP
-		  columnTypes = getColumnTypesDictionary("T_REPORT_2_FIELD_COND_GROUP");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_2_FIELD_COND_GROUP";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if (IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString())))
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT_2_FIELD_COND_GROUP " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		  #endregion   
-		  #region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE
-		  columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE");
-		  // transfer  data
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD  WHERE PROCESS_ID=" + processId.ToString();
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			strMsSQLDataChild = "SELECT * FROM T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE WHERE REPORT_FIELD_ID=" + readerMsSql["REPORT_FIELD_ID"].ToString();
-		
-			cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-			readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-			strSqLiteSQL = "INSERT INTO T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			while (readerMsSqlDataChild.Read())
-			{
-			  t_report_calculated_field_formula_tree_nodes.Add(Convert.ToInt64(readerMsSqlDataChild["T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_ID"].ToString()));
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-		  #endregion
-		  #region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUES
-		  columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if (t_report_calculated_field_formula_tree_nodes.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Calculated_Field_Formula_Tree_Node_ID"].ToString())) > 0)
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		  #endregion
-		  #region T_REPORT_EDIT_OWNER
-		  columnTypes = getColumnTypesDictionary("T_REPORT_EDIT_OWNER");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_EDIT_OWNER";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if ((IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString()))))
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT_EDIT_OWNER " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		  #endregion   
-		  #region T_REPORT_FIELD_UDT_COLUMNS
-		  columnTypes = getColumnTypesDictionary("T_REPORT_FIELD_UDT_COLUMNS");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD_UDT_COLUMNS";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if (IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString())) 
-			  && udts.FindIndex(a => a ==  Convert.ToInt64(readerMsSql["User_Defined_Table_ID"].ToString()) ) > 0)
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT_FIELD_UDT_COLUMNS " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		  #endregion
-		  #region T_REPORT_FILTER
-		  columnTypes = getColumnTypesDictionary("T_REPORT_FILTER");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FILTER";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if ((IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString()))))
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT_FILTER " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++) 
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		  #endregion
-		  #region T_REPORT_REFERENCED_FIELD_LOCATION
-		  columnTypes = getColumnTypesDictionary("T_REPORT_REFERENCED_FIELD_LOCATION");
-		  cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		  cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-		  readerMsSql = cmdMsSql.ExecuteReader();
-		  while (readerMsSql.Read())
-		  {
-			if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-			{
-			  strSqLiteSQL = "INSERT INTO T_REPORT_REFERENCED_FIELD_LOCATION " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				  case "binary":
-				  case "varbinary":
-				
-					break;
-				  case "image":
-				  break;
-				  default:
-				  {
-					strSqLiteSQL += entry.Key + ",";
-					break;
-				  }
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			} 
-			else {
-			  // we need insert the T_FIELD value pointed by Referenced_field_id 
-			
-			  if( Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString()) > 0) {
-				 if( reportFields.FindIndex(a => a ==  Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString())) < 0) {
-				  reportFields.Add( Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString()));
-				  // insert into t_field
-				  strMsSQLData      = "SELECT * FROM T_FIELD WHERE FIELD_ID=" + readerMsSql["Referenced_Field_ID"].ToString();
-				  columnTypes       = getColumnTypesDictionary("T_FIELD");
-				  cmdMsSqlData      = new SqlCommand(strMsSQLData, MSSQLConnection);
-				  readerMsSqlData   = cmdMsSqlData.ExecuteReader();
-				  strSqLiteSQL      = "INSERT INTO T_FIELD  ( ";
-				  currType          = "";
-				  foreach (KeyValuePair<string, string> entry in columnTypes)
-				  {
-					switch (entry.Value)
-					{
-					  case "binary":
-					  case "varbinary":
-					  case "image":
-					  break;
-					  default:
-					  {
-						strSqLiteSQL += entry.Key + ",";
-						break;
-					  }
-					}
-				  }
-				  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-				  while (readerMsSqlData.Read())
-				  {
-					strSQLiteValues = "";
-					for (int j = 0; j < readerMsSqlData.FieldCount; j++)
-					{
-					  columnTypes.TryGetValue(readerMsSqlData.GetName(j), out currType);
-					  switch (currType)
-					  {
-					  case "binary":
-					  case "varbinary":
-					  case "image":
-					  break;
-					  default:
-					  {
-
-						strSQLiteValues += "'" + readerMsSqlData[j].ToString().Replace("'","''") + "',";
-						break;
-					  }
-					  }
-					}
-					strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-					cmdSqlite = new SQLiteCommand(connSqlite);
-			 
-					cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-
-					cmdSqlite.ExecuteNonQuery();
-				  }
-				}
-			  }
-			  
-			}
-		  }
-		  #endregion
+			return res;
 		}
-	  }
-	  catch ( Exception ex) {
-		res = FillServiceCallResult(ex);
-	  }
-		
 
- 
-	  return res;
-	}
-	
-	private ServiceCallResult TransferProcess ( Int64 processId, bool recurs = false) {
-	 ServiceCallResult  res = new ServiceCallResult(); 
-	 res =   getSqlitePath(processId);
-	  
-	 Int64 processDesignId = getProcessDesignIdFromProcess(processId);
-	 Int64 procDesignDrawId = getProcessDesignDrawId(processDesignId);
-	 
-	  fieldsForProcess = getProcessFields( processId);
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROCESS", Condition = " WHERE PROCESS_ID = " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_DESIGN", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART", Condition = " WHERE PROC_DESIGN_DRAW_ID = " + procDesignDrawId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART_TYPE", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ROUTING", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD", Condition = " WHERE PROCESS_ID =  "  + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_CONDITION_GROUP", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_DATE_TYPE", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TEXT_FORMAT_TYPE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TYPE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FILE_FIELD_TYPE", Condition = " WHERE 1=1  " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FIELDS_UI_PARAMETERS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PERSON", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT_MEMBERS", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_RESULT_TYPE_ID", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_CATEGORY", Condition = " WHERE 1=1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_OWNER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_READER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ROLE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ROLE_MEMBERS", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_REPORT_GROUP", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_REPORT_GROUP_ADMINISTRATOR", Condition = " WHERE 1 = 1 " });      
-	  tables.Add(new TableNameAndCondition { TableName = "T_REPORT_OWNERS", Condition = " WHERE 1 = 1 " });      
-	  tables.Add(new TableNameAndCondition { TableName = "T_SUBPROCESS", Condition =  " WHERE PROCESS_ID =  " + processId.ToString() });      
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_FIELD_VALUE_TRANSLATION", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_LANGUAGE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_REPORT_TYPE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", Condition = " WHERE 1 = 1 "});
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FINISH_STEP_MODE", Condition = " WHERE 1 = 1 " });
-	  tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_PARTICIPANT_TYPE", Condition = " WHERE 1 = 1 "});
-	  tables.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_CONSTANT_TYPE", Condition = " WHERE 1 = 1 "});
-	  tables.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 "});
-	  tables.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 "});
+		public ServiceCallResult FillServiceCallResult(Exception ex)
+		{
+			ServiceCallResult ret = new ServiceCallResult();
+			ret.Code = -1;
+			ret.Source = ex.Source;
+
+			ret.ExceptionContent = ex.ToString();
+			if (ex.InnerException != null)
+			{
+				ret.InnerExceptionContent = ex.InnerException.ToString();
+			}
+			return ret;
+		}
+
+
+		private ServiceCallResult TransferReport(int processId, bool recurs = false)
+		{
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			string strSqLiteSQL = "";
+			SQLiteCommand cmdSqlite;
+			string strSQLiteValues = "";
+			string strMsSQL = "";
+			SqlCommand cmdMsSql;
+			SqlDataReader readerMsSql;
+			string strMsSQLData;
+			string strMsSQLDataChild;
+			string strMsSQLDataGrandChild;
+			SqlCommand cmdMsSqlData;
+			SqlCommand cmdMsSqlDataChild;
+			SqlCommand cmdMsSqlDataGrandChild;
+			SqlDataReader readerMsSqlData;
+			SqlDataReader readerMsSqlDataChild;
+			SqlDataReader readerMsSqlDataGrandChild;
+			string currType = "";
+			ServiceCallResult resGen;
+
+			Dictionary<string, string> columnTypes;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			string sqliteDbPath;
+			res = new ServiceCallResult { Code = 0, Description = "OK" };
+			res = getSqlitePath(processId);
+			if (res.Code != 0)
+			{
+				return res;
+			}
+			sqliteDbPath = res.Description;
+			string connStr = String.Format("Data Source={0} ;Version=3;", res.Description);
+			SQLiteConnection connSqlite = new SQLiteConnection(connStr);
+
+			try
+			{
+				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+				{
+					MSSQLConnection.Open();
+					#region T_REPORT_FIELD
+
+					columnTypes = getColumnTypesDictionary("T_REPORT_FIELD");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+
+							if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
+							{
+								reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false });
+							}
+							reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
+							if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
+							{
+								udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
+							}
+							strSqLiteSQL = "INSERT INTO T_REPORT_FIELD " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_REPORT
+					columnTypes = getColumnTypesDictionary("T_REPORT");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString())))
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_REPORT_2_FIELD_COND_GROUP
+					columnTypes = getColumnTypesDictionary("T_REPORT_2_FIELD_COND_GROUP");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_2_FIELD_COND_GROUP";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString())))
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT_2_FIELD_COND_GROUP " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE
+					columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE");
+					// transfer  data
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD  WHERE PROCESS_ID=" + processId.ToString();
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						strMsSQLDataChild = "SELECT * FROM T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE WHERE REPORT_FIELD_ID=" + readerMsSql["REPORT_FIELD_ID"].ToString();
+
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE " + " ( ";
+						currType = "";
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							t_report_calculated_field_formula_tree_nodes.Add(Convert.ToInt64(readerMsSqlDataChild["T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_ID"].ToString()));
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUES
+					columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (t_report_calculated_field_formula_tree_nodes.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Calculated_Field_Formula_Tree_Node_ID"].ToString())) > 0)
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_REPORT_EDIT_OWNER
+					columnTypes = getColumnTypesDictionary("T_REPORT_EDIT_OWNER");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_EDIT_OWNER";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if ((IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString()))))
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT_EDIT_OWNER " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_REPORT_FIELD_UDT_COLUMNS
+					columnTypes = getColumnTypesDictionary("T_REPORT_FIELD_UDT_COLUMNS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD_UDT_COLUMNS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString()))
+						  && udts.FindIndex(a => a == Convert.ToInt64(readerMsSql["User_Defined_Table_ID"].ToString())) > 0)
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT_FIELD_UDT_COLUMNS " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_REPORT_FILTER
+					columnTypes = getColumnTypesDictionary("T_REPORT_FILTER");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FILTER";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if ((IsReportInList(Convert.ToInt64(readerMsSql["Report_id"].ToString()))))
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT_FILTER " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_REPORT_REFERENCED_FIELD_LOCATION
+					columnTypes = getColumnTypesDictionary("T_REPORT_REFERENCED_FIELD_LOCATION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+						{
+							strSqLiteSQL = "INSERT INTO T_REPORT_REFERENCED_FIELD_LOCATION " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+						else
+						{
+							// we need insert the T_FIELD value pointed by Referenced_field_id 
+
+							if (Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString()) > 0)
+							{
+								if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString())) < 0)
+								{
+									reportFields.Add(Convert.ToInt64(readerMsSql["Referenced_Field_ID"].ToString()));
+									// insert into t_field
+									strMsSQLData = "SELECT * FROM T_FIELD WHERE FIELD_ID=" + readerMsSql["Referenced_Field_ID"].ToString();
+									columnTypes = getColumnTypesDictionary("T_FIELD");
+									cmdMsSqlData = new SqlCommand(strMsSQLData, MSSQLConnection);
+									readerMsSqlData = cmdMsSqlData.ExecuteReader();
+									strSqLiteSQL = "INSERT INTO T_FIELD  ( ";
+									currType = "";
+									foreach (KeyValuePair<string, string> entry in columnTypes)
+									{
+										switch (entry.Value)
+										{
+											case "binary":
+											case "varbinary":
+											case "image":
+												break;
+											default:
+												{
+													strSqLiteSQL += entry.Key + ",";
+													break;
+												}
+										}
+									}
+									strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+									while (readerMsSqlData.Read())
+									{
+										strSQLiteValues = "";
+										for (int j = 0; j < readerMsSqlData.FieldCount; j++)
+										{
+											columnTypes.TryGetValue(readerMsSqlData.GetName(j), out currType);
+											switch (currType)
+											{
+												case "binary":
+												case "varbinary":
+												case "image":
+													break;
+												default:
+													{
+
+														strSQLiteValues += "'" + readerMsSqlData[j].ToString().Replace("'", "''") + "',";
+														break;
+													}
+											}
+										}
+										strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+										cmdSqlite = new SQLiteCommand(connSqlite);
+
+										cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+
+										cmdSqlite.ExecuteNonQuery();
+									}
+								}
+							}
+
+						}
+					}
+					#endregion
+				}
+			}
+			catch (Exception ex)
+			{
+				res = FillServiceCallResult(ex);
+			}
+
+
+
+			return res;
+		}
+
+		private ServiceCallResult TransferProcess(Int64 processId, bool recurs = false)
+		{
+			ServiceCallResult res = new ServiceCallResult();
+			res = getSqlitePath(processId);
+
+			Int64 processDesignId = getProcessDesignIdFromProcess(processId);
+			Int64 procDesignDrawId = getProcessDesignDrawId(processDesignId);
+
+			fieldsForProcess = getProcessFields(processId);
+			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS", Condition = " WHERE PROCESS_ID = " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_DESIGN", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART", Condition = " WHERE PROC_DESIGN_DRAW_ID = " + procDesignDrawId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART_TYPE", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ROUTING", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_CONDITION_GROUP", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_DATE_TYPE", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TEXT_FORMAT_TYPE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TYPE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FILE_FIELD_TYPE", Condition = " WHERE 1=1  " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FIELDS_UI_PARAMETERS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PERSON", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT_MEMBERS", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_RESULT_TYPE_ID", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_CATEGORY", Condition = " WHERE 1=1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_OWNER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_READER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_ROLE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ROLE_MEMBERS", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_REPORT_GROUP", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_REPORT_GROUP_ADMINISTRATOR", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_REPORT_OWNERS", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_SUBPROCESS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_FIELD_VALUE_TRANSLATION", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_LANGUAGE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_REPORT_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FINISH_STEP_MODE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_PARTICIPANT_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_CONSTANT_TYPE", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
+			tables.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
 
 
 
 			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-	
-	  // tables that can be transfer in simple way
-	  try
-	  {
-		//connSqlite = new SQLiteConnection(connStrSQLite);
-		//connSqlite.Open();
-		using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
-		{
-		  string strSqLiteSQL = "";
-		  SQLiteCommand cmdSqlite;
-		  string strSQLiteValues = "";
-		  string strMsSQL = "";
-		  SqlCommand cmdMsSql;
-		  SqlDataReader readerMsSql;
-		  string strMsSQLData;
-		  string strMsSQLDataChild;
-		  string strMsSQLDataGrandChild;
-		  SqlCommand cmdMsSqlData;
-		  SqlCommand cmdMsSqlDataChild;
-		  SqlCommand cmdMsSqlDataGrandChild;
-		  SqlDataReader readerMsSqlData;
-		  SqlDataReader readerMsSqlDataChild;   
-		  SqlDataReader readerMsSqlDataGrandChild;
 
-		  string currType = "";
-		  ServiceCallResult resGen;
-		  Dictionary<string, string> columnTypes;
-		  MSSQLConnection.Open();
-		  for (int i = 0; i < tables.Count; i++)
-		  {
-			columnTypes = getColumnTypesDictionary(tables[i].TableName);
-			strMsSQLData = "SELECT * FROM " + tables[i].TableName + tables[i].Condition;
-			cmdMsSqlData = new SqlCommand(strMsSQLData, MSSQLConnection);
-			readerMsSqlData = cmdMsSqlData.ExecuteReader();
-			strSqLiteSQL = "INSERT INTO " + tables[i].TableName + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
+			// tables that can be transfer in simple way
+			try
 			{
-			  switch (entry.Value)
-			  {
-				case "binary":
-				case "varbinary":
-				case "image":
-				  break;
-				default:
+				//connSqlite = new SQLiteConnection(connStrSQLite);
+				//connSqlite.Open();
+				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
 				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			while (readerMsSqlData.Read())
-			{
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSqlData.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSqlData.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-				break;
-				default:
-				{
-
-				  strSQLiteValues += "'" + readerMsSqlData[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			 
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-	   
-		#region other tables
-		// fill activities array
-		strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		readerMsSql = cmdMsSql.ExecuteReader();
-		activities = new List<long>();
-		while(readerMsSql.Read()) {
-		  activities.Add(Convert.ToInt64(readerMsSql["activity_id"].ToString()));
-		}
-		#region T_ACTIVITY_OWNER_BY_CONDITION
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION");
-		for( int  i=0; i< activities.Count;i++) {
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION WHERE ACTIVITY_ID=" +  activities[i].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION WHERE ACTIVITY_ID=" +  activities[i].ToString();
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild["Activity_Owner_By_Condition_ID"].ToString()));
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  
-		  }
-		}
-		#endregion
-		#region T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT");
-		for(var i=0;i<activityOwnerByCondition.Count;i++) {
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_COND_PARTICIPANT WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_COND_PARTICIPANT WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_COND_PARTICIPANT " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			//activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild[""].ToString()));
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  
-		  }  
-		}
-		#endregion
-		#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION");
-		for(var i=0;i<activityOwnerByCondition.Count;i++) {
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild["Activity_Owner_By_Condition_Id"].ToString()));
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  
-		  }  
-		}
-		
-		#endregion
-		#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP");
-		for(var i=0;i<activityOwnerByCondition.Count;i++) {
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP WHERE Activity_Owner_By_Condition_ID=" +  activityOwnerByCondition[i].ToString();
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			//activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild[""].ToString()));
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  
-		  }  
-		}
-
-		#endregion
-		#region T_ACTIVITY_PARTICIPANT
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_PARTICIPANT");
-		for(var i=0;i<activities.Count;i++) {
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_PARTICIPANT WHERE Activity_ID=" +  activities[i].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_PARTICIPANT WHERE Activity_ID=" +  activities[i].ToString();
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_PARTICIPANT " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-		   
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  
-		  }  
-		}
-  
-		#endregion
-		#region T_PROC_DESIGN_DRAW_PART_DETAIL
-		  columnTypes = getColumnTypesDictionary("T_PROC_DESIGN_DRAW_PART_DETAIL");
-		// transfer  data
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_PROC_DESIGN_DRAW_PART  WHERE PROC_DESIGN_DRAW_ID=" + procDesignDrawId.ToString();
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  strMsSQLDataChild = "SELECT * FROM T_PROC_DESIGN_DRAW_PART_DETAIL WHERE PROC_DESIGN_DRAW_PART_ID=" + readerMsSql["PROC_DESIGN_DRAW_PART_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_PROC_DESIGN_DRAW_PART_DETAIL " + " ( ";
-		  currType = "";
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_ROUTING_CONDITION
-		columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-		  strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION WHERE ROUTING_ID = " + readerMsSql["ROUTING_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_ROUTING_CONDITION_GROUP
-		columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION_GROUP");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION_GROUP WHERE ROUTING_ID = " + readerMsSql["ROUTING_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION_GROUP " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_ROUTING_DESIGN
-		columnTypes = getColumnTypesDictionary("T_ROUTING_DESIGN");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-		  strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + readerMsSql["ROUTING_DESIGN_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_CONDITION
-		columnTypes = getColumnTypesDictionary("T_FIELD_CONDITION");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_DATE_CONSTRAINT
-		columnTypes = getColumnTypesDictionary("T_FIELD_DATE_CONSTRAINT");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_DATE_CONSTRAINT WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_DATE_CONSTRAINT " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_EXTENSION_NUMBER
-		columnTypes = getColumnTypesDictionary("T_FIELD_EXTENSION_NUMBER");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_EXTENSION_NUMBER WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_EXTENSION_NUMBER " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
-		columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_LABEL_TRANSLATION
-		columnTypes = getColumnTypesDictionary("T_FIELD_LABEL_TRANSLATION");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_LABEL_TRANSLATION WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_LABEL_TRANSLATION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_FIELD_VALUE
-		columnTypes = getColumnTypesDictionary("T_FIELD_VALUE");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_FIELD_VALUE WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_FIELD_VALUE " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  { 
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-
-		#endregion
-		#region T_ACTIVITY_DESIGN
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_DESIGN");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DESIGN WHERE ACTIVITY_DESIGN_ID = " + readerMsSql["ACTIVITY_DESIGN_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_DESIGN " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_ACTIVITY_FIELDS
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-		 
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_ACTIVITY_FIELDS_FOR_ESIGNING
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS_FOR_ESIGNING");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS_FOR_ESIGNING WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS_FOR_ESIGNING " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_ACTIVITY_DEPENDENT_COMPONENTS
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENTS");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-		  strSqLiteSQL = "INSERT INTO T_ACTIVITY_DEPENDENT_COMPONENTS " + " ( ";
-		  currType = "";
-
-		  foreach (KeyValuePair<string, string> entry in columnTypes)
-		  {
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-			case "image":
-			break;
-			default:
-			{
-			  strSqLiteSQL += entry.Key + ",";
-			  break;
-			}
-			}
-		  }
-		  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		#endregion
-		#region T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
-		columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-		readerMsSql = cmdMsSql.ExecuteReader();
-		strSQLiteValues = "";
-		while (readerMsSql.Read())
-		{
-
-		  strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
-		  cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-		  readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-
-
-		  while (readerMsSqlDataChild.Read())
-		  {
-			strMsSQLDataGrandChild = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + readerMsSqlDataChild["Activity_Dependent_UI_Components_ID"].ToString();
-			cmdMsSqlDataGrandChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-			readerMsSqlDataGrandChild = cmdMsSqlDataGrandChild.ExecuteReader();
-
-
-			while (readerMsSqlDataGrandChild.Read())
-			{
-			  strSqLiteSQL = "INSERT INTO T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION " + " ( ";
-			  currType = "";
-			  strSQLiteValues = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-
-			  for (int j = 0; j < readerMsSqlDataGrandChild.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSqlDataGrandChild.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSqlDataGrandChild[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-		}
-
-		#endregion
-		#region T_DYNAMIC ROUTING
-		columnTypes = getColumnTypesDictionary("T_DYNAMIC_ROUTING");
-		List<long> selectedActivities = getActivities(processId);
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_DYNAMIC_ROUTING";
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-		  if ((selectedActivities.FindIndex(a => a == Convert.ToInt64(readerMsSql["from_activity_id"])) > 0)
-			   || selectedActivities.FindIndex(a => a == Convert.ToInt64(readerMsSql["to_activity_id"])) > 0)
-		  {
-			strSQLiteValues = "";
-			strSqLiteSQL = "INSERT INTO T_DYNAMIC_ROUTING " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-
-		  }
-
-		}
-
-		#endregion
-		#region T_CALCFIELD_FORMULA_STEPS___T_CALCFIELD_OPERAND
-		// load process fields to list   
-		fieldsForProcess = getProcessFields(processId);
-		columnTypes = getColumnTypesDictionary("T_CALCFIELD_FORMULA_STEPS");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_CALCFIELD_FORMULA_STEPS";
-		readerMsSql = cmdMsSql.ExecuteReader();
-
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_REF"].ToString())) > 0)
-		  {
-			if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND1_REF"])) == -1)
-			{
-			  operands.Add(Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND1_REF"]));
-			}
-			if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND2_REF"])) == -1)
-			{
-			  operands.Add(Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND2_REF"]));
-			}
-			strSQLiteValues = "";
-			strSqLiteSQL = "INSERT INTO T_CALCFIELD_FORMULA_STEPS " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-
-		
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_CALCFIELD_OPERAND";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND_ID"])) > 0)
-		  {
-			strSQLiteValues = "";
-			strSqLiteSQL = "INSERT INTO T_CALCFIELD_OPERAND " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-
-		  }
-		}
-		#endregion
-		#region T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
-		columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS");
-		// transfer structure info
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-
-			strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS " + " ( ";
-			currType = "";
-			strSQLiteValues = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_USER_DEFINED_TABLE
-		columnTypes = getColumnTypesDictionary("T_USER_DEFINED_TABLE");
-
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_USER_DEFINED_TABLE";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-			udts.Add(Convert.ToInt64(readerMsSql["USER_DEFINED_TABLE_ID"]));
-			strSQLiteValues = "";
-			strSqLiteSQL = "INSERT INTO T_USER_DEFINED_TABLE " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_FORMULA_STEPS
-		columnTypes = getColumnTypesDictionary("T_FORMULA_STEPS");
-
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FORMULA_STEPS";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (udts.FindIndex(a => a == Convert.ToInt64(readerMsSql["USER_DEFINED_TABLE_REF"].ToString())) > 0)
-		  {
-			strSQLiteValues = "";
-			strSqLiteSQL = "INSERT INTO T_FORMULA_STEPS " + " ( ";
-			currType = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_OPERAND
-		columnTypes = getColumnTypesDictionary("T_OPERAND");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_OPERAND";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (readerMsSql["OPERAND_USER_DEFINED_TABLE_REF"].ToString() != "")
-		  {
-			if (udts.FindIndex(a => a == Convert.ToInt64(readerMsSql["OPERAND_USER_DEFINED_TABLE_REF"].ToString())) > 0)
-			{
-			  strSQLiteValues = "";
-			  strSqLiteSQL = "INSERT INTO T_OPERAND " + " ( ";
-			  currType = "";
-			  foreach (KeyValuePair<string, string> entry in columnTypes)
-			  {
-				switch (entry.Value)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-
-				break;
-				default:
-				{
-				  strSqLiteSQL += entry.Key + ",";
-				  break;
-				}
-				}
-			  }
-			  strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			  strSQLiteValues = "";
-			  for (int j = 0; j < readerMsSql.FieldCount; j++)
-			  {
-				columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-				switch (currType)
-				{
-				case "binary":
-				case "varbinary":
-				case "image":
-
-				break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-				}
-			  }
-			  strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			  cmdSqlite = new SQLiteCommand(connSqlite);
-			  cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-		  }
-
-		}
-
-		#endregion
-		#region T_PROCFIELD_PARTICIPANT
-		columnTypes = getColumnTypesDictionary("T_PROCFIELD_PARTICIPANT");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_PARTICIPANT";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-
-			strSqLiteSQL = "INSERT INTO T_PROCFIELD_PARTICIPANT " + " ( ";
-			currType = "";
-			strSQLiteValues = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_PROCFIELD_WORD_MERGE
-		columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-
-			strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE " + " ( ";
-			currType = "";
-			strSQLiteValues = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-			  case "binary":
-			  case "varbinary":
-				strSQLiteValues += "'" + Convert.ToBase64String(((byte[])readerMsSql[j])) + "',";
-				break;
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			  }
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		#endregion
-		#region T_PROCFIELD_WORD_MERGE_FIELD
-		columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE_FIELD");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE_FIELD";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-
-			strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE_FIELD " + " ( ";
-			currType = "";
-			strSQLiteValues = "";
-			foreach (KeyValuePair<string, string> entry in columnTypes)
-			{
-			  switch (entry.Value)
-			  {
-			  case "binary":
-			  case "varbinary":
-				
-				break;
-			  case "image":
-			  break;
-			  default:
-			  {
-				strSqLiteSQL += entry.Key + ",";
-				break;
-			  }
-			  }
-			}
-			strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-			strSQLiteValues = "";
-			for (int j = 0; j < readerMsSql.FieldCount; j++)
-			{
-			  columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			  switch (currType)
-			  {
-				case "binary":
-				case "varbinary":
-			  
-				  break;
-				case "image":
-				  break;
-				default:
-				{
-				  strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				  break;
-				}
-			  }
-			}
-			strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-			cmdSqlite = new SQLiteCommand(connSqlite);
-			cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-			cmdSqlite.ExecuteNonQuery();
-		  }
-		}
-		  #endregion
-		#region T_AUTOMATIC_PROCESS
-		columnTypes = getColumnTypesDictionary("T_AUTOMATIC_PROCESS");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_AUTOMATIC_PROCESS";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		if (activities.FindIndex(a => a == Convert.ToInt64(readerMsSql["Activity_Id"].ToString())) > 0)
-		{
-
-		strSqLiteSQL = "INSERT INTO T_AUTOMATIC_PROCESS " + " ( ";
-		currType = "";
-		strSQLiteValues = "";
-		foreach (KeyValuePair<string, string> entry in columnTypes)
-		{
-			switch (entry.Value)
-			{
-			case "binary":
-			case "varbinary":
-				
-			break;
-			case "image":
-			break;
-			default:
-			{
-			strSqLiteSQL += entry.Key + ",";
-			break;
-			}
-			}
-		}
-		strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-		strSQLiteValues = "";
-		for (int j = 0; j < readerMsSql.FieldCount; j++)
-		{
-			columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-			switch (currType)
-			{
-			case "binary":
-			case "varbinary":
-			  
-				break;
-			case "image":
-				break;
-			default:
-			{
-				strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'","''") + "',";
-				break;
-			}
-			}
-		}
-		strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-		cmdSqlite = new SQLiteCommand(connSqlite);
-		cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-		cmdSqlite.ExecuteNonQuery();
-		}
-		}
-		#endregion
-		
-		#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
-		columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-			if (activities.FindIndex(a => a == Convert.ToInt64(readerMsSql["Activity_Id"].ToString())) > 0)
-			{
-
-				strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY " + " ( ";
-				currType = "";
-				strSQLiteValues = "";
-				foreach (KeyValuePair<string, string> entry in columnTypes)
-				{
-					switch (entry.Value)
+					string strSqLiteSQL = "";
+					SQLiteCommand cmdSqlite;
+					string strSQLiteValues = "";
+					string strMsSQL = "";
+					SqlCommand cmdMsSql;
+					SqlDataReader readerMsSql;
+					string strMsSQLData;
+					string strMsSQLDataChild;
+					string strMsSQLDataGrandChild;
+					SqlCommand cmdMsSqlData;
+					SqlCommand cmdMsSqlDataChild;
+					SqlCommand cmdMsSqlDataGrandChild;
+					SqlDataReader readerMsSqlData;
+					SqlDataReader readerMsSqlDataChild;
+					SqlDataReader readerMsSqlDataGrandChild;
+
+					string currType = "";
+					ServiceCallResult resGen;
+					Dictionary<string, string> columnTypes;
+					MSSQLConnection.Open();
+					for (int i = 0; i < tables.Count; i++)
 					{
-						case "binary":
-						case "varbinary":
-
-							break;
-						case "image":
-							break;
-						default:
+						columnTypes = getColumnTypesDictionary(tables[i].TableName);
+						strMsSQLData = "SELECT * FROM " + tables[i].TableName + tables[i].Condition;
+						cmdMsSqlData = new SqlCommand(strMsSQLData, MSSQLConnection);
+						readerMsSqlData = cmdMsSqlData.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO " + tables[i].TableName + " ( ";
+						currType = "";
+						foreach (KeyValuePair<string, string> entry in columnTypes)
 						{
-							strSqLiteSQL += entry.Key + ",";
-							break;
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlData.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlData.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlData.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+
+											strSQLiteValues += "'" + readerMsSqlData[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+
+							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-				}
-				strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-				strSQLiteValues = "";
-				for (int j = 0; j < readerMsSql.FieldCount; j++)
-				{
-					columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
-					switch (currType)
-					{
-						case "binary":
-						case "varbinary":
 
-							break;
-						case "image":
-							break;
-						default:
-							{
-								strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
-								break;
-							}
+					#region other tables
+					// fill activities array
+					strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					readerMsSql = cmdMsSql.ExecuteReader();
+					activities = new List<long>();
+					while (readerMsSql.Read())
+					{
+						activities.Add(Convert.ToInt64(readerMsSql["activity_id"].ToString()));
 					}
-				}
-				strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-				cmdSqlite = new SQLiteCommand(connSqlite);
-				cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-				cmdSqlite.ExecuteNonQuery();
-			}
-		}
+					#region T_ACTIVITY_OWNER_BY_CONDITION
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION");
+					for (int i = 0; i < activities.Count; i++)
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION WHERE ACTIVITY_ID=" + activities[i].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION WHERE ACTIVITY_ID=" + activities[i].ToString();
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild["Activity_Owner_By_Condition_ID"].ToString()));
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+					#endregion
+					#region T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT");
+					for (var i = 0; i < activityOwnerByCondition.Count; i++)
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_COND_PARTICIPANT WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_COND_PARTICIPANT WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_COND_PARTICIPANT " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							//activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild[""].ToString()));
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+					#endregion
+					#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION");
+					for (var i = 0; i < activityOwnerByCondition.Count; i++)
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild["Activity_Owner_By_Condition_Id"].ToString()));
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+
+					#endregion
+					#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP");
+					for (var i = 0; i < activityOwnerByCondition.Count; i++)
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition[i].ToString();
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							//activityOwnerByCondition.Add(Convert.ToInt64(readerMsSqlDataChild[""].ToString()));
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+
+					#endregion
+					#region T_ACTIVITY_PARTICIPANT
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_PARTICIPANT");
+					for (var i = 0; i < activities.Count; i++)
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_PARTICIPANT WHERE Activity_ID=" + activities[i].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						cmdMsSqlDataChild.CommandText = "SELECT * FROM T_ACTIVITY_PARTICIPANT WHERE Activity_ID=" + activities[i].ToString();
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_PARTICIPANT " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+
+					#endregion
+					#region T_PROC_DESIGN_DRAW_PART_DETAIL
+					columnTypes = getColumnTypesDictionary("T_PROC_DESIGN_DRAW_PART_DETAIL");
+					// transfer  data
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_PROC_DESIGN_DRAW_PART  WHERE PROC_DESIGN_DRAW_ID=" + procDesignDrawId.ToString();
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						strMsSQLDataChild = "SELECT * FROM T_PROC_DESIGN_DRAW_PART_DETAIL WHERE PROC_DESIGN_DRAW_PART_ID=" + readerMsSql["PROC_DESIGN_DRAW_PART_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_PROC_DESIGN_DRAW_PART_DETAIL " + " ( ";
+						currType = "";
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_ROUTING_CONDITION
+					columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION WHERE ROUTING_ID = " + readerMsSql["ROUTING_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_ROUTING_CONDITION_GROUP
+					columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION_GROUP");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION_GROUP WHERE ROUTING_ID = " + readerMsSql["ROUTING_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION_GROUP " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_ROUTING_DESIGN
+					columnTypes = getColumnTypesDictionary("T_ROUTING_DESIGN");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + readerMsSql["ROUTING_DESIGN_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_CONDITION
+					columnTypes = getColumnTypesDictionary("T_FIELD_CONDITION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_DATE_CONSTRAINT
+					columnTypes = getColumnTypesDictionary("T_FIELD_DATE_CONSTRAINT");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_DATE_CONSTRAINT WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_DATE_CONSTRAINT " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_EXTENSION_NUMBER
+					columnTypes = getColumnTypesDictionary("T_FIELD_EXTENSION_NUMBER");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_EXTENSION_NUMBER WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_EXTENSION_NUMBER " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
+					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_LABEL_TRANSLATION
+					columnTypes = getColumnTypesDictionary("T_FIELD_LABEL_TRANSLATION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_LABEL_TRANSLATION WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_LABEL_TRANSLATION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_FIELD_VALUE
+					columnTypes = getColumnTypesDictionary("T_FIELD_VALUE");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_FIELD_VALUE WHERE FIELD_ID = " + readerMsSql["FIELD_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_FIELD_VALUE " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+
+					#endregion
+					#region T_ACTIVITY_DESIGN
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DESIGN");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DESIGN WHERE ACTIVITY_DESIGN_ID = " + readerMsSql["ACTIVITY_DESIGN_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_DESIGN " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_ACTIVITY_FIELDS
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_ACTIVITY_FIELDS_FOR_ESIGNING
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS_FOR_ESIGNING");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS_FOR_ESIGNING WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS_FOR_ESIGNING " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_ACTIVITY_DEPENDENT_COMPONENTS
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENTS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_DEPENDENT_COMPONENTS " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+					#endregion
+					#region T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
+					strSQLiteValues = "";
+					while (readerMsSql.Read())
+					{
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + readerMsSql["ACTIVITY_ID"].ToString();
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+
+
+						while (readerMsSqlDataChild.Read())
+						{
+							strMsSQLDataGrandChild = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + readerMsSqlDataChild["Activity_Dependent_UI_Components_ID"].ToString();
+							cmdMsSqlDataGrandChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+							readerMsSqlDataGrandChild = cmdMsSqlDataGrandChild.ExecuteReader();
+
+
+							while (readerMsSqlDataGrandChild.Read())
+							{
+								strSqLiteSQL = "INSERT INTO T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION " + " ( ";
+								currType = "";
+								strSQLiteValues = "";
+								foreach (KeyValuePair<string, string> entry in columnTypes)
+								{
+									switch (entry.Value)
+									{
+										case "binary":
+										case "varbinary":
+										case "image":
+											break;
+										default:
+											{
+												strSqLiteSQL += entry.Key + ",";
+												break;
+											}
+									}
+								}
+								strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+
+								for (int j = 0; j < readerMsSqlDataGrandChild.FieldCount; j++)
+								{
+									columnTypes.TryGetValue(readerMsSqlDataGrandChild.GetName(j), out currType);
+									switch (currType)
+									{
+										case "binary":
+										case "varbinary":
+										case "image":
+											break;
+										default:
+											{
+												strSQLiteValues += "'" + readerMsSqlDataGrandChild[j].ToString().Replace("'", "''") + "',";
+												break;
+											}
+									}
+								}
+								strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+								cmdSqlite = new SQLiteCommand(connSqlite);
+								cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+								cmdSqlite.ExecuteNonQuery();
+							}
+						}
+					}
+
+					#endregion
+					#region T_DYNAMIC ROUTING
+					columnTypes = getColumnTypesDictionary("T_DYNAMIC_ROUTING");
+					List<long> selectedActivities = getActivities(processId);
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_DYNAMIC_ROUTING";
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+						if ((selectedActivities.FindIndex(a => a == Convert.ToInt64(readerMsSql["from_activity_id"])) > 0)
+							 || selectedActivities.FindIndex(a => a == Convert.ToInt64(readerMsSql["to_activity_id"])) > 0)
+						{
+							strSQLiteValues = "";
+							strSqLiteSQL = "INSERT INTO T_DYNAMIC_ROUTING " + " ( ";
+							currType = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+
+					}
+
+					#endregion
+					#region T_CALCFIELD_FORMULA_STEPS___T_CALCFIELD_OPERAND
+					// load process fields to list   
+					fieldsForProcess = getProcessFields(processId);
+					columnTypes = getColumnTypesDictionary("T_CALCFIELD_FORMULA_STEPS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_CALCFIELD_FORMULA_STEPS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_REF"].ToString())) > 0)
+						{
+							if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND1_REF"])) == -1)
+							{
+								operands.Add(Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND1_REF"]));
+							}
+							if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND2_REF"])) == -1)
+							{
+								operands.Add(Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND2_REF"]));
+							}
+							strSQLiteValues = "";
+							strSqLiteSQL = "INSERT INTO T_CALCFIELD_FORMULA_STEPS " + " ( ";
+							currType = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+
+
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_CALCFIELD_OPERAND";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (operands.FindIndex(a => a == Convert.ToInt64(readerMsSql["CALCFIELD_OPERAND_ID"])) > 0)
+						{
+							strSQLiteValues = "";
+							strSqLiteSQL = "INSERT INTO T_CALCFIELD_OPERAND " + " ( ";
+							currType = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+
+						}
+					}
+					#endregion
+					#region T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
+					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS");
+					// transfer structure info
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_USER_DEFINED_TABLE
+					columnTypes = getColumnTypesDictionary("T_USER_DEFINED_TABLE");
+
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_USER_DEFINED_TABLE";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+							udts.Add(Convert.ToInt64(readerMsSql["USER_DEFINED_TABLE_ID"]));
+							strSQLiteValues = "";
+							strSqLiteSQL = "INSERT INTO T_USER_DEFINED_TABLE " + " ( ";
+							currType = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_FORMULA_STEPS
+					columnTypes = getColumnTypesDictionary("T_FORMULA_STEPS");
+
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FORMULA_STEPS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (udts.FindIndex(a => a == Convert.ToInt64(readerMsSql["USER_DEFINED_TABLE_REF"].ToString())) > 0)
+						{
+							strSQLiteValues = "";
+							strSqLiteSQL = "INSERT INTO T_FORMULA_STEPS " + " ( ";
+							currType = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_OPERAND
+					columnTypes = getColumnTypesDictionary("T_OPERAND");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_OPERAND";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (readerMsSql["OPERAND_USER_DEFINED_TABLE_REF"].ToString() != "")
+						{
+							if (udts.FindIndex(a => a == Convert.ToInt64(readerMsSql["OPERAND_USER_DEFINED_TABLE_REF"].ToString())) > 0)
+							{
+								strSQLiteValues = "";
+								strSqLiteSQL = "INSERT INTO T_OPERAND " + " ( ";
+								currType = "";
+								foreach (KeyValuePair<string, string> entry in columnTypes)
+								{
+									switch (entry.Value)
+									{
+										case "binary":
+										case "varbinary":
+										case "image":
+
+											break;
+										default:
+											{
+												strSqLiteSQL += entry.Key + ",";
+												break;
+											}
+									}
+								}
+								strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+								strSQLiteValues = "";
+								for (int j = 0; j < readerMsSql.FieldCount; j++)
+								{
+									columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+									switch (currType)
+									{
+										case "binary":
+										case "varbinary":
+										case "image":
+
+											break;
+										default:
+											{
+												strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+												break;
+											}
+									}
+								}
+								strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+								cmdSqlite = new SQLiteCommand(connSqlite);
+								cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+								cmdSqlite.ExecuteNonQuery();
+							}
+						}
+
+					}
+
+					#endregion
+					#region T_PROCFIELD_PARTICIPANT
+					columnTypes = getColumnTypesDictionary("T_PROCFIELD_PARTICIPANT");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_PARTICIPANT";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_PROCFIELD_PARTICIPANT " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_PROCFIELD_WORD_MERGE
+					columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+										strSQLiteValues += "'" + Convert.ToBase64String(((byte[])readerMsSql[j])) + "',";
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_PROCFIELD_WORD_MERGE_FIELD
+					columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE_FIELD");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE_FIELD";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE_FIELD " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+					#region T_AUTOMATIC_PROCESS
+					columnTypes = getColumnTypesDictionary("T_AUTOMATIC_PROCESS");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_AUTOMATIC_PROCESS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (activities.FindIndex(a => a == Convert.ToInt64(readerMsSql["Activity_Id"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_AUTOMATIC_PROCESS " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
+					#endregion
+
+					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
+					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (activities.FindIndex(a => a == Convert.ToInt64(readerMsSql["Activity_Id"].ToString())) > 0)
+						{
+
+							strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY " + " ( ";
+							currType = "";
+							strSQLiteValues = "";
+							foreach (KeyValuePair<string, string> entry in columnTypes)
+							{
+								switch (entry.Value)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSqLiteSQL += entry.Key + ",";
+											break;
+										}
+								}
+							}
+							strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSql.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSql.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+
+										break;
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSql[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
 					#endregion
 					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
@@ -3878,86 +3920,86 @@ namespace Process_Export_Import
 					connSqlite.Close();
 				}
 			}
-	  catch (Exception ex)
-	  {
-		connSqlite.Close();
-		res = FillServiceCallResult(ex);
+			catch (Exception ex)
+			{
+				connSqlite.Close();
+				res = FillServiceCallResult(ex);
 
-	  }
+			}
 
-	  return res;
-	}
-
-	private ServiceCallResult createDatabaseAndTables(int processId)
-	{
-	  SQLiteConnection connSQLite = new SQLiteConnection();
-	  string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + "\\";
-	  if (!Directory.Exists(ConfigurationManager.AppSettings.Get("sqlite_databases_root")))
-	  {
-		Directory.CreateDirectory(ConfigurationManager.AppSettings.Get("sqlite_databases_root"));
-	  }
-
-	  ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-	  // get process name
-	  string connStr = ConfigurationManager.AppSettings.Get("connstr");
-	  string strSQL = "SELECT Name FROM T_PROCESS WHERE Process_Id = @processId";
-	  string processName = "";
-	  using (SqlConnection connection = new SqlConnection(connStr))
-	  {
-		SqlCommand command = new SqlCommand(strSQL, connection);
-		command.Parameters.AddWithValue("@processId", processId);
-		try
-		{
-		  connection.Open();
-		  SqlDataReader reader;
-		  reader = command.ExecuteReader();
-		  reader.Read();
-		  processName = reader["Name"].ToString();
-		  reader.Close();
-		}
-		catch (Exception ex)
-		{
-		  res = FillServiceCallResult(ex);
-		}
-		processName = processName.Replace(" ", "_");
-		if (processName == "")
-		{
-		  processName = "John_Doe";
-		}
-		fileName = fileName + processName + ".db";
-		try
-		{
-		  if (File.Exists(fileName))
-		  {
-			GC.Collect();
-			GC.WaitForPendingFinalizers();
-			File.Delete(fileName);
-		  }
-		  SQLiteConnection.CreateFile(fileName);
-		  connSQLite = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
-		  string strSql = "create table table_information(";
-		  strSql += "TABLE_NAME VARCHAR(100),COLUMN_NAME VARCHAR(100), COLUMN_DEFAULT VARCHAR(10) NULL,";
-		  strSql += "IS_NULLABLE  VARCHAR(10) ,DATA_TYPE VARCHAR(30),";
-		  strSql += "CHARACTER_MAXIMUM_LENGTH INTEGER NULL, NUMERIC_PRECISION INT NULL";
-		  strSql += ")";
-		  connSQLite.Open();
-		  //conn.SetPassword("password");
-		  SQLiteCommand sqliteCommand = new SQLiteCommand(strSql, connSQLite);
-		  sqliteCommand.ExecuteNonQuery();
-		  sqliteCommand = null;
-		  connSQLite.Close();
-
-		}
-		catch (Exception ex)
-		{
-		   res = FillServiceCallResult(ex);
+			return res;
 		}
 
-		string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-		string sqliteDbPath;
-		res = new ServiceCallResult { Code = 0, Description = "OK" };
-		res = getSqlitePath(processId);
-		string[] tablenames = {
+		private ServiceCallResult createDatabaseAndTables(int processId)
+		{
+			SQLiteConnection connSQLite = new SQLiteConnection();
+			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + "\\";
+			if (!Directory.Exists(ConfigurationManager.AppSettings.Get("sqlite_databases_root")))
+			{
+				Directory.CreateDirectory(ConfigurationManager.AppSettings.Get("sqlite_databases_root"));
+			}
+
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			// get process name
+			string connStr = ConfigurationManager.AppSettings.Get("connstr");
+			string strSQL = "SELECT Name FROM T_PROCESS WHERE Process_Id = @processId";
+			string processName = "";
+			using (SqlConnection connection = new SqlConnection(connStr))
+			{
+				SqlCommand command = new SqlCommand(strSQL, connection);
+				command.Parameters.AddWithValue("@processId", processId);
+				try
+				{
+					connection.Open();
+					SqlDataReader reader;
+					reader = command.ExecuteReader();
+					reader.Read();
+					processName = reader["Name"].ToString();
+					reader.Close();
+				}
+				catch (Exception ex)
+				{
+					res = FillServiceCallResult(ex);
+				}
+				processName = processName.Replace(" ", "_");
+				if (processName == "")
+				{
+					processName = "John_Doe";
+				}
+				fileName = fileName + processName + ".db";
+				try
+				{
+					if (File.Exists(fileName))
+					{
+						GC.Collect();
+						GC.WaitForPendingFinalizers();
+						File.Delete(fileName);
+					}
+					SQLiteConnection.CreateFile(fileName);
+					connSQLite = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
+					string strSql = "create table table_information(";
+					strSql += "TABLE_NAME VARCHAR(100),COLUMN_NAME VARCHAR(100), COLUMN_DEFAULT VARCHAR(10) NULL,";
+					strSql += "IS_NULLABLE  VARCHAR(10) ,DATA_TYPE VARCHAR(30),";
+					strSql += "CHARACTER_MAXIMUM_LENGTH INTEGER NULL, NUMERIC_PRECISION INT NULL";
+					strSql += ")";
+					connSQLite.Open();
+					//conn.SetPassword("password");
+					SQLiteCommand sqliteCommand = new SQLiteCommand(strSql, connSQLite);
+					sqliteCommand.ExecuteNonQuery();
+					sqliteCommand = null;
+					connSQLite.Close();
+
+				}
+				catch (Exception ex)
+				{
+					res = FillServiceCallResult(ex);
+				}
+
+				string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+				string sqliteDbPath;
+				res = new ServiceCallResult { Code = 0, Description = "OK" };
+				res = getSqlitePath(processId);
+				string[] tablenames = {
 			"T_PROCESS",
 			"T_PROCESS_DESIGN",
 			"T_PROC_DESIGN_DRAW",
@@ -4049,472 +4091,522 @@ namespace Process_Export_Import
 			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
 
 		  };
-		if (res.Code != 0)
-		{
-		  return res;
-		}
-		sqliteDbPath = res.Description;
-
-		connSQLite.Open();
-		using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
-		{
-		  string strSqLiteSQL = "";
-		  SQLiteCommand cmdSqlite;
-		  string strMsSQL = "";
-		  SqlCommand cmdMsSql;
-		  SqlDataReader readerMsSql;
-		  ServiceCallResult resGen;
-		  Dictionary<string, string> columnTypes;
-		  MSSQLConnection.Open();
-		  for (int i = 0; i < tablenames.Length; i++)
-		  {
-			// transfer structure info
-			cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-			cmdMsSql.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tablenames[i] + "'";
-			readerMsSql = cmdMsSql.ExecuteReader();
-			columnTypes = getColumnTypesDictionary(tablenames[i]);
-			while (readerMsSql.Read())
-			{
-			  strSqLiteSQL = "INSERT INTO table_information (TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,";
-			  strSqLiteSQL += "CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION) ";
-			  strSqLiteSQL += "VALUES('%TABLE_NAME%','%COLUMN_NAME%', ";
-			  strSqLiteSQL += "'%COLUMN_DEFAULT%','%IS_NULLABLE%','%DATA_TYPE%',%CHARACTER_MAXIMUM_LENGTH%,%NUMERIC_PRECISION%)";
-			  strSqLiteSQL = strSqLiteSQL.Replace("%TABLE_NAME%", readerMsSql["TABLE_NAME"].ToString());
-			  strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_NAME%", readerMsSql["COLUMN_NAME"].ToString());
-			  strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_DEFAULT%", readerMsSql["COLUMN_DEFAULT"].ToString().Replace("'", "''"));
-			  strSqLiteSQL = strSqLiteSQL.Replace("%IS_NULLABLE%", readerMsSql["IS_NULLABLE"].ToString());
-			  strSqLiteSQL = strSqLiteSQL.Replace("%DATA_TYPE%", readerMsSql["DATA_TYPE"].ToString());
-			  switch (readerMsSql["DATA_TYPE"].ToString())
-			  {
-			  case "nvarchar":
-			  case "varchar":
-			  strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", readerMsSql["CHARACTER_MAXIMUM_LENGTH"].ToString());
-			  break;
-			  default:
-			  strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", "NULL");
-			  break;
-			  }
-			  if (readerMsSql["NUMERIC_PRECISION"].ToString() == "")
-			  {
-				strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", "NULL");
-			  }
-			  else
-			  {
-				strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", readerMsSql["NUMERIC_PRECISION"].ToString());
-			  }
-
-			  cmdSqlite = new SQLiteCommand(connSQLite);
-			  cmdSqlite.CommandText = strSqLiteSQL;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-			// create SQLite table  
-			resGen = GenerateSqliteTableCreationScript(tablenames[i]);
-			if (resGen.Code == 0)
-			{
-			  strSqLiteSQL = resGen.Description;
-			  cmdSqlite = new SQLiteCommand(connSQLite);
-			  cmdSqlite.CommandText = strSqLiteSQL;
-			  cmdSqlite.ExecuteNonQuery();
-			}
-			else
-			{
-			  return res;
-			}
-		  }
-		}
-		return res;
-	  }
-	}
-	private ServiceCallResult GenerateSqliteTableCreationScript(string CWPTableName) {
-	  string ret="";
-	  string strSQLServer;
-	  ServiceCallResult res = new ServiceCallResult {Code=0,Description="OK" };
-	   
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-	  try {
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			strSQLServer = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader table_structure_reader;
-			table_structure_reader  = command.ExecuteReader();
-			ret = "CREATE TABLE "  + CWPTableName + "("; 
-			while(table_structure_reader.Read()) { 
-			  switch(table_structure_reader["DATA_TYPE"].ToString()) {
-					case "binary":
-					case "varbinary":
-					case "image":
-					  ret+= table_structure_reader["COLUMN_NAME"].ToString() + " BLOB, ";
-				  break;
-				  default:
-					  ret+= table_structure_reader["COLUMN_NAME"].ToString() + " NVARCHAR, ";
-				  break;
-			  }          
-			}
-			ret = ret.Substring(0,ret.Length-2); // cut ","
-			ret += ")";   
-			connection.Close();
-			res.Code = 0;
-			res.Description = ret;
-		}
-	  }
-	  catch (Exception ex) {
-		res = FillServiceCallResult(ex); 
-	   
-	  }
-	  return res;
-	}
-	private Dictionary<string,string> getColumnTypesDictionary(string CWPTableName) {
-	  Dictionary<string,string>  fields = new Dictionary<string, string>();
-	  string strSQLServer;
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-	 
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			strSQLServer = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader table_structure_reader;
-			table_structure_reader  = command.ExecuteReader();
-			 while(table_structure_reader.Read()) {
-				fields.Add(table_structure_reader["COLUMN_NAME"].ToString(),table_structure_reader["DATA_TYPE"].ToString());
-			}
-			connection.Close();
-		}
-		return fields;
-	  
-	}
-	private Int64 getProcessDesignIdFromProcess( Int64 processId) {
-	  Int64 ret = 0;
-	  string strSQLServer;
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			strSQLServer = "SELECT PROCESS_DESIGN_ID FROM T_PROCESS WHERE PROCESS_ID =" + processId.ToString();
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader reader;
-			reader  = command.ExecuteReader();
-			reader.Read() ;
-			ret = Convert.ToInt64(reader["PROCESS_DESIGN_ID"]);
-			connection.Close();
-		}
-	  return ret;
-	}
-	private Int64 getProcessDesignDrawId( Int64 processDesignId)
-	{ 
-	  Int64 ret = 0;
-	  string strSQLServer;
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			strSQLServer = "SELECT PROC_DESIGN_DRAW_ID FROM T_PROC_DESIGN_DRAW WHERE PROCESS_DESIGN_ID =" + processDesignId.ToString();
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader reader;
-			reader  = command.ExecuteReader();
-			reader.Read() ;
-			ret = Convert.ToInt64(reader["PROC_DESIGN_DRAW_ID"]);
-			connection.Close();
-		}
-	  return ret;
-	}
-	private List<Int64> getActivities( Int64 pid) {
-	  List<long> ret = new List<long>();
-	  string strSQLServer;
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			strSQLServer = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID =" + pid.ToString();
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader reader;
-			reader  = command.ExecuteReader();
-			while(reader.Read()) {
-			  ret.Add(Convert.ToInt64(reader["ACTIVITY_ID"]));
-			}
-			connection.Close();
-		}
-	  return ret;  
-	}
-	private List<Int64> getProcessFields ( Int64 pid) {
-	  List<long> ret = new List<long>();
-	  string strSQLServer;
-	  string connStrSQLServer         = ConfigurationManager.AppSettings.Get("connstr");
-		using (SqlConnection connection = new SqlConnection(connStrSQLServer)) {
-		  connection.Open();
-			//strSQLServer = "SELECT * FROM T_FIELD WHERE PROCESS_ID =" + pid.ToString();
-			strSQLServer = "SELECT T_ACTIVITY.Process_ID, T_ACTIVITY_FIELDS.Field_ID FROM T_ACTIVITY_FIELDS INNER JOIN " + 
-						 " T_ACTIVITY ON T_ACTIVITY_FIELDS.Activity_ID = T_ACTIVITY.Activity_ID WHERE PROCESS_ID="  + pid.ToString();
-
-			SqlCommand command  = new SqlCommand(strSQLServer, connection);
-			SqlDataReader reader;
-			reader  = command.ExecuteReader();
-			while(reader.Read()) {
-			  ret.Add(Convert.ToInt64(reader["FIELD_ID"]));
-			}
-			connection.Close();
-		}
-	  return ret;  
-	}
-
-	private bool IsProcessInList( Int64 processId) {
-	  bool boolFound = false;
-	  for( int i=0; i<processes.Count;i++) {
-		if( processes[i].ProcessId == processId) {
-		  boolFound = true;
-		}
-	  }
-	  return boolFound;
-	}
-
-	private bool IsReportInList( Int64 reportId) {
-	  bool boolFound = false;
-	  for( int i=0; i<reports.Count;i++) {
-		if( reports[i].ReportId == reportId) {
-		  boolFound = true;
-		}
-	  }
-	  return boolFound;
-	}
-
-	public void FillProcesses(Int64 processId)
-	{
-	  fieldsForProcess = getProcessFields( processId);
-
-	  string strMsSQL = "";
-	  SqlCommand cmdMsSql;
-	  SqlDataReader readerMsSql;
-	  SqlCommand cmdMsSqlChild;
-	  SqlDataReader readerMsSqlChild;
-	  SqlCommand cmdMsSqlGrandChild;
-	  SqlDataReader readerMsSqlGrandChild;
-	  string strMSSqlChild;
-
-	  string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-	  processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
-	  using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
-	  {
-		 MSSQLConnection.Open();
-		// -----  ProcessReasonType.SubProcess
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1)  && 
-				Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1 )
-		  {
-			if( (readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != "") ) {
-			  if(!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString()))) {
-				  processes.Add ( new ProcessListItem {ProcessId  = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()), 
-						Processed = false, ReasonType = ProcessReasonType.SubProcess });
-			  }
-			}
-			if( (readerMsSql["parent_process_id"] != null)  && (readerMsSql["parent_process_id"].ToString() != "")) {
-			  if(!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString()))) {
-				  processes.Add ( new ProcessListItem {ProcessId  = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()), 
-						Processed = false, ReasonType = ProcessReasonType.ParentProcess });
-			  }
-			}
-		  }
-		}
-		
-		// -----  ProcessReasonType.Report ----------------------------------------
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-		  {
-			if( !IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()))) {
-			  reports.Add ( new ReportListItem {ReportId  = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
-			}
-			reportFields.Add( Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
-			if( readerMsSql["UDT_FIELD_ID"].ToString() !=  "") {
-			  udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
-			}
-		  }
-		}
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
-		{
-		  if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-		  {
-			if (readerMsSql["Referenced_Process_ID"] != null)
-			{
-			  if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
-			  {
-				processes.Add(new ProcessListItem
+				if (res.Code != 0)
 				{
-				  ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
-				  Processed = false,
-				  ReasonType = ProcessReasonType.Report
-				});
-			  }
+					return res;
+				}
+				sqliteDbPath = res.Description;
+
+				connSQLite.Open();
+				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+				{
+					string strSqLiteSQL = "";
+					SQLiteCommand cmdSqlite;
+					string strMsSQL = "";
+					SqlCommand cmdMsSql;
+					SqlDataReader readerMsSql;
+					ServiceCallResult resGen;
+					Dictionary<string, string> columnTypes;
+					MSSQLConnection.Open();
+					for (int i = 0; i < tablenames.Length; i++)
+					{
+						// transfer structure info
+						cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+						cmdMsSql.CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tablenames[i] + "'";
+						readerMsSql = cmdMsSql.ExecuteReader();
+						columnTypes = getColumnTypesDictionary(tablenames[i]);
+						while (readerMsSql.Read())
+						{
+							strSqLiteSQL = "INSERT INTO table_information (TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,";
+							strSqLiteSQL += "CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION) ";
+							strSqLiteSQL += "VALUES('%TABLE_NAME%','%COLUMN_NAME%', ";
+							strSqLiteSQL += "'%COLUMN_DEFAULT%','%IS_NULLABLE%','%DATA_TYPE%',%CHARACTER_MAXIMUM_LENGTH%,%NUMERIC_PRECISION%)";
+							strSqLiteSQL = strSqLiteSQL.Replace("%TABLE_NAME%", readerMsSql["TABLE_NAME"].ToString());
+							strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_NAME%", readerMsSql["COLUMN_NAME"].ToString());
+							strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_DEFAULT%", readerMsSql["COLUMN_DEFAULT"].ToString().Replace("'", "''"));
+							strSqLiteSQL = strSqLiteSQL.Replace("%IS_NULLABLE%", readerMsSql["IS_NULLABLE"].ToString());
+							strSqLiteSQL = strSqLiteSQL.Replace("%DATA_TYPE%", readerMsSql["DATA_TYPE"].ToString());
+							switch (readerMsSql["DATA_TYPE"].ToString())
+							{
+								case "nvarchar":
+								case "varchar":
+									strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", readerMsSql["CHARACTER_MAXIMUM_LENGTH"].ToString());
+									break;
+								default:
+									strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", "NULL");
+									break;
+							}
+							if (readerMsSql["NUMERIC_PRECISION"].ToString() == "")
+							{
+								strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", "NULL");
+							}
+							else
+							{
+								strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", readerMsSql["NUMERIC_PRECISION"].ToString());
+							}
+
+							cmdSqlite = new SQLiteCommand(connSQLite);
+							cmdSqlite.CommandText = strSqLiteSQL;
+							cmdSqlite.ExecuteNonQuery();
+						}
+						// create SQLite table  
+						resGen = GenerateSqliteTableCreationScript(tablenames[i]);
+						if (resGen.Code == 0)
+						{
+							strSqLiteSQL = resGen.Description;
+							cmdSqlite = new SQLiteCommand(connSQLite);
+							cmdSqlite.CommandText = strSqLiteSQL;
+							cmdSqlite.ExecuteNonQuery();
+						}
+						else
+						{
+							return res;
+						}
+					}
+				}
+				return res;
 			}
-		  }
 		}
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while (readerMsSql.Read())
+		private ServiceCallResult GenerateSqliteTableCreationScript(string CWPTableName)
 		{
-		  if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-		  {
-			if( readerMsSql["Referenced_Process_ID"] != null) {
-			  if( !IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()))) {
-				processes.Add ( new ProcessListItem {ProcessId  = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()), 
-					Processed = false, ReasonType = ProcessReasonType.Report });
-			  }
-			}  
-		  }
+			string ret = "";
+			string strSQLServer;
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			try
+			{
+				using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+				{
+					connection.Open();
+					strSQLServer = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+					SqlCommand command = new SqlCommand(strSQLServer, connection);
+					SqlDataReader table_structure_reader;
+					table_structure_reader = command.ExecuteReader();
+					ret = "CREATE TABLE " + CWPTableName + "(";
+					while (table_structure_reader.Read())
+					{
+						switch (table_structure_reader["DATA_TYPE"].ToString())
+						{
+							case "binary":
+							case "varbinary":
+							case "image":
+								ret += table_structure_reader["COLUMN_NAME"].ToString() + " BLOB, ";
+								break;
+							default:
+								ret += table_structure_reader["COLUMN_NAME"].ToString() + " NVARCHAR, ";
+								break;
+						}
+					}
+					ret = ret.Substring(0, ret.Length - 2); // cut ","
+					ret += ")";
+					connection.Close();
+					res.Code = 0;
+					res.Description = ret;
+				}
+			}
+			catch (Exception ex)
+			{
+				res = FillServiceCallResult(ex);
+
+			}
+			return res;
 		}
-		
+		private Dictionary<string, string> getColumnTypesDictionary(string CWPTableName)
+		{
+			Dictionary<string, string> fields = new Dictionary<string, string>();
+			string strSQLServer;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+
+			using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+			{
+				connection.Open();
+				strSQLServer = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+				SqlCommand command = new SqlCommand(strSQLServer, connection);
+				SqlDataReader table_structure_reader;
+				table_structure_reader = command.ExecuteReader();
+				while (table_structure_reader.Read())
+				{
+					fields.Add(table_structure_reader["COLUMN_NAME"].ToString(), table_structure_reader["DATA_TYPE"].ToString());
+				}
+				connection.Close();
+			}
+			return fields;
+
+		}
+		private Int64 getProcessDesignIdFromProcess(Int64 processId)
+		{
+			Int64 ret = 0;
+			string strSQLServer;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+			{
+				connection.Open();
+				strSQLServer = "SELECT PROCESS_DESIGN_ID FROM T_PROCESS WHERE PROCESS_ID =" + processId.ToString();
+				SqlCommand command = new SqlCommand(strSQLServer, connection);
+				SqlDataReader reader;
+				reader = command.ExecuteReader();
+				reader.Read();
+				ret = Convert.ToInt64(reader["PROCESS_DESIGN_ID"]);
+				connection.Close();
+			}
+			return ret;
+		}
+		private Int64 getProcessDesignDrawId(Int64 processDesignId)
+		{
+			Int64 ret = 0;
+			string strSQLServer;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+			{
+				connection.Open();
+				strSQLServer = "SELECT PROC_DESIGN_DRAW_ID FROM T_PROC_DESIGN_DRAW WHERE PROCESS_DESIGN_ID =" + processDesignId.ToString();
+				SqlCommand command = new SqlCommand(strSQLServer, connection);
+				SqlDataReader reader;
+				reader = command.ExecuteReader();
+				reader.Read();
+				ret = Convert.ToInt64(reader["PROC_DESIGN_DRAW_ID"]);
+				connection.Close();
+			}
+			return ret;
+		}
+		private List<Int64> getActivities(Int64 pid)
+		{
+			List<long> ret = new List<long>();
+			string strSQLServer;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+			{
+				connection.Open();
+				strSQLServer = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID =" + pid.ToString();
+				SqlCommand command = new SqlCommand(strSQLServer, connection);
+				SqlDataReader reader;
+				reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					ret.Add(Convert.ToInt64(reader["ACTIVITY_ID"]));
+				}
+				connection.Close();
+			}
+			return ret;
+		}
+		private List<Int64> getProcessFields(Int64 pid)
+		{
+			List<long> ret = new List<long>();
+			string strSQLServer;
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			using (SqlConnection connection = new SqlConnection(connStrSQLServer))
+			{
+				connection.Open();
+				//strSQLServer = "SELECT * FROM T_FIELD WHERE PROCESS_ID =" + pid.ToString();
+				strSQLServer = "SELECT T_ACTIVITY.Process_ID, T_ACTIVITY_FIELDS.Field_ID FROM T_ACTIVITY_FIELDS INNER JOIN " +
+							 " T_ACTIVITY ON T_ACTIVITY_FIELDS.Activity_ID = T_ACTIVITY.Activity_ID WHERE PROCESS_ID=" + pid.ToString();
+
+				SqlCommand command = new SqlCommand(strSQLServer, connection);
+				SqlDataReader reader;
+				reader = command.ExecuteReader();
+				while (reader.Read())
+				{
+					ret.Add(Convert.ToInt64(reader["FIELD_ID"]));
+				}
+				connection.Close();
+			}
+			return ret;
+		}
+
+		private bool IsProcessInList(Int64 processId)
+		{
+			bool boolFound = false;
+			for (int i = 0; i < processes.Count; i++)
+			{
+				if (processes[i].ProcessId == processId)
+				{
+					boolFound = true;
+				}
+			}
+			return boolFound;
+		}
+
+		private bool IsReportInList(Int64 reportId)
+		{
+			bool boolFound = false;
+			for (int i = 0; i < reports.Count; i++)
+			{
+				if (reports[i].ReportId == reportId)
+				{
+					boolFound = true;
+				}
+			}
+			return boolFound;
+		}
+
+		public void FillProcesses(Int64 processId)
+		{
+			fieldsForProcess = getProcessFields(processId);
+
+			string strMsSQL = "";
+			SqlCommand cmdMsSql;
+			SqlDataReader readerMsSql;
+			SqlCommand cmdMsSqlChild;
+			SqlDataReader readerMsSqlChild;
+			SqlCommand cmdMsSqlGrandChild;
+			SqlDataReader readerMsSqlGrandChild;
+			string strMSSqlChild;
+
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
+			using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+			{
+				MSSQLConnection.Open();
+				// -----  ProcessReasonType.SubProcess
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1) &&
+						  Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1)
+					{
+						if ((readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != ""))
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.SubProcess
+								});
+							}
+						}
+						if ((readerMsSql["parent_process_id"] != null) && (readerMsSql["parent_process_id"].ToString() != ""))
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.ParentProcess
+								});
+							}
+						}
+					}
+				}
+
+				// -----  ProcessReasonType.Report ----------------------------------------
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+					{
+						if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
+						{
+							reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
+						}
+						reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
+						if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
+						{
+							udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
+						}
+					}
+				}
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+					{
+						if (readerMsSql["Referenced_Process_ID"] != null)
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.Report
+								});
+							}
+						}
+					}
+				}
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+					{
+						if (readerMsSql["Referenced_Process_ID"] != null)
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.Report
+								});
+							}
+						}
+					}
+				}
+
 
 
 				// T_AUTOMATIC_PROCESS
 
-				strMsSQL  = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
-		cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-		readerMsSql = cmdMsSql.ExecuteReader();
-		while(readerMsSql.Read()) {
-		  strMSSqlChild = "SELECT T_PROCESS.Process_Alias_Id, T_PROCESS.Process_ID, T_AUTOMATIC_PROCESS.Activity_ID,T_PROCESS.Version_Status" + 
-					 " FROM  T_PROCESS INNER JOIN T_AUTOMATIC_PROCESS ON T_PROCESS.Process_Alias_Id = T_AUTOMATIC_PROCESS.Process_Alias_ID_To_Start "  + 
-								"WHERE Version_Status = 2 AND Activity_Id = "  + Convert.ToInt64(readerMsSql["activity_id"].ToString()).ToString();
+				strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					strMSSqlChild = "SELECT T_PROCESS.Process_Alias_Id, T_PROCESS.Process_ID, T_AUTOMATIC_PROCESS.Activity_ID,T_PROCESS.Version_Status" +
+							   " FROM  T_PROCESS INNER JOIN T_AUTOMATIC_PROCESS ON T_PROCESS.Process_Alias_Id = T_AUTOMATIC_PROCESS.Process_Alias_ID_To_Start " +
+										  "WHERE Version_Status = 2 AND Activity_Id = " + Convert.ToInt64(readerMsSql["activity_id"].ToString()).ToString();
 
-		  cmdMsSqlChild = new SqlCommand(strMSSqlChild, MSSQLConnection);
-		  readerMsSqlChild = cmdMsSqlChild.ExecuteReader();
-		  while (readerMsSqlChild.Read())
-		  {
-			 if(!IsProcessInList(Convert.ToInt64(readerMsSqlChild["process_id"].ToString()))) {
-			   processes.Add(new ProcessListItem {ProcessId  = Convert.ToInt64(readerMsSqlChild["process_id"].ToString()), 
-					Processed = false, ReasonType = ProcessReasonType.AutomaticProcess });
-					
-			 }  
-		  }
+					cmdMsSqlChild = new SqlCommand(strMSSqlChild, MSSQLConnection);
+					readerMsSqlChild = cmdMsSqlChild.ExecuteReader();
+					while (readerMsSqlChild.Read())
+					{
+						if (!IsProcessInList(Convert.ToInt64(readerMsSqlChild["process_id"].ToString())))
+						{
+							processes.Add(new ProcessListItem
+							{
+								ProcessId = Convert.ToInt64(readerMsSqlChild["process_id"].ToString()),
+								Processed = false,
+								ReasonType = ProcessReasonType.AutomaticProcess
+							});
+
+						}
+					}
+				}
+
+
+			}
 		}
-				
 
-	  }
-	}
-	  
 		public void getFil(Int64 processId)
-	{
-		fieldsForProcess = getProcessFields(processId);
-
-		string strMsSQL = "";
-		SqlCommand cmdMsSql;
-		SqlDataReader readerMsSql;
-		SqlCommand cmdMsSqlChild;
-		SqlDataReader readerMsSqlChild;
-		SqlCommand cmdMsSqlGrandChild;
-		SqlDataReader readerMsSqlGrandChild;
-		string strMSSqlChild;
-
-		string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-		processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
-		using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
 		{
-			MSSQLConnection.Open();
-			// -----  ProcessReasonType.SubProcess
-			cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-			cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
-			readerMsSql = cmdMsSql.ExecuteReader();
-			while (readerMsSql.Read())
-			{
-				if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1) &&
-						Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1)
-				{
-					if ((readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != ""))
-					{
-						if (!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString())))
-						{
-							processes.Add(new ProcessListItem
-							{
-								ProcessId = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()),
-								Processed = false,
-								ReasonType = ProcessReasonType.SubProcess
-							});
-						}
-					}
-					if ((readerMsSql["parent_process_id"] != null) && (readerMsSql["parent_process_id"].ToString() != ""))
-					{
-						if (!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString())))
-						{
-							processes.Add(new ProcessListItem
-							{
-								ProcessId = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()),
-								Processed = false,
-								ReasonType = ProcessReasonType.ParentProcess
-							});
-						}
-					}
-				}
-			}
+			fieldsForProcess = getProcessFields(processId);
 
-			// -----  ProcessReasonType.Report ----------------------------------------
-			cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-			cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
-			readerMsSql = cmdMsSql.ExecuteReader();
-			while (readerMsSql.Read())
-			{
-				if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-				{
-					if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
-					{
-						reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
-					}
-					reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
-					if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
-					{
-						udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
-					}
-				}
-			}
-			cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-			cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-			readerMsSql = cmdMsSql.ExecuteReader();
-			while (readerMsSql.Read())
-			{
-				if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-				{
-					if (readerMsSql["Referenced_Process_ID"] != null)
-					{
-						if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
-						{
-							processes.Add(new ProcessListItem
-							{
-								ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
-								Processed = false,
-								ReasonType = ProcessReasonType.Report
-							});
-						}
-					}
-				}
-			}
-			cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-			cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-			readerMsSql = cmdMsSql.ExecuteReader();
-			while (readerMsSql.Read())
-			{
-				if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-				{
-					if (readerMsSql["Referenced_Process_ID"] != null)
-					{
-						if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
-						{
-							processes.Add(new ProcessListItem
-							{
-								ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
-								Processed = false,
-								ReasonType = ProcessReasonType.Report
-							});
-						}
-					}
-				}
-			}
+			string strMsSQL = "";
+			SqlCommand cmdMsSql;
+			SqlDataReader readerMsSql;
+			SqlCommand cmdMsSqlChild;
+			SqlDataReader readerMsSqlChild;
+			SqlCommand cmdMsSqlGrandChild;
+			SqlDataReader readerMsSqlGrandChild;
+			string strMSSqlChild;
 
-			
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
+			using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+			{
+				MSSQLConnection.Open();
+				// -----  ProcessReasonType.SubProcess
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1) &&
+							Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1)
+					{
+						if ((readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != ""))
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.SubProcess
+								});
+							}
+						}
+						if ((readerMsSql["parent_process_id"] != null) && (readerMsSql["parent_process_id"].ToString() != ""))
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.ParentProcess
+								});
+							}
+						}
+					}
+				}
+
+				// -----  ProcessReasonType.Report ----------------------------------------
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+					{
+						if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
+						{
+							reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
+						}
+						reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
+						if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
+						{
+							udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
+						}
+					}
+				}
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+					{
+						if (readerMsSql["Referenced_Process_ID"] != null)
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.Report
+								});
+							}
+						}
+					}
+				}
+				cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+				cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+				readerMsSql = cmdMsSql.ExecuteReader();
+				while (readerMsSql.Read())
+				{
+					if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+					{
+						if (readerMsSql["Referenced_Process_ID"] != null)
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.Report
+								});
+							}
+						}
+					}
+				}
+
+
 
 
 				strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
@@ -4548,71 +4640,82 @@ namespace Process_Export_Import
 		}
 
 	}
-  public enum ProcessReasonType {
-	  MainProcess,
-	  DocRef,
-	  SubProcess,
-	  ParentProcess,
-	  Report,
-	  AutomaticProcess
+	public enum ProcessReasonType
+	{
+		MainProcess,
+		DocRef,
+		SubProcess,
+		ParentProcess,
+		Report,
+		AutomaticProcess
 	}
-  public class TableNameAndCondition {
-	public string TableName {get;set; }
-	public string Condition {get;set; }
+	public class TableNameAndCondition
+	{
+		public string TableName { get; set; }
+		public string Condition { get; set; }
 
-  }
-
-
-  public class DynamicRouting {
-	public Int64 From_Activity_ID {get;set; }
-	public Int64 To_Activity_ID {get;set; }
-	
-  }
-  public class ProcessListItem {
-	
-	private Int64 m_processId;
-	private bool m_processed;
-	private ProcessReasonType m_ReasonType;
-	private bool  m_CheckFlag;  
-
-	public Int64 ProcessId {
-	  get { return m_processId; }
-	  set { m_processId = value; }  
-	}
-	public bool CheckFlag {
-	  get { return m_CheckFlag; }
-	  set { m_CheckFlag = value; }  
-	}
-	public bool Processed {
-	  get { return m_processed; }
-	  set { m_processed = value; }  
-	}
-	public ProcessReasonType ReasonType { 
-	  get {return m_ReasonType; }
-	  set { m_ReasonType = value; }
 	}
 
-   }
 
-  
- 
-  public class ReportListItem {
-	private Int64 m_reportId;
-	private bool m_processed;
-	public Int64 ReportId {
-	  get { return m_reportId; }
-	  set { m_reportId = value; }  
+	public class DynamicRouting
+	{
+		public Int64 From_Activity_ID { get; set; }
+		public Int64 To_Activity_ID { get; set; }
+
 	}
-	public bool Processed {
-	  get { return m_processed; }
-	  set { m_processed = value; }  
+	public class ProcessListItem
+	{
+
+		private Int64 m_processId;
+		private bool m_processed;
+		private ProcessReasonType m_ReasonType;
+		private bool m_CheckFlag;
+
+		public Int64 ProcessId
+		{
+			get { return m_processId; }
+			set { m_processId = value; }
+		}
+		public bool CheckFlag
+		{
+			get { return m_CheckFlag; }
+			set { m_CheckFlag = value; }
+		}
+		public bool Processed
+		{
+			get { return m_processed; }
+			set { m_processed = value; }
+		}
+		public ProcessReasonType ReasonType
+		{
+			get { return m_ReasonType; }
+			set { m_ReasonType = value; }
+		}
+
 	}
 
-   }
-	
 
-  
-  }
+
+	public class ReportListItem
+	{
+		private Int64 m_reportId;
+		private bool m_processed;
+		public Int64 ReportId
+		{
+			get { return m_reportId; }
+			set { m_reportId = value; }
+		}
+		public bool Processed
+		{
+			get { return m_processed; }
+			set { m_processed = value; }
+		}
+
+	}
+
+
+
+}
 /*
  T_PROCESS
  T_PROCESS_DESIGN
