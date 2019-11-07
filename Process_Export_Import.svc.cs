@@ -209,134 +209,106 @@ namespace Process_Export_Import
 
 		}*/
 
-		public List<Tables_cwp> Import_Process()
+		public List<string> Import_Process()
 		{
 
-			// elöször t-process tábla kézzel 
-			
-			string[] allTableList = {
-			"T_PROCESS",
-			"T_NOTIFICATION",
-			"T_DEPARTMENT",
-			"T_DEPARTMENT_MEMBERS",
-			"T_CALCULATED_FIELD_RESULT_TYPE_ID",
-			"T_CATEGORY",
-			"T_PROCESS_OWNER",
-			"T_PROCESS_READER",
-			"T_ROLE",
-			"T_REPORT_GROUP",
-			"T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
-			"T_ACTIVITY_FINISH_STEP_MODE",
-			"T_ACTIVITY_PARTICIPANT_TYPE",
-			"T_CALCULATED_FIELD_CONSTANT_TYPE",
-			"T_COMPARE_OPERATION",
-			"T_DB_CONNECTION",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
+            // elöször t-process tábla kézzel 
 
-		  };
-			string[] tablesWithProcId = {
-			"T__CWP_LOG",
-			"T_ACTIVITY",
-			"T_ACTIVITY_FIELDS_UI_PARAMETERS",
-			"T_DB_CONNECTION",
-			"T_FIELD",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
-			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
-			"T_JOB",
-			"T_JOB_ACTIVITY_SUBPROCESS",
-			"T_JOB_DELETE_LOG",
-			"T_NOTIFICATION",
-			"T_PROCESS",
-			"T_PROCESS_OWNER",
-			"T_PROCESS_READER",
-			"T_PROCESS_SCHEDULE",
-			"T_PROCESS_TREE",
-			"T_PROCESS_WIZARD",
-			"T_REPORT",
-			"T_REPORT_FIELD",
-			"T_ROUTING",
-			"T_STARTPAGE_FILTER",
-			"T_SUBPROCESS",
-			"T_SUBSTITUTION_PROCESS_LEVEL",
-			"T_SYSTEM_INTERFACE",
-			};
+            /*	string[] allTableList = {
+                "T_PROCESS",
+                "T_NOTIFICATION",
+                "T_DEPARTMENT",
+                "T_DEPARTMENT_MEMBERS",
+                "T_CALCULATED_FIELD_RESULT_TYPE_ID",
+                "T_CATEGORY",
+                "T_PROCESS_OWNER",
+                "T_PROCESS_READER",
+                "T_ROLE",
+                "T_REPORT_GROUP",
+                "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
+                "T_ACTIVITY_FINISH_STEP_MODE",
+                "T_ACTIVITY_PARTICIPANT_TYPE",
+                "T_CALCULATED_FIELD_CONSTANT_TYPE",
+                "T_COMPARE_OPERATION",
+                "T_DB_CONNECTION",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
 
-				Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-				List<string> valuesInTable = new List<string>();
-				List<string> valuesInTableInServer = new List<string>();
-				Tables_cwp tableInfoInImportDbT_Proc = new Tables_cwp();
-				List<Tables_cwp> tableListInDbFile = new List<Tables_cwp>();
-				List<Tables_cwp> tableListInServer = new List<Tables_cwp>();
+              };
+                string[] tablesWithProcId = {
+                "T__CWP_LOG",
+                "T_ACTIVITY",
+                "T_ACTIVITY_FIELDS_UI_PARAMETERS",
+                "T_DB_CONNECTION",
+                "T_FIELD",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
+                "T_JOB",
+                "T_JOB_ACTIVITY_SUBPROCESS",
+                "T_JOB_DELETE_LOG",
+                "T_NOTIFICATION",
+                "T_PROCESS",
+                "T_PROCESS_OWNER",
+                "T_PROCESS_READER",
+                "T_PROCESS_SCHEDULE",
+                "T_PROCESS_TREE",
+                "T_PROCESS_WIZARD",
+                "T_REPORT",
+                "T_REPORT_FIELD",
+                "T_ROUTING",
+                "T_STARTPAGE_FILTER",
+                "T_SUBPROCESS",
+                "T_SUBSTITUTION_PROCESS_LEVEL",
+                "T_SYSTEM_INTERFACE",
+                };*/
 
-			try
+
+            List<string> tableInfoInDBFile = tableInfoListFromDBFile();
+            List<string> tableInfoInSQLServer = tableInfoListFromSQLServer();
+            int tableInfoInDBFileLength = tableInfoInDBFile.Count;
+            int tableInfoInSQLsERVERLength = tableInfoInSQLServer.Count; 
+            List<string> resultInfo = new List<string>();
+            if (tableInfoInDBFileLength == tableInfoInSQLsERVERLength)
+            {
+                resultInfo.Add("No Difference Spotted    " + tableInfoInSQLsERVERLength.ToString() + "    " + tableInfoInDBFileLength.ToString());
+
+            }
+            else if (tableInfoInDBFileLength < tableInfoInSQLsERVERLength)
+            {
+               
+              //  resultInfo.Add(tableInfoInSQLServer.Except(tableInfoInDBFile));
+                resultInfo.AddRange(tableInfoInSQLServer.Except(tableInfoInDBFile));
+            }
+            else
+            {
+                resultInfo.AddRange(tableInfoInDBFile.Except(tableInfoInSQLServer));
+            }
+                
+
+            
+            //   List<string> valuesInTableInServer = new List<string>();
+
+
+            try
 				{
-					foreach (string tableName in allTableList)
-					{
-					//////////////////////////DB FILE////////////////////////////////////////
-					Tables_cwp tempTableHodler = new Tables_cwp();
-					tempTableHodler.TableName = tableName;
-					tempTableHodler.rowCounter = getNumberOfRowsInDBFile(tableName);
-					
-					/////////////////////////SQL SERVER/////////////////////////////////////////////
-					///
-	//				Tables_cwp tempTableHodlerFromServer = new Tables_cwp();
-	//				tempTableHodlerFromServer.TableName = tableName;
-	//				tempTableHodlerFromServer.rowCounter = getNumberOfRowsFromSQLServer(tableName);
-
-
-					columnTypes = getColumnTypesDictionary(tableName); //Nem jó mert szerverre csatlakozik
-
-					foreach (KeyValuePair<string, string> column in columnTypes)
-						{
-							tempTableHodler.ColumDataType.Add(column.Value);
-							tempTableHodler.ColumnName.Add(column.Key);
-
-				//			tempTableHodlerFromServer.ColumDataType.Add(column.Value);
-				//			tempTableHodlerFromServer.ColumnName.Add(column.Key);
-						}
-
-						valuesInTable = getValuesFromTable(tempTableHodler);
-/*
-					foreach (string procIdTable in tablesWithProcId)
-					{
-						if (procIdTable.Equals(tableName))
-						{
-							valuesInTableInServer = getValuesFromTablesWhichHasProcessIdInSQLServer(tempTableHodlerFromServer, 1022);
-						}
-						else
-						{
-						   valuesInTableInServer = getValuesFromTableInSQLServer(tempTableHodlerFromServer);
-
-						}
-
-					}
-					*/
-
-
-						tempTableHodler.Values = valuesInTable;
-					//	tempTableHodlerFromServer.Values = valuesInTableInServer;
-
-
-						tableListInDbFile.Add(tempTableHodler);
-					//	tableListInServer.Add(tempTableHodlerFromServer);
-
-
-					}
+		
 				}
 				catch (Exception ex)
 				{
-					tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-					tableListInDbFile.Add(tableInfoInImportDbT_Proc);
+                //	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+                //	tableListInDbFile.Add(tableInfoInImportDbT_Proc);
 
-				//	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-			//		tableListInServer.Add(tableInfoInImportDbT_Proc);
-
-					return tableListInDbFile;
+                //	tableInfoInImportDbT_Proc.Exception = ex.Message.ToString() + ex.StackTrace.ToString();
+                //		tableListInServer.Add(tableInfoInImportDbT_Proc);
+                // tableInfoInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+               
+                resultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                    return resultInfo;
 				}
 
-			return tableListInDbFile;
+			return resultInfo;
+            
 
-		}
+        }
 		public string executeInsert(string commandText)
 		{
 			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
@@ -354,8 +326,79 @@ namespace Process_Export_Import
 			}
 			return "1";
 		}
+        public List<string> tableInfoListFromDBFile()
+        {
+            Tables_cwp table_info = new Tables_cwp();
+            string[] tableNames = table_info.getCWPTableList();
+            string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
+            string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
+            SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
+            SQLiteCommand command = new SQLiteCommand(connSqlite);
+            List<string> tableInformationInDBFile = new List<string>();
+            for (int i = 0; i < tableNames.Length-1; i++)
+            {
+                commandText += "'" + tableNames[i] + "',";
+            }
+             commandText += "'" + tableNames[tableNames.Length-1] + "' )";
+             command.CommandText = commandText;
+             connSqlite.Open();
+             SQLiteDataReader sqReader = command.ExecuteReader();
+             try
+             {
+                 while (sqReader.Read())
+                 {
+                     string info = "table_name: " + sqReader["table_name"].ToString() + " column_name: " + sqReader["column_name"].ToString() + " data_type: " + sqReader["data_type"].ToString();
+                     tableInformationInDBFile.Add(info);
+                 }
 
-		public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
+             }
+             catch (Exception ex)
+             {
+                     tableInformationInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                     return tableInformationInDBFile;
+             }
+            return tableInformationInDBFile;
+
+        }
+
+        public List<string> tableInfoListFromSQLServer()
+        {
+            Tables_cwp table_info = new Tables_cwp();
+            string[] tableNames = table_info.getCWPTableList();
+            string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
+            string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
+            SqlConnection connection = new SqlConnection(connectionString);
+            SqlCommand command = new SqlCommand(commandTxt, connection);
+            List<string> tableInfoInSQLServer = new List<string>();
+            SqlDataReader reader;
+            for (int i = 0; i < tableNames.Length - 1; i++)
+            {
+                commandTxt += "'" + tableNames[i] + "',";
+
+            }
+           // commandTxt += "' )";
+              commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
+            command.CommandText = commandTxt;
+            connection.Open();
+            reader = command.ExecuteReader();
+            try
+            {
+                while (reader.Read())
+                {
+                    string info = "table_name: " + reader["table_name"].ToString() + " column_name: " + reader["column_name"].ToString() + " data_type: " + reader["data_type"].ToString();
+                    tableInfoInSQLServer.Add(info);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                tableInfoInSQLServer.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                return tableInfoInSQLServer;
+            }
+            return tableInfoInSQLServer;
+        }
+
+        public string insertIntoTargetDb(string tableName, string[] values , bool requireIdentityInsert )
 		{
 			string commandTxt = "";
 			if (requireIdentityInsert)

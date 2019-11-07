@@ -17,7 +17,7 @@ namespace Process_Export_Import
         public List<string> ColumDataType { get; set; } = new List<string>();
         public List<string> Values { get; set; } = new List<string>();
 
-       /* public string[] tablenames = {
+        public string[] tablenames = {
         "T_PROCESS",
         "T_PROCESS_DESIGN",
         "T_PROC_DESIGN_DRAW",
@@ -62,6 +62,7 @@ namespace Process_Export_Import
         "T_FIELD_LABEL_TRANSLATION",
         "T_FIELD_VALUE",
         "T_ACTIVITY_DESIGN",
+         "T_ACTIVITY_DESIGN_2",
         "T_ACTIVITY_FIELDS",
         "T_ACTIVITY_FIELDS_FOR_ESIGNING",
         "T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION",
@@ -111,7 +112,7 @@ namespace Process_Export_Import
         public string[] getCWPTableList()
         {
             return tablenames;
-        }*/
+        }
 
 
     }
