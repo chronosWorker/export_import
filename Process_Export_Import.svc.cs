@@ -162,11 +162,15 @@ namespace Process_Export_Import
 			List<string> insertResultInfo = new List<string>();
 			List<string> dBStructureDifferencesList = new List<string>();
 			bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences());
+			int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer().First());
 
 			if (isTheDBStructuresAreTheSame)
 			{
 				try
 				{
+					insertResultInfo.AddRange(checkingDBStructureDifferences());
+					insertResultInfo.Add("Max Process_Id In SQL Server : " + maxProcessIdInSqlServer.ToString());
+					insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer));
 					insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_DEPARTMENT", true));
 				}
 				catch (Exception ex)
@@ -176,11 +180,67 @@ namespace Process_Export_Import
 					return insertResultInfo;
 				}
 			}
-			insertResultInfo.AddRange(checkingDBStructureDifferences());
+		
 			return insertResultInfo;
 
 
 		}
+		public List<string> getMaxdProcessIdFromSQLServer()
+		{
+			List<string> editingDbFileResultInfo = new List<string>();
+			ConnectionManager connectionManager = new ConnectionManager();
+			connectionManager.openSqlServerConnection();
+			try
+			{
+				var reader = connectionManager.DataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
+				while (reader.Read())
+				{
+					editingDbFileResultInfo.Add(reader["Max_Process_Id"].ToString());
+				}
+
+			}
+			catch (Exception ex)
+			{
+				editingDbFileResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+
+			}
+
+			connectionManager.closeSqlServerConnection();
+			return editingDbFileResultInfo;
+
+		}
+		public List<string> changeProcessIDsInDBFileToFitSQLServer(int maxProcessIdInSQLServer)
+		{
+			List<string> changeingDbFileInfo = new List<string>();
+			List<string> tablesWithProcessIdList = new List<string>();
+			ConnectionManager connectionManager = new ConnectionManager();
+			connectionManager.openSqLiteConnection();
+			string commandText = "Select distinct(table_name) from table_information where COLUMN_NAME = 'Process_ID';";
+			try
+			{
+				var reader = connectionManager.sqLiteDataReader(commandText);
+				while (reader.Read())
+				{
+					tablesWithProcessIdList.Add(reader["table_name"].ToString());
+					changeingDbFileInfo.Add(reader["table_name"].ToString());
+
+				}
+				
+				foreach (string tableName in tablesWithProcessIdList)
+				{
+					string updateCommandText = "Update " + tableName + " set Process_Id = " + ( maxProcessIdInSQLServer + 1) + "  where 1 = 1"; 
+					connectionManager.executeQueriesInDbFile(updateCommandText);
+					changeingDbFileInfo.Add("Process ID Updated In " + tableName);
+				}
+			}
+			catch (Exception ex)
+			{
+				changeingDbFileInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			}
+			connectionManager.closeSqLiteConnection();
+			return changeingDbFileInfo;
+		}
+
 		public List<string> checkingDBStructureDifferences()
 		{
 			List<string> comparingDBStructuresInfo = new List<string>();
@@ -225,11 +285,13 @@ namespace Process_Export_Import
 				else if (firstListLength > secondListLength)
 				{
 					resultInfo.Add("The DB File Has More Column's");
+					resultInfo.Add("Table Name || Column Name || Data Type");
 					resultInfo.AddRange(dbFile.Except(sqlServer));
 				}
 				else
 				{
 					resultInfo.Add("The SQL Server Has More Column's");
+					resultInfo.Add("Table Name || Column Name || Data Type");
 					resultInfo.AddRange(sqlServer.Except(dbFile));
 				}
 
@@ -361,23 +423,7 @@ namespace Process_Export_Import
 			}
 			return insertresultInfo;
 		}
-		public string executeInsert(string commandText)
-		{
-			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-			SqlConnection connection = new SqlConnection(connectionString);
-			SqlCommand command = new SqlCommand(commandText, connection);
-			try
-			{
-				connection.Open();
-				command.ExecuteNonQuery();
-			}
-			catch (Exception ex)
-			{
-				return ex.Message.ToString() + ex.StackTrace.ToString();
-
-			}
-			return "1";
-		}
+		
 		public List<string> tableInfoListFromDBFile()
 		{
 			Tables_cwp table_info = new Tables_cwp();
@@ -399,7 +445,7 @@ namespace Process_Export_Import
 			{
 				while (sqReader.Read())
 				{
-					string info = "table_name: " + sqReader["table_name"].ToString() + " column_name: " + sqReader["column_name"].ToString() + " data_type: " + sqReader["data_type"].ToString();
+					string info = sqReader["table_name"].ToString() + " || " + sqReader["column_name"].ToString() + " || " + sqReader["data_type"].ToString();
 					tableInformationInDBFile.Add(info);
 				}
 
@@ -409,6 +455,8 @@ namespace Process_Export_Import
 				tableInformationInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
 				return tableInformationInDBFile;
 			}
+			connSqlite.Close();
+
 			return tableInformationInDBFile;
 
 		}
@@ -437,7 +485,7 @@ namespace Process_Export_Import
 			{
 				while (reader.Read())
 				{
-					string info = "table_name: " + reader["table_name"].ToString() + " column_name: " + reader["column_name"].ToString() + " data_type: " + reader["data_type"].ToString();
+					string info =  reader["table_name"].ToString() + " || " + reader["column_name"].ToString() + " || " + reader["data_type"].ToString();
 					tableInfoInSQLServer.Add(info);
 				}
 
@@ -449,7 +497,7 @@ namespace Process_Export_Import
 			}
 			return tableInfoInSQLServer;
 		}
-
+		/*
 		public string insertIntoTargetDb(string tableName, string[] values, bool requireIdentityInsert)
 		{
 			string commandTxt = "";
@@ -623,6 +671,7 @@ namespace Process_Export_Import
 				//    return rowCount;
 			}
 		}
+		
 
 		public List<string> getValuesFromTable(Tables_cwp table)
 		{
@@ -840,7 +889,7 @@ namespace Process_Export_Import
 
 			}
 		}
-
+		*/
 		/*public List<Tables_cwp>  checkTableInfoInDbFile()
 		{
 	
