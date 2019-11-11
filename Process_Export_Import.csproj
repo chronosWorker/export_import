@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConnectionManager.cs" />
+    <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="Tables_cwp.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="OpenAndReadDBFile.cs" />
