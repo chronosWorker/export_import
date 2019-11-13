@@ -119,6 +119,8 @@ namespace Process_Export_Import
 
 		}
 
+
+
 		public ServiceCallResult Import_Process_teszt(string name)
 		{
 			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
@@ -155,7 +157,7 @@ namespace Process_Export_Import
 		[OperationContract]
 		//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
 
-
+        /*
 		public List<string> Import_Process()
 		{
 
@@ -184,8 +186,86 @@ namespace Process_Export_Import
 			return insertResultInfo;
 
 
-		}
-		public List<string> getMaxdProcessIdFromSQLServer()
+		}*/
+
+        public List<string> Import_Process()
+        {
+
+            List<string> insertResultInfo = new List<string>();
+            var connectionManager = new ConnectionManagerST();
+            connectionManager.openSqLiteConnection();
+            connectionManager.openSqlServerConnection();
+            List<string>  result  = tableInfoListFromDBFileST(connectionManager);
+            List<string>  result2  = tableInfoListFromSQLServerST(connectionManager);
+            result.AddRange(result2);
+            return result;
+
+
+        }
+
+        public List<string> tableInfoListFromDBFileST(ConnectionManagerST obj)
+        {
+            Tables_cwp table_info = new Tables_cwp();
+            string[] tableNames = table_info.getCWPTableList();
+            string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
+            List<string> tableInformationInDBFile = new List<string>();
+            for (int i = 0; i < tableNames.Length - 1; i++)
+            {
+                commandText += "'" + tableNames[i] + "',";
+            }
+            commandText += "'" + tableNames[tableNames.Length - 1] + "' )";
+
+            var sqReader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (sqReader.Read())
+                {
+                    string info = sqReader["table_name"].ToString() + " || " + sqReader["column_name"].ToString() + " || " + sqReader["data_type"].ToString();
+                    tableInformationInDBFile.Add(info);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                tableInformationInDBFile.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                return tableInformationInDBFile;
+            }
+
+            return tableInformationInDBFile;
+
+        }
+
+        public List<string> tableInfoListFromSQLServerST(ConnectionManagerST obj)
+        {
+            Tables_cwp table_info = new Tables_cwp();
+            string[] tableNames = table_info.getCWPTableList();
+            string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
+            List<string> tableInfoInSQLServer = new List<string>();
+            for (int i = 0; i < tableNames.Length - 1; i++)
+            {
+                commandTxt += "'" + tableNames[i] + "',";
+
+            }
+            commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
+            var reader = obj.DataReader(commandTxt);
+            try
+            {
+                while (reader.Read())
+                {
+                    string info = reader["table_name"].ToString() + " || " + reader["column_name"].ToString() + " || " + reader["data_type"].ToString();
+                    tableInfoInSQLServer.Add(info);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                tableInfoInSQLServer.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                return tableInfoInSQLServer;
+            }
+            return tableInfoInSQLServer;
+        }
+
+        public List<string> getMaxdProcessIdFromSQLServer()
 		{
 			List<string> editingDbFileResultInfo = new List<string>();
 			ConnectionManager connectionManager = new ConnectionManager();
@@ -423,8 +503,10 @@ namespace Process_Export_Import
 			}
 			return insertresultInfo;
 		}
-		
-		public List<string> tableInfoListFromDBFile()
+
+
+        /*
+        public List<string> tableInfoListFromDBFile()
 		{
 			Tables_cwp table_info = new Tables_cwp();
 			string[] tableNames = table_info.getCWPTableList();
@@ -497,7 +579,8 @@ namespace Process_Export_Import
 			}
 			return tableInfoInSQLServer;
 		}
-		/*
+        */
+        /*
 		public string insertIntoTargetDb(string tableName, string[] values, bool requireIdentityInsert)
 		{
 			string commandTxt = "";
@@ -890,7 +973,7 @@ namespace Process_Export_Import
 			}
 		}
 		*/
-		/*public List<Tables_cwp>  checkTableInfoInDbFile()
+        /*public List<Tables_cwp>  checkTableInfoInDbFile()
 		{
 	
 			Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
@@ -967,7 +1050,7 @@ namespace Process_Export_Import
 			return tableObjectList;
 
 		}*/
-		public string detectProcessNameFromDbFile()
+        public string detectProcessNameFromDbFile()
 		{
 
 			string commandText = "SELECT NAME FROM T_PROCESS ";

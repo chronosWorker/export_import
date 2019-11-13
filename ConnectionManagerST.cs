@@ -14,7 +14,7 @@ namespace Process_Export_Import
         public static ConnectionManagerST _instance;
         public static readonly object _padlock;
 
-        private ConnectionManagerST()
+        public ConnectionManagerST()
         {
 
         }
