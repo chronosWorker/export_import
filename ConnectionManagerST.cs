@@ -44,8 +44,11 @@ namespace Process_Export_Import
         SQLiteConnection connSqlite;
 
         public string connectionStringToSqlServer { get; set; } = ConfigurationManager.AppSettings.Get("connstrRe");
-        SqlConnection connection;
+        SqlConnection connectionToNewSqlServer;
 
+
+        public string connectionStringToOldSqlServer { get; set; } = ConfigurationManager.AppSettings.Get("connstr");
+        SqlConnection connectionToOldSqlServer;
 
 
         public void openSqLiteConnection()
@@ -76,27 +79,52 @@ namespace Process_Export_Import
 
         public void openSqlServerConnection()
         {
-            connection = new SqlConnection(connectionStringToSqlServer);
-            connection.Open();
+            connectionToNewSqlServer = new SqlConnection(connectionStringToSqlServer);
+            connectionToNewSqlServer.Open();
 
         }
 
         public void executeQueriesInSqlServer(string Query_)
         {
-            SqlCommand cmdText = new SqlCommand(Query_, connection);
+            SqlCommand cmdText = new SqlCommand(Query_, connectionToNewSqlServer);
             cmdText.ExecuteNonQuery();
         }
 
-        public SqlDataReader DataReader(string Query_)
+        public SqlDataReader sqlServerDataReader(string Query_)
         {
-            SqlCommand cmd = new SqlCommand(Query_, connection);
+            SqlCommand cmd = new SqlCommand(Query_, connectionToNewSqlServer);
             SqlDataReader dr = cmd.ExecuteReader();
             return dr;
         }
 
         public void closeSqlServerConnection()
         {
-            connection.Close();
+            connectionToNewSqlServer.Close();
+        }
+
+        public void openOldSqlServerConnection()
+        {
+            connectionToOldSqlServer = new SqlConnection(connectionStringToSqlServer);
+            connectionToOldSqlServer.Open();
+
+        }
+
+        public void executeQueriesInOldSqlServer(string Query_)
+        {
+            SqlCommand cmdText = new SqlCommand(Query_, connectionToOldSqlServer);
+            cmdText.ExecuteNonQuery();
+        }
+
+        public SqlDataReader sqlServerDataReaderOld(string Query_)
+        {
+            SqlCommand cmd = new SqlCommand(Query_, connectionToOldSqlServer);
+            SqlDataReader dr = cmd.ExecuteReader();
+            return dr;
+        }
+
+        public void closeOldSqlServerConnection()
+        {
+            connectionToOldSqlServer.Close();
         }
     }
 

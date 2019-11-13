@@ -218,11 +218,34 @@ namespace Process_Export_Import
 
         public List<string> getMaxdProcessIdFromSQLServer(ConnectionManagerST obj)
         {
+            List<string> maxProcessIdList = new List<string>();
+
+            try
+            {
+                var reader = obj.sqlServerDataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
+                while (reader.Read())
+                {
+                    maxProcessIdList.Add(reader["Max_Process_Id"].ToString());
+                }
+
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+
+            }
+
+            return maxProcessIdList;
+
+        }
+
+        public List<string> getProcessIdFromOldSQLServer(ConnectionManagerST obj)
+        {
             List<string> editingDbFileResultInfo = new List<string>();
 
             try
             {
-                var reader = obj.DataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
+                var reader = obj.sqlServerDataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
                 while (reader.Read())
                 {
                     editingDbFileResultInfo.Add(reader["Max_Process_Id"].ToString());
@@ -231,13 +254,14 @@ namespace Process_Export_Import
             }
             catch (Exception ex)
             {
-                editingDbFileResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                throw ex;
 
             }
 
             return editingDbFileResultInfo;
 
         }
+
 
         public List<string> tableInfoListFromDBFile(ConnectionManagerST obj)
         {
@@ -267,13 +291,13 @@ namespace Process_Export_Import
             }
 
             return tableInformationInDBFile;
-
+             
         }
         private Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
         {
             Dictionary<string, string> fields = new Dictionary<string, string>();
             string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-            var reader = obj.DataReader(commandText);
+            var reader = obj.sqlServerDataReader(commandText);
             while (reader.Read())
             {
                 fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
@@ -426,7 +450,7 @@ namespace Process_Export_Import
 
             }
             commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
-            var reader = obj.DataReader(commandTxt);
+            var reader = obj.sqlServerDataReader    (commandTxt);
             try
             {
                 while (reader.Read())
@@ -454,7 +478,7 @@ namespace Process_Export_Import
                 while (reader.Read())
                 {
                     tablesWithProcessIdList.Add(reader["table_name"].ToString());
-                    changeingDbFileInfo.Add(reader["table_name"].ToString());
+                  //  changeingDbFileInfo.Add(reader["table_name"].ToString());
 
                 }
 
@@ -462,7 +486,7 @@ namespace Process_Export_Import
                 {
                     string updateCommandText = "Update " + tableName + " set Process_Id = " + (maxProcessIdInSQLServer + 1) + "  where 1 = 1";
                     obj.executeQueriesInDbFile(updateCommandText);
-                    changeingDbFileInfo.Add("Process ID Updated In " + tableName);
+                 //   changeingDbFileInfo.Add("Process ID Updated In " + tableName);
                 }
             }
             catch (Exception ex)
