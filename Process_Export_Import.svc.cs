@@ -192,11 +192,13 @@ namespace Process_Export_Import
 		{
 
 			List<string> insertResultInfo = new List<string>();
+			List<string> tablesWithActivityIdInDBFile = new List<string>();
+			List<string> activityIdUpdateInfo = new List<string>();
 			List<int> activityIdsInDbFile = new List<int>();
 			List<int> activityIdDifferenceList = new List<int>();
 			List<int> newActivitIdList = new List<int>();
-    
-            var connectionManager = new ConnectionManagerST();
+				
+			var connectionManager = new ConnectionManagerST();
 			connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
 			bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
@@ -215,15 +217,21 @@ namespace Process_Export_Import
 					insertResultInfo.Add("isTheDBStructuresAreTheSame?" + isTheDBStructuresAreTheSame.ToString());
 					insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
 					insertResultInfo.Add("Activity Id Difference List : " );
+
+					tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
 					List<string> activityIdDifferenceStringList = activityIdDifferenceList.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
 					string act_diff_list_count = activityIdDifferenceStringList.Count.ToString();
 
-					insertResultInfo.Add("New Act Id List : " );
-                    newActivitIdList = changeActivityIdInActivityTAblesInDBFile(maxActivityIdInSqlServer, activityIdDifferenceList , activityIdsInDbFile);
-                    List<string> newActivitIdStringList = newActivitIdList.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
-
-                    insertResultInfo.AddRange(newActivitIdStringList);
-                    insertResultInfo.AddRange(activityIdDifferenceStringList);
+				//	insertResultInfo.Add("New Act Id List : " );
+					newActivitIdList = changeActivityIdListToFitSqlServer(maxActivityIdInSqlServer, activityIdDifferenceList , activityIdsInDbFile);
+					activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
+					List<string> activityIdsInDbFileList = activityIdsInDbFile.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
+                    insertResultInfo.AddRange(changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager));
+					insertResultInfo.Add("activityIdsInDbFileList : ");
+					insertResultInfo.AddRange(activityIdsInDbFileList);
+				//	insertResultInfo.AddRange(newActivitIdStringList);
+					insertResultInfo.AddRange(activityIdUpdateInfo);
+				//	insertResultInfo.AddRange(activityIdDifferenceStringList);
 
 
 
@@ -406,6 +414,54 @@ namespace Process_Export_Import
 			}
 			return fields;
 
+		}
+
+		public List<string> changeActivityIdsInDBFileByUpdatedList(List<int> oldActivityIdList, List<int> newActivityIdList , List<string> tablesWithActivityId , ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in tablesWithActivityId)
+			{		
+				for (int index = 0; index < newActivityIdList.Count; index++)
+				{
+						int tempActivityId = 10000000 + newActivityIdList[index];
+						string updateText = "Update " + tableName + " Set Activity_ID = " + tempActivityId.ToString() + " where Activity_Id = " + oldActivityIdList[index].ToString();
+						obj.executeQueriesInDbFile(updateText);
+						updateInfo.Add(updateText);
+				}	
+			}
+
+			return updateInfo;
+
+		}
+
+		public List<string> changeActivityIdsInDBFileToRealNewActivityID(List<string> tablesWithActivityId, ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in tablesWithActivityId)
+			{
+					int tempActivityIdToDistract = 10000000;
+					string updateText = "Update " + tableName + " Set Activity_ID =  Activity_ID  - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
+					obj.executeQueriesInDbFile(updateText);
+					updateInfo.Add(updateText);
+			}
+
+			return updateInfo;
+
+		}
+
+
+		public List<string> getAllTableNameWithActivityIdInDBFile(ConnectionManagerST obj)
+		{
+			List<string> tablesWithActivityId = new List<string>();
+			string queryText = "Select distinct(table_name) from table_information where Column_Name = 'Activity_ID';";
+			var reader = obj.sqLiteDataReader(queryText);
+			while (reader.Read())
+			{
+				tablesWithActivityId.Add(reader["table_name"].ToString());
+			}
+			return tablesWithActivityId;
 		}
 
 		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
@@ -598,15 +654,15 @@ namespace Process_Export_Import
 			return changeingDbFileInfo;
 		}
 
-		public List<int> changeActivityIdInActivityTAblesInDBFile(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList, List<int> activityIdList)
+		public List<int> changeActivityIdListToFitSqlServer(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList, List<int> activityIdList)
 		{
 			List<int> updatedActivityIdList = new List<int>();
 			int newMaxActivityId = maxActivityIdInSQLServer + 1;
 			updatedActivityIdList.Add(newMaxActivityId);
 			foreach (int difference in activityIdDifferenceList) 
 			{
-                updatedActivityIdList.Add(updatedActivityIdList[updatedActivityIdList.Count - 1] + difference);
-            }
+				updatedActivityIdList.Add(updatedActivityIdList[updatedActivityIdList.Count - 1] + difference);
+			}
 
 
 			return updatedActivityIdList;
