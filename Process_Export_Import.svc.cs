@@ -157,37 +157,6 @@ namespace Process_Export_Import
 		[OperationContract]
 		//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
 
-		/*
-		public List<string> Import_Process()
-		{
-
-			List<string> insertResultInfo = new List<string>();
-			List<string> dBStructureDifferencesList = new List<string>();
-			bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences());
-			int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer().First());
-
-			if (isTheDBStructuresAreTheSame)
-			{
-				try
-				{
-					insertResultInfo.AddRange(checkingDBStructureDifferences());
-					insertResultInfo.Add("Max Process_Id In SQL Server : " + maxProcessIdInSqlServer.ToString());
-					insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer));
-					insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_DEPARTMENT", true));
-				}
-				catch (Exception ex)
-				{
-					insertResultInfo.AddRange(checkingDBStructureDifferences());
-					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-					return insertResultInfo;
-				}
-			}
-		
-			return insertResultInfo;
-
-
-		}*/
-
 		public List<string> Import_Process()
 		{
 
@@ -203,10 +172,10 @@ namespace Process_Export_Import
 				try
 				{ 
 					int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-
-				//	insertResultInfo.Add("isTheDBStructuresAreTheSame?" + isTheDBStructuresAreTheSame.ToString());
 					insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
 					insertResultInfo.AddRange(changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
+
+
 					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
 					//insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
 
@@ -216,59 +185,17 @@ namespace Process_Export_Import
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
 				}
 			}
+			connectionManager.closeSqLiteConnection();
+			connectionManager.closeSqlServerConnection();
+
 			return insertResultInfo;
 
 
 		}
-		public List<string> convertIntListToStringList(List<int> inputStringList)
-		{
-			List<string> convertedStringList = inputStringList.ConvertAll<string>(delegate (int i) { return i.ToString(); });
-			return convertedStringList;
-		}
+		
 
 
-		public List<string> changeAllActivityIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
-		{
-			List<string> changingActivityIdsInfoList = new List<string>();
-			try
-			{
-				List<int> activityIdsInDbFile = new List<int>();
-				List<int> activityIdDifferenceList = new List<int>();
-				List<string> activityIdUpdateInfo = new List<string>();
-				List<int> newActivitIdList = new List<int>();
-				List<string> tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
-
-				int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-				int maxActivityIdInSqlServer = getMaxActivityIdFromSQLServer(connectionManager).First();
-
-				activityIdsInDbFile = getActivityIdsInOrderFromDBFile(connectionManager);
-				activityIdDifferenceList = getActivityIdDifferences(activityIdsInDbFile);
-
-				newActivitIdList = getNewActivityIdValueList(maxActivityIdInSqlServer, activityIdDifferenceList);
-				activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
-
-
-
-				changingActivityIdsInfoList.Add("activityIdsInDbFile : ");
-				changingActivityIdsInfoList.AddRange(convertIntListToStringList(activityIdsInDbFile));
-				changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager);
-
-				changingActivityIdsInfoList.Add("newActivitIdList : ");
-				changingActivityIdsInfoList.AddRange(convertIntListToStringList(newActivitIdList));
-				changingActivityIdsInfoList.AddRange(activityIdUpdateInfo);
-			}
-			catch (Exception ex)
-			{
-#if DEBUG
-				changingActivityIdsInfoList.Add(ex.ToString());
-#endif
-#if RELEASE
-				throw ex; 
-#endif
-			}
-			return changingActivityIdsInfoList;
-		}
-
+	
 		public List<string> getMaxdProcessIdFromSQLServer(ConnectionManagerST obj)
 		{
 			List<string> maxProcessIdList = new List<string>();
@@ -292,197 +219,11 @@ namespace Process_Export_Import
 
 		}
 
-		public List<int> getMaxActivityIdFromSQLServer(ConnectionManagerST obj)
-		{
-			List<int> maxActivityIdList = new List<int>();
 
-			try
-			{
-				var reader = obj.sqlServerDataReader("Select max(Activity_id) as Max_Activity_Id from T_ACTIVITY ");
-				while (reader.Read())
-				{
-					maxActivityIdList.Add(Convert.ToInt32(reader["Max_Activity_Id"]));
-				}
 
-			}
-			catch (Exception ex)
-			{
-				throw ex;
 
-			}
-
-			return maxActivityIdList;
-
-		}
 	  
-
-
-		public List<int> getActivityIdsInOrderFromDBFile(ConnectionManagerST obj)
-		{
-			List<int> maxActivityIdList = new List<int>();
-
-			try
-			{
-				var reader = obj.sqLiteDataReader("Select distinct(Activity_id) from T_ACTIVITY  order by Activity_id desc ");
-				while (reader.Read())
-				{
-					maxActivityIdList.Add(Convert.ToInt32(reader["Activity_id"]));
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return maxActivityIdList;
-
-		}
-
-
-
-		public List<int> getActivityIdDifferences(List<int> Activity_Ids )
-		{
-			List<int> activityIdDifferenceList = new List<int>();
-
-			try
-			{
-
-				for (int outerIndex = 1; outerIndex < Activity_Ids.Count; outerIndex++)
-				{
-					
-						int difference = Activity_Ids[outerIndex - 1] - Activity_Ids[outerIndex];
-						activityIdDifferenceList.Add(difference);
-
-					
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return activityIdDifferenceList;
-
-		}
-
-		public List<string> getProcessIdFromOldSQLServer(ConnectionManagerST obj)
-		{
-			List<string> editingDbFileResultInfo = new List<string>();
-
-			try
-			{
-				var reader = obj.sqlServerDataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
-				while (reader.Read())
-				{
-					editingDbFileResultInfo.Add(reader["Max_Process_Id"].ToString());
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return editingDbFileResultInfo;
-
-		}
-
-
-		public List<string> tableInfoListFromDBFile(ConnectionManagerST obj)
-		{
-			Tables_cwp table_info = new Tables_cwp();
-			string[] tableNames = table_info.getCWPTableList();
-			string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
-			List<string> tableInformationInDBFile = new List<string>();
-			for (int i = 0; i < tableNames.Length - 1; i++)
-			{
-				commandText += "'" + tableNames[i] + "',";
-			}
-			commandText += "'" + tableNames[tableNames.Length - 1] + "' )";
-
-			var sqReader = obj.sqLiteDataReader(commandText);
-			try
-			{
-				while (sqReader.Read())
-				{
-					string info = sqReader["table_name"].ToString() + " || " + sqReader["column_name"].ToString() + " || " + sqReader["data_type"].ToString();
-					tableInformationInDBFile.Add(info);
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-			}
-
-			return tableInformationInDBFile;
-			 
-		}
-		private Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
-		{
-			Dictionary<string, string> fields = new Dictionary<string, string>();
-			string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-			var reader = obj.sqlServerDataReader(commandText);
-			while (reader.Read())
-			{
-				fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
-			}
-			return fields;
-
-		}
-
-		public List<string> changeActivityIdsInDBFileByUpdatedList(List<int> oldActivityIdList, List<int> newActivityIdList , List<string> tablesWithActivityId , ConnectionManagerST obj)
-		{
-			List<string> updateInfo = new List<string>();
-
-			foreach (string tableName in tablesWithActivityId)
-			{		
-				for (int index = 0; index < newActivityIdList.Count; index++)
-				{
-						int tempActivityId = 10000000 + newActivityIdList[index];
-						string updateText = "Update " + tableName + " Set Activity_ID = " + tempActivityId.ToString() + " where Activity_Id = " + oldActivityIdList[index].ToString();
-						obj.executeQueriesInDbFile(updateText);
-						updateInfo.Add(updateText);
-				}	
-			}
-
-			return updateInfo;
-
-		}
-
-		public List<string> changeActivityIdsInDBFileToRealNewActivityID(List<string> tablesWithActivityId, ConnectionManagerST obj)
-		{
-			List<string> updateInfo = new List<string>();
-
-			foreach (string tableName in tablesWithActivityId)
-			{
-					int tempActivityIdToDistract = 10000000;
-					string updateText = "Update " + tableName + " Set Activity_ID =  Activity_ID  - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
-					obj.executeQueriesInDbFile(updateText);
-					updateInfo.Add(updateText);
-			}
-
-			return updateInfo;
-
-		}
-
-
-		public List<string> getAllTableNameWithActivityIdInDBFile(ConnectionManagerST obj)
-		{
-			List<string> tablesWithActivityId = new List<string>();
-			string queryText = "Select distinct(table_name) from table_information where Column_Name = 'Activity_ID';";
-			var reader = obj.sqLiteDataReader(queryText);
-			while (reader.Read())
-			{
-				tablesWithActivityId.Add(reader["table_name"].ToString());
-			}
-			return tablesWithActivityId;
-		}
+	
 
 		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
 		{
@@ -599,42 +340,88 @@ namespace Process_Export_Import
 			return insertresultInfo;
 		}
 
-		public List<string> checkingDBStructureDifferences(ConnectionManagerST obj)
+#region process_design_id
+
+
+	 //   public void changingAllProcessDesignIdInDbFileToFitSqlServer()
+	 //   {
+			
+	//    }
+
+
+
+		public List<string> allTableWithProcessDesignId = new List<string> { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN"};
+
+		public int getMaxProcessDesignIdFromSQLServer(ConnectionManagerST obj)
 		{
-			List<string> comparingDBStructuresInfo = new List<string>();
-			List<string> tableInfoInDBFile = new List<string>();
-			List<string> tableInfoInSQLServer = new List<string>();
+			int maxProcessDesignId = 0;
+
 			try
 			{
-				tableInfoInDBFile.AddRange(tableInfoListFromDBFile(obj));
-				tableInfoInSQLServer.AddRange(tableInfoListFromSQLServer(obj));
-				comparingDBStructuresInfo.AddRange(compareTwoStringList(tableInfoInDBFile, tableInfoInSQLServer));
+				var reader = obj.sqlServerDataReader("Select max(process_design_id) as Max_Process_Design_Id from T_PROC_DESIGN_DRAW");
+				while (reader.Read())
+				{
+					maxProcessDesignId = Convert.ToInt32(reader["Max_Process_Design_Id"]);
+				}
+
 			}
 			catch (Exception ex)
 			{
 				throw ex;
+
 			}
-			return comparingDBStructuresInfo;
+
+			return maxProcessDesignId;
+
 		}
-		public List<string> tableInfoListFromSQLServer(ConnectionManagerST obj)
+
+		public List<string> changeAllProcessDesignIdsInDBFileByNewValue( int maxProcessDesignIdInSqlServer , List<string> allTableWithProcessDesignId ,  ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+			int newMaxProcessDesignId = maxProcessDesignIdInSqlServer + 1;
+
+			foreach (string tableName in allTableWithProcessDesignId)
+			{
+				
+					string updateText = "Update " + tableName + " Set Process_Design_ID = " + newMaxProcessDesignId.ToString() + " where 1 = 1 ";
+					obj.executeQueriesInDbFile(updateText);
+					updateInfo.Add(updateText);
+			}
+
+			return updateInfo;
+
+		}
+
+
+
+
+		#endregion
+#region table_infos_+_smaller_help_functions
+
+		public List<string> convertIntListToStringList(List<int> inputStringList)
+		{
+			List<string> convertedStringList = inputStringList.ConvertAll<string>(delegate (int i) { return i.ToString(); });
+			return convertedStringList;
+		}
+		public List<string> tableInfoListFromDBFile(ConnectionManagerST obj)
 		{
 			Tables_cwp table_info = new Tables_cwp();
 			string[] tableNames = table_info.getCWPTableList();
-			string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
-			List<string> tableInfoInSQLServer = new List<string>();
+			string commandText = "select table_name,column_name,data_type from table_information WHERE table_name in (";
+			List<string> tableInformationInDBFile = new List<string>();
 			for (int i = 0; i < tableNames.Length - 1; i++)
 			{
-				commandTxt += "'" + tableNames[i] + "',";
-
+				commandText += "'" + tableNames[i] + "',";
 			}
-			commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
-			var reader = obj.sqlServerDataReader    (commandTxt);
+			commandText += "'" + tableNames[tableNames.Length - 1] + "' )";
+
+			var sqReader = obj.sqLiteDataReader(commandText);
 			try
 			{
-				while (reader.Read())
+				while (sqReader.Read())
 				{
-					string info = reader["table_name"].ToString() + " || " + reader["column_name"].ToString() + " || " + reader["data_type"].ToString();
-					tableInfoInSQLServer.Add(info);
+					string info = sqReader["table_name"].ToString() + " || " + sqReader["column_name"].ToString() + " || " + sqReader["data_type"].ToString();
+					tableInformationInDBFile.Add(info);
 				}
 
 			}
@@ -642,143 +429,10 @@ namespace Process_Export_Import
 			{
 				throw ex;
 			}
-			return tableInfoInSQLServer;
-		}
 
-		public List<string> changeProcessIDsInDBFileToFitSQLServer(int maxProcessIdInSQLServer, ConnectionManagerST obj)
-		{
-			List<string> changeingDbFileInfo = new List<string>();
-			List<string> tablesWithProcessIdList = new List<string>();
-			string commandText = "Select distinct(table_name) from table_information where COLUMN_NAME = 'Process_ID';";
-			try
-			{
-				var reader = obj.sqLiteDataReader(commandText);
-				while (reader.Read())
-				{
-					tablesWithProcessIdList.Add(reader["table_name"].ToString());
-				  //  changeingDbFileInfo.Add(reader["table_name"].ToString());
-
-				}
-
-				foreach (string tableName in tablesWithProcessIdList)
-				{
-					string updateCommandText = "Update " + tableName + " set Process_Id = " + (maxProcessIdInSQLServer + 1) + "  where 1 = 1";
-					obj.executeQueriesInDbFile(updateCommandText);
-				 //   changeingDbFileInfo.Add("Process ID Updated In " + tableName);
-				}
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-			}
-			return changeingDbFileInfo;
-		}
-
-		public List<int> getNewActivityIdValueList(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList)
-		{
-			List<int> updatedActivityIdList = new List<int>();
-			int newMaxActivityId = maxActivityIdInSQLServer + 1;
-			updatedActivityIdList.Add(newMaxActivityId);
-			foreach (int difference in activityIdDifferenceList) 
-			{
-				updatedActivityIdList.Add(updatedActivityIdList[updatedActivityIdList.Count - 1] + difference);
-			}
-
-
-			return updatedActivityIdList;
+			return tableInformationInDBFile;
 
 		}
-
-		public List<string> changeActivityIdsInDBFileToFitSQLServer(int maxActivityIdInSQLServer, ConnectionManagerST obj)
-		{
-			List<string> changeingDbFileInfo = new List<string>();
-			List<string> tablesWithActivityIdList = new List<string>();
-			string commandText = "Select distinct(table_name) from table_information where COLUMN_NAME = 'Activity_Id';";
-			try
-			{
-				var reader = obj.sqLiteDataReader(commandText);
-				while (reader.Read())
-				{
-					tablesWithActivityIdList.Add(reader["table_name"].ToString());
-					changeingDbFileInfo.Add(reader["table_name"].ToString());
-
-				}
-
-				foreach (string tableName in tablesWithActivityIdList)
-				{
-					string updateCommandText = "Update " + tableName + " set Activity_Id = " + (maxActivityIdInSQLServer + 1) + "  where 1 = 1";
-					obj.executeQueriesInDbFile(updateCommandText);
-				changeingDbFileInfo.Add("AKT ID ID Updated In " + tableName);
-				}
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-			}
-			return changeingDbFileInfo;
-		}
-
-		/*
-		public List<string> getMaxdProcessIdFromSQLServer()
-		{
-			List<string> editingDbFileResultInfo = new List<string>();
-			ConnectionManager connectionManager = new ConnectionManager();
-			connectionManager.openSqlServerConnection();
-			try
-			{
-				var reader = connectionManager.DataReader("SELECT MAX(Process_Id) as 'Max_Process_Id' FROM T_PROCESS");
-				while (reader.Read())
-				{
-					editingDbFileResultInfo.Add(reader["Max_Process_Id"].ToString());
-				}
-
-			}
-			catch (Exception ex)
-			{
-				editingDbFileResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-
-			}
-
-			connectionManager.closeSqlServerConnection();
-			return editingDbFileResultInfo;
-
-		}
-
-		public List<string> changeProcessIDsInDBFileToFitSQLServer(int maxProcessIdInSQLServer)
-		{
-			List<string> changeingDbFileInfo = new List<string>();
-			List<string> tablesWithProcessIdList = new List<string>();
-			ConnectionManager connectionManager = new ConnectionManager();
-			connectionManager.openSqLiteConnection();
-			string commandText = "Select distinct(table_name) from table_information where COLUMN_NAME = 'Process_ID';";
-			try
-			{
-				var reader = connectionManager.sqLiteDataReader(commandText);
-				while (reader.Read())
-				{
-					tablesWithProcessIdList.Add(reader["table_name"].ToString());
-					changeingDbFileInfo.Add(reader["table_name"].ToString());
-
-				}
-
-				foreach (string tableName in tablesWithProcessIdList)
-				{
-					string updateCommandText = "Update " + tableName + " set Process_Id = " + ( maxProcessIdInSQLServer + 1) + "  where 1 = 1"; 
-					connectionManager.executeQueriesInDbFile(updateCommandText);
-					changeingDbFileInfo.Add("Process ID Updated In " + tableName);
-				}
-			}
-			catch (Exception ex)
-			{
-				changeingDbFileInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-			}
-			connectionManager.closeSqLiteConnection();
-			return changeingDbFileInfo;
-		}
-		*/
-
-
-
 		public bool verifyThatDBStructuresAreTheSame(List<string> inputList)
 		{
 			bool theDbStructuresAreTheSame = false;
@@ -824,6 +478,251 @@ namespace Process_Export_Import
 
 			return resultInfo;
 		}
+
+
+		private Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
+		{
+			Dictionary<string, string> fields = new Dictionary<string, string>();
+			string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+			var reader = obj.sqlServerDataReader(commandText);
+			while (reader.Read())
+			{
+				fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
+			}
+			return fields;
+
+		}
+
+		public List<string> checkingDBStructureDifferences(ConnectionManagerST obj)
+		{
+			List<string> comparingDBStructuresInfo = new List<string>();
+			List<string> tableInfoInDBFile = new List<string>();
+			List<string> tableInfoInSQLServer = new List<string>();
+			try
+			{
+				tableInfoInDBFile.AddRange(tableInfoListFromDBFile(obj));
+				tableInfoInSQLServer.AddRange(tableInfoListFromSQLServer(obj));
+				comparingDBStructuresInfo.AddRange(compareTwoStringList(tableInfoInDBFile, tableInfoInSQLServer));
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+			return comparingDBStructuresInfo;
+		}
+		public List<string> tableInfoListFromSQLServer(ConnectionManagerST obj)
+		{
+			Tables_cwp table_info = new Tables_cwp();
+			string[] tableNames = table_info.getCWPTableList();
+			string commandTxt = "Select table_name,column_name,data_type from INFORMATION_SCHEMA.COLUMNS where table_name in (";
+			List<string> tableInfoInSQLServer = new List<string>();
+			for (int i = 0; i < tableNames.Length - 1; i++)
+			{
+				commandTxt += "'" + tableNames[i] + "',";
+
+			}
+			commandTxt += "'" + tableNames[tableNames.Length - 1] + "' )";
+			var reader = obj.sqlServerDataReader    (commandTxt);
+			try
+			{
+				while (reader.Read())
+				{
+					string info = reader["table_name"].ToString() + " || " + reader["column_name"].ToString() + " || " + reader["data_type"].ToString();
+					tableInfoInSQLServer.Add(info);
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+			return tableInfoInSQLServer;
+		}
+#endregion
+#region Activity_Id 
+		public List<string> changeAllActivityIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
+		{
+			List<string> changingActivityIdsInfoList = new List<string>();
+			try
+			{
+				List<int> activityIdsInDbFile = new List<int>();
+				List<int> activityIdDifferenceList = new List<int>();
+				List<string> activityIdUpdateInfo = new List<string>();
+				List<int> newActivitIdList = new List<int>();
+
+				List<string> tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
+				int maxActivityIdInSqlServer = getMaxActivityIdFromSQLServer(connectionManager).First();
+
+				activityIdsInDbFile = getActivityIdsInOrderFromDBFile(connectionManager);
+				activityIdDifferenceList = getActivityIdDifferences(activityIdsInDbFile);
+
+				newActivitIdList = getNewActivityIdValueList(maxActivityIdInSqlServer, activityIdDifferenceList);
+				activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
+
+				changingActivityIdsInfoList.Add("activityIdsInDbFile : ");
+				changingActivityIdsInfoList.AddRange(convertIntListToStringList(activityIdsInDbFile));
+				changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager);
+
+				changingActivityIdsInfoList.Add("newActivitIdList : ");
+				changingActivityIdsInfoList.AddRange(convertIntListToStringList(newActivitIdList));
+				changingActivityIdsInfoList.AddRange(activityIdUpdateInfo);
+			}
+			catch (Exception ex)
+			{
+#if DEBUG
+				changingActivityIdsInfoList.Add(ex.ToString());
+#endif
+#if RELEASE
+				throw ex; 
+#endif
+			}
+			return changingActivityIdsInfoList;
+		}
+
+
+		public List<int> getMaxActivityIdFromSQLServer(ConnectionManagerST obj)
+		{
+			List<int> maxActivityIdList = new List<int>();
+
+			try
+			{
+				var reader = obj.sqlServerDataReader("Select max(Activity_id) as Max_Activity_Id from T_ACTIVITY ");
+				while (reader.Read())
+				{
+					maxActivityIdList.Add(Convert.ToInt32(reader["Max_Activity_Id"]));
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return maxActivityIdList;
+
+		}
+
+
+
+		public List<int> getActivityIdsInOrderFromDBFile(ConnectionManagerST obj)
+		{
+			List<int> maxActivityIdList = new List<int>();
+
+			try
+			{
+				var reader = obj.sqLiteDataReader("Select distinct(Activity_id) from T_ACTIVITY  order by Activity_id desc ");
+				while (reader.Read())
+				{
+					maxActivityIdList.Add(Convert.ToInt32(reader["Activity_id"]));
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return maxActivityIdList;
+
+		}
+
+
+
+		public List<int> getActivityIdDifferences(List<int> Activity_Ids)
+		{
+			List<int> activityIdDifferenceList = new List<int>();
+
+			try
+			{
+
+				for (int outerIndex = 1; outerIndex < Activity_Ids.Count; outerIndex++)
+				{
+
+					int difference = Activity_Ids[outerIndex - 1] - Activity_Ids[outerIndex];
+					activityIdDifferenceList.Add(difference);
+
+
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return activityIdDifferenceList;
+
+		}
+
+		public List<string> changeActivityIdsInDBFileByUpdatedList(List<int> oldActivityIdList, List<int> newActivityIdList, List<string> tablesWithActivityId, ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in tablesWithActivityId)
+			{
+				for (int index = 0; index < newActivityIdList.Count; index++)
+				{
+					int tempActivityId = 10000000 + newActivityIdList[index];
+					string updateText = "Update " + tableName + " Set Activity_ID = " + tempActivityId.ToString() + " where Activity_Id = " + oldActivityIdList[index].ToString();
+					obj.executeQueriesInDbFile(updateText);
+					updateInfo.Add(updateText);
+				}
+			}
+
+			return updateInfo;
+
+		}
+
+		public List<string> changeActivityIdsInDBFileToRealNewActivityID(List<string> tablesWithActivityId, ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in tablesWithActivityId)
+			{
+				int tempActivityIdToDistract = 10000000;
+				string updateText = "Update " + tableName + " Set Activity_ID =  Activity_ID  - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
+				obj.executeQueriesInDbFile(updateText);
+				updateInfo.Add(updateText);
+			}
+
+			return updateInfo;
+
+		}
+
+
+		public List<string> getAllTableNameWithActivityIdInDBFile(ConnectionManagerST obj)
+		{
+			List<string> tablesWithActivityId = new List<string>();
+			string queryText = "Select distinct(table_name) from table_information where Column_Name = 'Activity_ID';";
+			var reader = obj.sqLiteDataReader(queryText);
+			while (reader.Read())
+			{
+				tablesWithActivityId.Add(reader["table_name"].ToString());
+			}
+			return tablesWithActivityId;
+		}
+
+		public List<int> getNewActivityIdValueList(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList)
+		{
+			List<int> updatedActivityIdList = new List<int>();
+			int newMaxActivityId = maxActivityIdInSQLServer + 1;
+			updatedActivityIdList.Add(newMaxActivityId);
+			foreach (int difference in activityIdDifferenceList) 
+			{
+				updatedActivityIdList.Add(updatedActivityIdList[updatedActivityIdList.Count - 1] + difference);
+			}
+
+
+			return updatedActivityIdList;
+
+		}
+
+		#endregion       
+#region komment_kódok
+
 		/*
 		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn)
 		{
@@ -943,9 +842,7 @@ namespace Process_Export_Import
 			}
 			return insertresultInfo;
 		}
-		*/
-
-		/*
+		
 		public List<string> tableInfoListFromDBFile()
 		{
 			Tables_cwp table_info = new Tables_cwp();
@@ -1019,8 +916,7 @@ namespace Process_Export_Import
 			}
 			return tableInfoInSQLServer;
 		}
-		*/
-		/*
+		
 		public string insertIntoTargetDb(string tableName, string[] values, bool requireIdentityInsert)
 		{
 			string commandTxt = "";
@@ -1412,8 +1308,7 @@ namespace Process_Export_Import
 
 			}
 		}
-		*/
-		/*public List<Tables_cwp>  checkTableInfoInDbFile()
+		public List<Tables_cwp>  checkTableInfoInDbFile()
 		{
 	
 			Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
@@ -1490,184 +1385,8 @@ namespace Process_Export_Import
 			return tableObjectList;
 
 		}*/
-		public string detectProcessNameFromDbFile()
-		{
-
-			string commandText = "SELECT NAME FROM T_PROCESS ";
-			string connectionString = ConfigurationManager.ConnectionStrings["Default"].ToString();
-			SQLiteConnection connSqlite = new SQLiteConnection(connectionString);
-			SQLiteCommand command = new SQLiteCommand(connSqlite);
-			string processName = "";
-			string exception;
-			try
-			{
-
-				command.CommandText = commandText;
-				connSqlite.Open();
-				SQLiteDataReader sqReader = command.ExecuteReader();
-
-				while (sqReader.Read())
-				{
-					processName = sqReader["NAME"].ToString();
-
-
-				}
-				sqReader.Close();
-			}
-			catch (Exception ex)
-			{
-				exception = ex.Message.ToString() + ex.StackTrace.ToString();
-
-				return exception;
-
-			}
-
-			return processName;
-
-		}
-
-		public List<Tables_cwp> checkTableInfoInTargetDb()
-		{
-			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-			string commandTxt = "SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME in ( {0})";
-
-			SqlDataReader reader;
-			Dictionary<string, string> tableInfoInImportDb = new Dictionary<string, string>();
-			Dictionary<string, string> exception = new Dictionary<string, string>();
-			Tables_cwp dbInformationForEachTables = new Tables_cwp();
-			string columnName = "";
-			string dataType = "";
-			Tables_cwp tables = new Tables_cwp();
-			string[] tableList = new string[1] { "T_PROCESS" };
-			var tableParameterList = new List<string>();
-			var index = 0;
-			List<Tables_cwp> tableObjectList = new List<Tables_cwp>();
-			using (SqlConnection connection = new SqlConnection(connectionString))
-			{
-				SqlCommand command = new SqlCommand(commandTxt, connection);
-				try
-				{
-
-					foreach (string table in tableList)
-					{
-						var paramName = "@parameter" + index;
-						command.Parameters.AddWithValue(paramName, table);
-						tableParameterList.Add(paramName);
-						index++;
-
-						Tables_cwp tableObject = new Tables_cwp();
-
-						tableObject.TableName = table;
-						tableObjectList.Add(tableObject);
-					}
-					command.CommandText = String.Format(commandTxt, string.Join(",", tableParameterList));
-					connection.Open();
-					reader = command.ExecuteReader();
-
-					while (reader.Read())
-					{
-						for (var i = 0; i < tableObjectList.Count; i++)
-						{
-							if (tableObjectList[i].TableName.Equals(reader["TABLE_NAME"].ToString()))
-							{
-								tableObjectList[i].ColumDataType.Add(reader["DATA_TYPE"].ToString());
-								tableObjectList[i].ColumnName.Add(reader["COLUMN_NAME"].ToString());
-								break;
-							}
-						}
-
-					}
-					reader.Close();
-				}
-				catch (Exception ex)
-				{
-					exception.Add(ex.Message.ToString(), ex.StackTrace.ToString());
-					for (var i = 0; i < tableObjectList.Count; i++)
-					{
-						tableObjectList[i].Exception = ex.Message.ToString() + ex.StackTrace.ToString();
-					}
-
-					return tableObjectList;
-
-				}
-
-				return tableObjectList;
-			}
-		}
-
-		public int detectProcessIdIfProcessExistInTargetDb(string ProcessName)
-		{
-			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-			string commandTxt = "SELECT process_id from T_PROCESS where name = @parameter; ";
-			SqlDataReader reader;
-			int processId = 0;
-			using (SqlConnection connection = new SqlConnection(connectionString))
-			{
-				SqlCommand command = new SqlCommand(commandTxt, connection);
-				command.Parameters.AddWithValue("@parameter", ProcessName);
-				try
-				{
-
-					command.CommandText = commandTxt;
-					connection.Open();
-					reader = command.ExecuteReader();
-
-					while (reader.Read())
-					{
-						processId = (int)reader[0];
-
-
-					}
-					reader.Close();
-				}
-				catch (Exception ex)
-				{
-
-
-					return processId = -1;
-
-				}
-
-				return processId;
-			}
-		}
-
-		public bool checkIfImportedPorcessExistInTargetDb(string processName)
-		{
-			string connectionString = ConfigurationManager.AppSettings.Get("connstrRe");
-			string commandTxt = "SELECT count(*) FROM T_PROCESS WHERE NAME = @parameter";
-			SqlDataReader reader;
-			bool processNameExistInTargetDb = false;
-
-			using (SqlConnection connection = new SqlConnection(connectionString))
-			{
-				SqlCommand command = new SqlCommand(commandTxt, connection);
-				reader = command.ExecuteReader();
-				command.Parameters.AddWithValue("@parameter", processName);
-				try
-				{
-
-					connection.Open();
-					reader.Read();
-					if ((int)reader[0] == 1)
-					{
-						processNameExistInTargetDb = true;
-					}
-					reader.Close();
-				}
-				catch (Exception ex)
-				{
-					return processNameExistInTargetDb;
-				}
-				finally
-				{
-					reader.Close();
-				}
-
-				return processNameExistInTargetDb;
-			}
-		}
-
+		#endregion
+	 
 		public bool CheckIfProcessExistInDatabase(Int64 process_Id)
 		{
 			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
