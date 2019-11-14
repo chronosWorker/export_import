@@ -192,49 +192,21 @@ namespace Process_Export_Import
 		{
 
 			List<string> insertResultInfo = new List<string>();
-			List<string> tablesWithActivityIdInDBFile = new List<string>();
-			List<string> activityIdUpdateInfo = new List<string>();
-			List<int> activityIdsInDbFile = new List<int>();
-			List<int> activityIdDifferenceList = new List<int>();
-			List<int> newActivitIdList = new List<int>();
-				
 			var connectionManager = new ConnectionManagerST();
+				
 			connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
+
 			bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
 			if (isTheDBStructuresAreTheSame)
 			{
 				try
 				{ 
 					int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-					int maxActivityIdInSqlServer = getMaxActivityIdFromSQLServer(connectionManager).First();
-					activityIdsInDbFile = getActivityIdsInOrderFromDBFile(connectionManager);
-					List<string> lol = activityIdsInDbFile.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
-					insertResultInfo.AddRange(lol);
-					insertResultInfo.Add("Vége");
-					activityIdDifferenceList = getActivityIdDifferences(activityIdsInDbFile);
-					insertResultInfo.Add("Max Activity Id In Sql Server" + maxActivityIdInSqlServer.ToString());
-					insertResultInfo.Add("isTheDBStructuresAreTheSame?" + isTheDBStructuresAreTheSame.ToString());
+
+				//	insertResultInfo.Add("isTheDBStructuresAreTheSame?" + isTheDBStructuresAreTheSame.ToString());
 					insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
-					insertResultInfo.Add("Activity Id Difference List : " );
-
-					tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
-					List<string> activityIdDifferenceStringList = activityIdDifferenceList.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
-					string act_diff_list_count = activityIdDifferenceStringList.Count.ToString();
-
-				//	insertResultInfo.Add("New Act Id List : " );
-					newActivitIdList = changeActivityIdListToFitSqlServer(maxActivityIdInSqlServer, activityIdDifferenceList , activityIdsInDbFile);
-					activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
-					List<string> activityIdsInDbFileList = activityIdsInDbFile.ConvertAll<string>(delegate (int i) { return i.ToString(); }); ;
-                    insertResultInfo.AddRange(changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager));
-					insertResultInfo.Add("activityIdsInDbFileList : ");
-					insertResultInfo.AddRange(activityIdsInDbFileList);
-				//	insertResultInfo.AddRange(newActivitIdStringList);
-					insertResultInfo.AddRange(activityIdUpdateInfo);
-				//	insertResultInfo.AddRange(activityIdDifferenceStringList);
-
-
-
+					insertResultInfo.AddRange(changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
 					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
 					//insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
 
@@ -247,6 +219,54 @@ namespace Process_Export_Import
 			return insertResultInfo;
 
 
+		}
+		public List<string> convertIntListToStringList(List<int> inputStringList)
+		{
+			List<string> convertedStringList = inputStringList.ConvertAll<string>(delegate (int i) { return i.ToString(); });
+			return convertedStringList;
+		}
+
+
+		public List<string> changeAllActivityIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
+		{
+			List<string> changingActivityIdsInfoList = new List<string>();
+			try
+			{
+				List<int> activityIdsInDbFile = new List<int>();
+				List<int> activityIdDifferenceList = new List<int>();
+				List<string> activityIdUpdateInfo = new List<string>();
+				List<int> newActivitIdList = new List<int>();
+				List<string> tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
+
+				int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
+				int maxActivityIdInSqlServer = getMaxActivityIdFromSQLServer(connectionManager).First();
+
+				activityIdsInDbFile = getActivityIdsInOrderFromDBFile(connectionManager);
+				activityIdDifferenceList = getActivityIdDifferences(activityIdsInDbFile);
+
+				newActivitIdList = getNewActivityIdValueList(maxActivityIdInSqlServer, activityIdDifferenceList);
+				activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
+
+
+
+				changingActivityIdsInfoList.Add("activityIdsInDbFile : ");
+				changingActivityIdsInfoList.AddRange(convertIntListToStringList(activityIdsInDbFile));
+				changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager);
+
+				changingActivityIdsInfoList.Add("newActivitIdList : ");
+				changingActivityIdsInfoList.AddRange(convertIntListToStringList(newActivitIdList));
+				changingActivityIdsInfoList.AddRange(activityIdUpdateInfo);
+			}
+			catch (Exception ex)
+			{
+#if DEBUG
+				changingActivityIdsInfoList.Add(ex.ToString());
+#endif
+#if RELEASE
+				throw ex; 
+#endif
+			}
+			return changingActivityIdsInfoList;
 		}
 
 		public List<string> getMaxdProcessIdFromSQLServer(ConnectionManagerST obj)
@@ -294,7 +314,7 @@ namespace Process_Export_Import
 			return maxActivityIdList;
 
 		}
-
+	  
 
 
 		public List<int> getActivityIdsInOrderFromDBFile(ConnectionManagerST obj)
@@ -654,7 +674,7 @@ namespace Process_Export_Import
 			return changeingDbFileInfo;
 		}
 
-		public List<int> changeActivityIdListToFitSqlServer(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList, List<int> activityIdList)
+		public List<int> getNewActivityIdValueList(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList)
 		{
 			List<int> updatedActivityIdList = new List<int>();
 			int newMaxActivityId = maxActivityIdInSQLServer + 1;
@@ -1799,7 +1819,7 @@ namespace Process_Export_Import
 				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
 				{
 					MSSQLConnection.Open();
-					#region T_REPORT_FIELD
+#region T_REPORT_FIELD
 
 					columnTypes = getColumnTypesDictionary("T_REPORT_FIELD");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -1865,8 +1885,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_REPORT
+#endregion
+#region T_REPORT
 					columnTypes = getColumnTypesDictionary("T_REPORT");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT";
@@ -1921,8 +1941,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_REPORT_2_FIELD_COND_GROUP
+#endregion
+#region T_REPORT_2_FIELD_COND_GROUP
 					columnTypes = getColumnTypesDictionary("T_REPORT_2_FIELD_COND_GROUP");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_2_FIELD_COND_GROUP";
@@ -1978,8 +1998,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE
+#endregion
+#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE
 					columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE");
 					// transfer  data
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -2035,8 +2055,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUES
+#endregion
+#region T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUES
 					columnTypes = getColumnTypesDictionary("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE";
@@ -2092,8 +2112,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_REPORT_EDIT_OWNER
+#endregion
+#region T_REPORT_EDIT_OWNER
 					columnTypes = getColumnTypesDictionary("T_REPORT_EDIT_OWNER");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_EDIT_OWNER";
@@ -2149,8 +2169,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_REPORT_FIELD_UDT_COLUMNS
+#endregion
+#region T_REPORT_FIELD_UDT_COLUMNS
 					columnTypes = getColumnTypesDictionary("T_REPORT_FIELD_UDT_COLUMNS");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD_UDT_COLUMNS";
@@ -2207,8 +2227,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_REPORT_FILTER
+#endregion
+#region T_REPORT_FILTER
 					columnTypes = getColumnTypesDictionary("T_REPORT_FILTER");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FILTER";
@@ -2264,8 +2284,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_REPORT_REFERENCED_FIELD_LOCATION
+#endregion
+#region T_REPORT_REFERENCED_FIELD_LOCATION
 					columnTypes = getColumnTypesDictionary("T_REPORT_REFERENCED_FIELD_LOCATION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
@@ -2383,7 +2403,7 @@ namespace Process_Export_Import
 
 						}
 					}
-					#endregion
+#endregion
 				}
 			}
 			catch (Exception ex)
@@ -2540,7 +2560,7 @@ namespace Process_Export_Import
 						}
 					}
 
-					#region other tables
+#region other tables
 					// fill activities array
 					strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -2550,7 +2570,7 @@ namespace Process_Export_Import
 					{
 						activities.Add(Convert.ToInt64(readerMsSql["activity_id"].ToString()));
 					}
-					#region T_ACTIVITY_OWNER_BY_CONDITION
+#region T_ACTIVITY_OWNER_BY_CONDITION
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION");
 					for (int i = 0; i < activities.Count; i++)
 					{
@@ -2605,8 +2625,8 @@ namespace Process_Export_Import
 
 						}
 					}
-					#endregion
-					#region T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
+#endregion
+#region T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT");
 					for (var i = 0; i < activityOwnerByCondition.Count; i++)
 					{
@@ -2661,8 +2681,8 @@ namespace Process_Export_Import
 
 						}
 					}
-					#endregion
-					#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION
+#endregion
+#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION");
 					for (var i = 0; i < activityOwnerByCondition.Count; i++)
 					{
@@ -2718,8 +2738,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
+#endregion
+#region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP");
 					for (var i = 0; i < activityOwnerByCondition.Count; i++)
 					{
@@ -2775,8 +2795,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ACTIVITY_PARTICIPANT
+#endregion
+#region T_ACTIVITY_PARTICIPANT
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_PARTICIPANT");
 					for (var i = 0; i < activities.Count; i++)
 					{
@@ -2832,8 +2852,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_PROC_DESIGN_DRAW_PART_DETAIL
+#endregion
+#region T_PROC_DESIGN_DRAW_PART_DETAIL
 					columnTypes = getColumnTypesDictionary("T_PROC_DESIGN_DRAW_PART_DETAIL");
 					// transfer  data
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -2887,8 +2907,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_ROUTING_CONDITION
+#endregion
+#region T_ROUTING_CONDITION
 					columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
@@ -2944,8 +2964,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ROUTING_CONDITION_GROUP
+#endregion
+#region T_ROUTING_CONDITION_GROUP
 					columnTypes = getColumnTypesDictionary("T_ROUTING_CONDITION_GROUP");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
@@ -3001,8 +3021,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_ROUTING_DESIGN
+#endregion
+#region T_ROUTING_DESIGN
 					columnTypes = getColumnTypesDictionary("T_ROUTING_DESIGN");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
@@ -3058,8 +3078,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_CONDITION
+#endregion
+#region T_FIELD_CONDITION
 					columnTypes = getColumnTypesDictionary("T_FIELD_CONDITION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3116,8 +3136,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_DATE_CONSTRAINT
+#endregion
+#region T_FIELD_DATE_CONSTRAINT
 					columnTypes = getColumnTypesDictionary("T_FIELD_DATE_CONSTRAINT");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3174,8 +3194,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_EXTENSION_NUMBER
+#endregion
+#region T_FIELD_EXTENSION_NUMBER
 					columnTypes = getColumnTypesDictionary("T_FIELD_EXTENSION_NUMBER");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3232,8 +3252,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
+#endregion
+#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3290,8 +3310,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_LABEL_TRANSLATION
+#endregion
+#region T_FIELD_LABEL_TRANSLATION
 					columnTypes = getColumnTypesDictionary("T_FIELD_LABEL_TRANSLATION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3348,8 +3368,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_FIELD_VALUE
+#endregion
+#region T_FIELD_VALUE
 					columnTypes = getColumnTypesDictionary("T_FIELD_VALUE");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
@@ -3407,8 +3427,8 @@ namespace Process_Export_Import
 					}
 
 
-					#endregion
-					#region T_ACTIVITY_DESIGN
+#endregion
+#region T_ACTIVITY_DESIGN
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DESIGN");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3465,8 +3485,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ACTIVITY_FIELDS
+#endregion
+#region T_ACTIVITY_FIELDS
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3523,8 +3543,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ACTIVITY_FIELDS_FOR_ESIGNING
+#endregion
+#region T_ACTIVITY_FIELDS_FOR_ESIGNING
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS_FOR_ESIGNING");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3580,8 +3600,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
+#endregion
+#region T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3637,8 +3657,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_ACTIVITY_DEPENDENT_COMPONENTS
+#endregion
+#region T_ACTIVITY_DEPENDENT_COMPONENTS
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENTS");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3695,8 +3715,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
+#endregion
+#region T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
 					columnTypes = getColumnTypesDictionary("T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
@@ -3763,8 +3783,8 @@ namespace Process_Export_Import
 						}
 					}
 
-					#endregion
-					#region T_DYNAMIC ROUTING
+#endregion
+#region T_DYNAMIC ROUTING
 					columnTypes = getColumnTypesDictionary("T_DYNAMIC_ROUTING");
 					List<long> selectedActivities = getActivities(processId);
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -3821,8 +3841,8 @@ namespace Process_Export_Import
 
 					}
 
-					#endregion
-					#region T_CALCFIELD_FORMULA_STEPS___T_CALCFIELD_OPERAND
+#endregion
+#region T_CALCFIELD_FORMULA_STEPS___T_CALCFIELD_OPERAND
 					// load process fields to list   
 					fieldsForProcess = getProcessFields(processId);
 					columnTypes = getColumnTypesDictionary("T_CALCFIELD_FORMULA_STEPS");
@@ -3936,8 +3956,8 @@ namespace Process_Export_Import
 
 						}
 					}
-					#endregion
-					#region T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
+#endregion
+#region T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS");
 					// transfer structure info
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -3990,8 +4010,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_USER_DEFINED_TABLE
+#endregion
+#region T_USER_DEFINED_TABLE
 					columnTypes = getColumnTypesDictionary("T_USER_DEFINED_TABLE");
 
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -4046,8 +4066,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_FORMULA_STEPS
+#endregion
+#region T_FORMULA_STEPS
 					columnTypes = getColumnTypesDictionary("T_FORMULA_STEPS");
 
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
@@ -4101,8 +4121,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_OPERAND
+#endregion
+#region T_OPERAND
 					columnTypes = getColumnTypesDictionary("T_OPERAND");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_OPERAND";
@@ -4160,8 +4180,8 @@ namespace Process_Export_Import
 
 					}
 
-					#endregion
-					#region T_PROCFIELD_PARTICIPANT
+#endregion
+#region T_PROCFIELD_PARTICIPANT
 					columnTypes = getColumnTypesDictionary("T_PROCFIELD_PARTICIPANT");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_PARTICIPANT";
@@ -4213,8 +4233,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_PROCFIELD_WORD_MERGE
+#endregion
+#region T_PROCFIELD_WORD_MERGE
 					columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE";
@@ -4270,8 +4290,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_PROCFIELD_WORD_MERGE_FIELD
+#endregion
+#region T_PROCFIELD_WORD_MERGE_FIELD
 					columnTypes = getColumnTypesDictionary("T_PROCFIELD_WORD_MERGE_FIELD");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_PROCFIELD_WORD_MERGE_FIELD";
@@ -4327,8 +4347,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_AUTOMATIC_PROCESS
+#endregion
+#region T_AUTOMATIC_PROCESS
 					columnTypes = getColumnTypesDictionary("T_AUTOMATIC_PROCESS");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_AUTOMATIC_PROCESS";
@@ -4384,9 +4404,9 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
+#endregion
 
-					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
+#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY";
@@ -4442,8 +4462,8 @@ namespace Process_Export_Import
 							cmdSqlite.ExecuteNonQuery();
 						}
 					}
-					#endregion
-					#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
+#endregion
+#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 					columnTypes = getColumnTypesDictionary("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY");
 					for (var i = 0; i < activities.Count; i++)
 					{
