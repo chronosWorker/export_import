@@ -95,6 +95,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActivityManager.cs" />
     <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="Tables_cwp.cs" />
     <Compile Include="Import.cs" />
