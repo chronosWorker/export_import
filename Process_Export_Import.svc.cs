@@ -173,7 +173,8 @@ namespace Process_Export_Import
 				{ 
 					int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
 					insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
-					insertResultInfo.AddRange(changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
+                    insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
+					
 
 
 					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
@@ -340,6 +341,8 @@ namespace Process_Export_Import
 			return insertresultInfo;
 		}
 
+	
+
 #region process_design_id
 
 
@@ -433,6 +436,9 @@ namespace Process_Export_Import
 			return tableInformationInDBFile;
 
 		}
+
+   
+
 		public bool verifyThatDBStructuresAreTheSame(List<string> inputList)
 		{
 			bool theDbStructuresAreTheSame = false;
