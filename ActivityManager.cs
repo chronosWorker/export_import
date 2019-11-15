@@ -74,7 +74,6 @@ namespace Process_Export_Import
 					int difference = Activity_Ids[outerIndex - 1] - Activity_Ids[outerIndex];
 					activityIdDifferenceList.Add(difference);
 
-
 				}
 
 			}
@@ -187,10 +186,7 @@ namespace Process_Export_Import
 			}
 			catch (Exception ex)
 			{
-
 				changingActivityIdsInfoList.Add(ex.ToString());
-
-
 			}
 			return changingActivityIdsInfoList;
 		}

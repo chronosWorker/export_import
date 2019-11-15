@@ -162,7 +162,8 @@ namespace Process_Export_Import
 
 			List<string> insertResultInfo = new List<string>();
 			var connectionManager = new ConnectionManagerST();
-				
+
+			List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
 			connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
 
@@ -172,15 +173,33 @@ namespace Process_Export_Import
 				try
 				{ 
 					int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-					insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
-                    insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
-					
+					//	insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
+
+					//	insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
+					//	insertResultInfo.AddRange(changeAllProcessDesignIdsInDBFileByNewValue(getMaxProcessDesignIdFromSQLServer(connectionManager), allTableWithProcessDesignId, connectionManager ));
+					//	foreach(string tableName in allTableWithProcessDesignId)
+					//	{
+					//	insertResultInfo.AddRange(getColumnTypesDictionary_v2(tableName , connectionManager).Keys);
+					//	}
+					//getMaxProcessDesignDrawIdFromSQLServer(connectionManager);
+					List<string> allTableWithProcDesignDrawPartIds = new List<string>() { "T_PROC_DESIGN_DRAW_PART", "T_PROC_DESIGN_DRAW_PART_DETAIL" };
+					int newMAx = getMaxProcessDesignDrawPartIdFromSQLServer(connectionManager);
+				;
+					getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager));
+					getNewProcessDesignDrawPartIdValueList(newMAx, getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager)));
+                    changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager);
+                    changeProcDesignDrawPartIdsInDBFileByUpdatedList(allTableWithProcDesignDrawPartIds, connectionManager);
+                    //changeProcDesignDrawPartIdsInDBFileByUpdatedList();
+                    //	insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_PROC_DESIGN_DRAW", true , connectionManager));
+                    //	;
+                    //	insertResultInfo.AddRange(changeAllProcessDesignDrawIdsInDBFileByNewValue(getMaxProcessDesignDrawIdFromSQLServer(connectionManager), connectionManager));
+                    //     insertValuesFromDbFileToSqlServer();
 
 
-					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
-					//insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
+                    //insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
+                    //insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
 
-				}
+                }
 				catch(Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
@@ -263,6 +282,7 @@ namespace Process_Export_Import
 							case "NULL":
 								values.Add("0");
 								break;
+							case "bit":
 							case "binary":
 							case "varbinary":
 							case "image":
@@ -324,7 +344,7 @@ namespace Process_Export_Import
 				insertresultInfo.Add(tableName + " has " + fieldCount.ToString() + " column's ");
 				if (needToSetIdentityInsertOn)
 				{
-					obj.executeQueriesInSqlServer("SET IDENTITY_INSERT T_DEPARTMENT ON ;" + commandText);
+					obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName  +  " ON ;" + commandText);
 				}
 				else
 				{
@@ -343,7 +363,7 @@ namespace Process_Export_Import
 
 	
 
-#region process_design_id
+#region rajzal_kapcsolatos_dolgok
 
 
 	 //   public void changingAllProcessDesignIdInDbFileToFitSqlServer()
@@ -353,8 +373,15 @@ namespace Process_Export_Import
 
 
 
-		public List<string> allTableWithProcessDesignId = new List<string> { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN"};
-
+		
+		public List<string> allTableRelatedToDraws = new List<string> { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_PROC_DESIGN_DRAW_PART",  "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN"  , "T_PROC_DESIGN_DRAW_PART_DETAIL" , "T_PROC_DESIGN_DRAW_PART_TYPE" };
+		//51 T_PROC_DESIGN_DRAW
+		/*
+52 T_PROC_DESIGN_DRAW_PART
+53 T_PROC_DESIGN_DRAW_PART_DETAIL
+54 T_PROC_DESIGN_DRAW_PART_TYPE
+55 T_PROCESS
+56 T_PROCESS_DESIGN*/
 		public int getMaxProcessDesignIdFromSQLServer(ConnectionManagerST obj)
 		{
 			int maxProcessDesignId = 0;
@@ -378,6 +405,43 @@ namespace Process_Export_Import
 
 		}
 
+		public static List<int> getNewProcessDesignDrawPartIdValueList(int maxProcessDesignDrawPartIdInSQLServer, List<int> processDesignDrawPartIdDifferenceList)
+		{
+			List<int> updatedProcessDesignDrawPartIdList = new List<int>();
+			int newMaxActivityId = maxProcessDesignDrawPartIdInSQLServer + 1;
+			updatedProcessDesignDrawPartIdList.Add(newMaxActivityId);
+			foreach (int difference in processDesignDrawPartIdDifferenceList)
+			{
+				updatedProcessDesignDrawPartIdList.Add(updatedProcessDesignDrawPartIdList[updatedProcessDesignDrawPartIdList.Count - 1] + difference);
+			}
+
+
+			return updatedProcessDesignDrawPartIdList;
+
+		}
+		public int getMaxProcessDesignDrawPartIdFromSQLServer(ConnectionManagerST obj)
+		{
+			int maxProcessDesignDrawPartId = 0;
+
+			try
+			{
+				var reader = obj.sqlServerDataReader("Select max(Proc_Design_Draw_Part_ID) as Max_Process_Design_Draw_Part_Id from T_PROC_DESIGN_DRAW_PART");
+				while (reader.Read())
+				{
+					maxProcessDesignDrawPartId = Convert.ToInt32(reader["Max_Process_Design_Id"]);
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return maxProcessDesignDrawPartId;
+
+		}
+
 		public List<string> changeAllProcessDesignIdsInDBFileByNewValue( int maxProcessDesignIdInSqlServer , List<string> allTableWithProcessDesignId ,  ConnectionManagerST obj)
 		{
 			List<string> updateInfo = new List<string>();
@@ -394,12 +458,138 @@ namespace Process_Export_Import
 			return updateInfo;
 
 		}
+	
+
+		public  List<string> changeProcDesignDrawPartIdsInDBFileByUpdatedList(List<int> oldProcDesignDrawPartIdsList, List<int> newProcDesignDrawPartIdsList, List<string> allTableWithProcDesignDrawPartIds , ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in allTableWithProcDesignDrawPartIds)
+			{
+				for (int index = 0; index < newProcDesignDrawPartIdsList.Count; index++)
+				{
+					int tempProcDesignDrawPartId = 10000000 + newProcDesignDrawPartIdsList[index];
+					string updateText = "Update " + tableName + " Set Activity_ID = " + tempProcDesignDrawPartId.ToString() + " where Activity_Id = " + oldProcDesignDrawPartIdsList[index].ToString();
+					obj.executeQueriesInDbFile(updateText);
+					updateInfo.Add(updateText);
+				}
+			}
+
+			return updateInfo;
+
+		}
+
+		public static List<string> changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(List<string> allTableWithProcDesignDrawPartIds , ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+
+			foreach (string tableName in allTableWithProcDesignDrawPartIds)
+			{
+				int tempActivityIdToDistract = 10000000;
+				string updateText = "Update " + tableName + " Set Activity_ID =  Activity_ID  - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
+				obj.executeQueriesInDbFile(updateText);
+				updateInfo.Add(updateText);
+			}
+
+			return updateInfo;
+
+		}
 
 
+		public static List<int> getProcDesignDrawPartIdDifferences(List<int> ProcDesignDrawPartIdList)
+		{
+			List<int> procDesignDrawPartIdifferenceList = new List<int>();
+
+			try
+			{
+
+				for (int outerIndex = 1; outerIndex < ProcDesignDrawPartIdList.Count; outerIndex++)
+				{
+
+					int difference = ProcDesignDrawPartIdList[outerIndex - 1] - ProcDesignDrawPartIdList[outerIndex];
+					procDesignDrawPartIdifferenceList.Add(difference);
+
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return procDesignDrawPartIdifferenceList;
+
+		}
+
+		public static List<int> getProcDesignDrawPartIdsInOrderFromDBFile(ConnectionManagerST obj)
+		{
+			List<int> procDesginDrawPartIdList = new List<int>();
+
+			try
+			{
+				var reader = obj.sqLiteDataReader("Select distinct(Proc_Design_Draw_Part_ID) from T_PROC_DESIGN_DRAW_PART  order by Proc_Design_Draw_Part_ID desc ");
+				while (reader.Read())
+				{
+					procDesginDrawPartIdList.Add(Convert.ToInt32(reader["Proc_Design_Draw_Part_ID"]));
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return procDesginDrawPartIdList;
+
+		}
+
+		public int getMaxProcessDesignDrawIdFromSQLServer(ConnectionManagerST obj)
+		{
+			int maxProcessDesignDrawId = 0;
+
+			try
+			{
+				var reader = obj.sqlServerDataReader("select max(Proc_Design_Draw_ID) as Max_Proc_Design_Draw_ID from T_PROC_DESIGN_DRAW");
+				while (reader.Read())
+				{
+					maxProcessDesignDrawId = Convert.ToInt32(reader["Max_Proc_Design_Draw_ID"]);
+				}
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+
+			}
+
+			return maxProcessDesignDrawId;
+
+		}
+
+		public List<string> changeAllProcessDesignDrawIdsInDBFileByNewValue(int maxProcessDesignDrawId,  ConnectionManagerST obj)
+		{
+			List<string> updateInfo = new List<string>();
+			List<string> allTableWithProcessDesignDrawId = new List<string>() { "T_PROC_DESIGN_DRAW" , "T_PROC_DESIGN_DRAW_PART" } ;
+
+			int newMaxProcessDesignDrawId = maxProcessDesignDrawId + 1;
+
+			foreach (string tableName in allTableWithProcessDesignDrawId)
+			{
+
+				string updateText = "Update " + tableName + " Set Proc_Design_Draw_ID = " + newMaxProcessDesignDrawId.ToString() + " where 1 = 1 ";
+				obj.executeQueriesInDbFile(updateText);
+				updateInfo.Add(updateText);
+			}
+
+			return updateInfo;
+
+		}
 
 
 		#endregion
-#region table_infos_+_smaller_help_functions
+		#region table_infos_+_smaller_help_functions
 
 		public List<string> convertIntListToStringList(List<int> inputStringList)
 		{
@@ -545,188 +735,6 @@ namespace Process_Export_Import
 			return tableInfoInSQLServer;
 		}
 #endregion
-#region Activity_Id 
-		public List<string> changeAllActivityIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
-		{
-			List<string> changingActivityIdsInfoList = new List<string>();
-			try
-			{
-				List<int> activityIdsInDbFile = new List<int>();
-				List<int> activityIdDifferenceList = new List<int>();
-				List<string> activityIdUpdateInfo = new List<string>();
-				List<int> newActivitIdList = new List<int>();
-
-				List<string> tablesWithActivityIdInDBFile = getAllTableNameWithActivityIdInDBFile(connectionManager);
-				int maxActivityIdInSqlServer = getMaxActivityIdFromSQLServer(connectionManager).First();
-
-				activityIdsInDbFile = getActivityIdsInOrderFromDBFile(connectionManager);
-				activityIdDifferenceList = getActivityIdDifferences(activityIdsInDbFile);
-
-				newActivitIdList = getNewActivityIdValueList(maxActivityIdInSqlServer, activityIdDifferenceList);
-				activityIdUpdateInfo = changeActivityIdsInDBFileByUpdatedList(activityIdsInDbFile, newActivitIdList, tablesWithActivityIdInDBFile, connectionManager);
-
-				changingActivityIdsInfoList.Add("activityIdsInDbFile : ");
-				changingActivityIdsInfoList.AddRange(convertIntListToStringList(activityIdsInDbFile));
-				changeActivityIdsInDBFileToRealNewActivityID(tablesWithActivityIdInDBFile, connectionManager);
-
-				changingActivityIdsInfoList.Add("newActivitIdList : ");
-				changingActivityIdsInfoList.AddRange(convertIntListToStringList(newActivitIdList));
-				changingActivityIdsInfoList.AddRange(activityIdUpdateInfo);
-			}
-			catch (Exception ex)
-			{
-#if DEBUG
-				changingActivityIdsInfoList.Add(ex.ToString());
-#endif
-#if RELEASE
-				throw ex; 
-#endif
-			}
-			return changingActivityIdsInfoList;
-		}
-
-
-		public List<int> getMaxActivityIdFromSQLServer(ConnectionManagerST obj)
-		{
-			List<int> maxActivityIdList = new List<int>();
-
-			try
-			{
-				var reader = obj.sqlServerDataReader("Select max(Activity_id) as Max_Activity_Id from T_ACTIVITY ");
-				while (reader.Read())
-				{
-					maxActivityIdList.Add(Convert.ToInt32(reader["Max_Activity_Id"]));
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return maxActivityIdList;
-
-		}
-
-
-
-		public List<int> getActivityIdsInOrderFromDBFile(ConnectionManagerST obj)
-		{
-			List<int> maxActivityIdList = new List<int>();
-
-			try
-			{
-				var reader = obj.sqLiteDataReader("Select distinct(Activity_id) from T_ACTIVITY  order by Activity_id desc ");
-				while (reader.Read())
-				{
-					maxActivityIdList.Add(Convert.ToInt32(reader["Activity_id"]));
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return maxActivityIdList;
-
-		}
-
-
-
-		public List<int> getActivityIdDifferences(List<int> Activity_Ids)
-		{
-			List<int> activityIdDifferenceList = new List<int>();
-
-			try
-			{
-
-				for (int outerIndex = 1; outerIndex < Activity_Ids.Count; outerIndex++)
-				{
-
-					int difference = Activity_Ids[outerIndex - 1] - Activity_Ids[outerIndex];
-					activityIdDifferenceList.Add(difference);
-
-
-				}
-
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-
-			}
-
-			return activityIdDifferenceList;
-
-		}
-
-		public List<string> changeActivityIdsInDBFileByUpdatedList(List<int> oldActivityIdList, List<int> newActivityIdList, List<string> tablesWithActivityId, ConnectionManagerST obj)
-		{
-			List<string> updateInfo = new List<string>();
-
-			foreach (string tableName in tablesWithActivityId)
-			{
-				for (int index = 0; index < newActivityIdList.Count; index++)
-				{
-					int tempActivityId = 10000000 + newActivityIdList[index];
-					string updateText = "Update " + tableName + " Set Activity_ID = " + tempActivityId.ToString() + " where Activity_Id = " + oldActivityIdList[index].ToString();
-					obj.executeQueriesInDbFile(updateText);
-					updateInfo.Add(updateText);
-				}
-			}
-
-			return updateInfo;
-
-		}
-
-		public List<string> changeActivityIdsInDBFileToRealNewActivityID(List<string> tablesWithActivityId, ConnectionManagerST obj)
-		{
-			List<string> updateInfo = new List<string>();
-
-			foreach (string tableName in tablesWithActivityId)
-			{
-				int tempActivityIdToDistract = 10000000;
-				string updateText = "Update " + tableName + " Set Activity_ID =  Activity_ID  - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
-				obj.executeQueriesInDbFile(updateText);
-				updateInfo.Add(updateText);
-			}
-
-			return updateInfo;
-
-		}
-
-
-		public List<string> getAllTableNameWithActivityIdInDBFile(ConnectionManagerST obj)
-		{
-			List<string> tablesWithActivityId = new List<string>();
-			string queryText = "Select distinct(table_name) from table_information where Column_Name = 'Activity_ID';";
-			var reader = obj.sqLiteDataReader(queryText);
-			while (reader.Read())
-			{
-				tablesWithActivityId.Add(reader["table_name"].ToString());
-			}
-			return tablesWithActivityId;
-		}
-
-		public List<int> getNewActivityIdValueList(int maxActivityIdInSQLServer, List<int> activityIdDifferenceList)
-		{
-			List<int> updatedActivityIdList = new List<int>();
-			int newMaxActivityId = maxActivityIdInSQLServer + 1;
-			updatedActivityIdList.Add(newMaxActivityId);
-			foreach (int difference in activityIdDifferenceList) 
-			{
-				updatedActivityIdList.Add(updatedActivityIdList[updatedActivityIdList.Count - 1] + difference);
-			}
-
-
-			return updatedActivityIdList;
-
-		}
-
-		#endregion       
 #region komment_kódok
 
 		/*
