@@ -160,6 +160,7 @@ namespace Process_Export_Import
 		public static List<string> changeAllActivityIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
 		{
 			List<string> changingActivityIdsInfoList = new List<string>();
+
 			try
 			{
 				List<int> activityIdsInDbFile = new List<int>();

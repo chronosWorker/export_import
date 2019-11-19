@@ -163,7 +163,7 @@ namespace Process_Export_Import
 			List<string> insertResultInfo = new List<string>();
 			var connectionManager = new ConnectionManagerST();
 
-			List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
+		//	List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
 			connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
 
@@ -171,39 +171,42 @@ namespace Process_Export_Import
 			if (isTheDBStructuresAreTheSame)
 			{
 				try
-				{ 
-					int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-					//	insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
+				{
 
-					//	insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
-					//	insertResultInfo.AddRange(changeAllProcessDesignIdsInDBFileByNewValue(getMaxProcessDesignIdFromSQLServer(connectionManager), allTableWithProcessDesignId, connectionManager ));
-					//	foreach(string tableName in allTableWithProcessDesignId)
-					//	{
-					//	insertResultInfo.AddRange(getColumnTypesDictionary_v2(tableName , connectionManager).Keys);
-					//	}
-					//getMaxProcessDesignDrawIdFromSQLServer(connectionManager);
-					List<string> allTableWithProcDesignDrawPartIds = new List<string>() { "T_PROC_DESIGN_DRAW_PART" };
-					int newMAx = getMaxProcessDesignDrawPartIdFromSQLServer(connectionManager);
-					insertResultInfo.Add("new max proc des id : ");
-					insertResultInfo.Add(newMAx.ToString());
+                    FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
+                    insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    //	int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
+                    //	insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
 
-					getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager));
+                    //	insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
+                    //	insertResultInfo.AddRange(changeAllProcessDesignIdsInDBFileByNewValue(getMaxProcessDesignIdFromSQLServer(connectionManager), allTableWithProcessDesignId, connectionManager ));
+                    //	foreach(string tableName in allTableWithProcessDesignId)
+                    //	{
+                    //	insertResultInfo.AddRange(getColumnTypesDictionary_v2(tableName , connectionManager).Keys);
+                    //	}
+                    //getMaxProcessDesignDrawIdFromSQLServer(connectionManager);
+                    /*		List<string> allTableWithProcDesignDrawPartIds = new List<string>() { "T_PROC_DESIGN_DRAW_PART" };
+                            int newMAx = getMaxProcessDesignDrawPartIdFromSQLServer(connectionManager);
+                            insertResultInfo.Add("new max proc des id : ");
+                            insertResultInfo.Add(newMAx.ToString());
+
+                    getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager));
 					List<int>  uj = getNewProcessDesignDrawPartIdValueList(newMAx, getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager)));
 					changeProcDesignDrawPartIdsInDBFileByUpdatedList(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager), uj, allTableWithProcDesignDrawPartIds, connectionManager);
 
-					insertResultInfo.AddRange(changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager));
-				//    changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager);
-				//changeProcDesignDrawPartIdsInDBFileByUpdatedList();
-				//	insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_PROC_DESIGN_DRAW", true , connectionManager));
-				//	;
-				//	insertResultInfo.AddRange(changeAllProcessDesignDrawIdsInDBFileByNewValue(getMaxProcessDesignDrawIdFromSQLServer(connectionManager), connectionManager));
-				//     insertValuesFromDbFileToSqlServer();
+					insertResultInfo.AddRange(changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager));*/
+                    //    changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager);
+                    //changeProcDesignDrawPartIdsInDBFileByUpdatedList();
+                    //	insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_PROC_DESIGN_DRAW", true , connectionManager));
+                    //	;
+                    //	insertResultInfo.AddRange(changeAllProcessDesignDrawIdsInDBFileByNewValue(getMaxProcessDesignDrawIdFromSQLServer(connectionManager), connectionManager));
+                    //     insertValuesFromDbFileToSqlServer();
 
 
-					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
-					//insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
+                    //insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
+                    //insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
 
-				}
+                }
 				catch(Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
