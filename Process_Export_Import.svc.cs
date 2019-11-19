@@ -175,6 +175,15 @@ namespace Process_Export_Import
 
                     FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
                     insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    FkManager processId = new FkManager ("T_PROCESS" , "Process_ID");
+                    insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    FkManager activityDesignId = new FkManager ("T_ACTIVITY_DESIGN" , "Activity_Design_ID");
+                    insertResultInfo.AddRange(activityDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    FkManager fieldId = new FkManager ("T_FIELD" , "Field_ID");
+                    insertResultInfo.AddRange(fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+
+
+
                     //	int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
                     //	insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
 
