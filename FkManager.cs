@@ -45,7 +45,7 @@ namespace Process_Export_Import
 
             try
             {
-                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName +  "   order by " + IdName + "  desc ");
+                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName +  "   order by " + IdName + "  asc ");
                 while (reader.Read())
                 {
                     maxActivityIdList.Add(Convert.ToInt32(reader[IdName]));
@@ -107,7 +107,7 @@ namespace Process_Export_Import
             updatedIdList.Add(newMaxId);
             foreach (int difference in idDifferenceList)
             {
-                updatedIdList.Add(updatedIdList[updatedIdList.Count - 1] + difference);
+                updatedIdList.Add(updatedIdList[updatedIdList.Count - 1] - difference);
             }
 
             return updatedIdList;
@@ -125,7 +125,7 @@ namespace Process_Export_Import
                     int tempId = 10000000 + newIdList[index];
                     string updateText = "Update " + tableName + " Set " + IdName +  "  = " + tempId.ToString() + " where "+ IdName  + " = " + oldIdList[index].ToString();
                     obj.executeQueriesInDbFile(updateText);
-                    updateInfo.Add(updateText);
+            //        updateInfo.Add(updateText);
                 }
             }
 
@@ -142,7 +142,7 @@ namespace Process_Export_Import
                 int tempActivityIdToDistract = 10000000;
                 string updateText = "Update " + tableName + " Set " + IdName + " =  " + IdName  +  " - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
                 obj.executeQueriesInDbFile(updateText);
-                updateInfo.Add(updateText);
+           //     updateInfo.Add(updateText);
             }
 
             return updateInfo;
@@ -177,10 +177,14 @@ namespace Process_Export_Import
 
                 changingIdsInfoList.Add("Ids In Db File : ");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
+                changingIdsInfoList.Add("Id difference list : ");
+                changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
+                changingIdsInfoList.Add("newActivitIdList : ");
+                changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
+
                 changeIdsInDBFileToRealNewID(connectionManager, tablesWithIdInDBFile);
 
-                changingIdsInfoList.Add("newActivitIdList : ");
-                changingIdsInfoList.AddRange( convertIntListToStringList(newIdList));
+         
                 changingIdsInfoList.AddRange(idUpdateInfo);
             }
             catch (Exception ex)
