@@ -173,20 +173,14 @@ namespace Process_Export_Import
 				try
 				{
 					//Process
-					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-					insertResultInfo.Add("iTT VAGYOK");
+					/*FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 					
 
 					//Activityk
-				//	FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
-				//	insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
+					insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
-				//	FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
-				//	insertResultInfo.AddRange(fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager));
-
-
-			
 					FkManager activityDesignId = new FkManager ("T_ACTIVITY_DESIGN" , "Activity_Design_ID");
 					insertResultInfo.AddRange(activityDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 					FkManager fieldId = new FkManager ("T_FIELD" , "Field_ID");
@@ -226,52 +220,19 @@ namespace Process_Export_Import
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
 					insertResultInfo.AddRange(routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
-					insertResultInfo.AddRange(routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					insertResultInfo.AddRange(routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager));*/
 
 
 
 
+				TableManager tableInfo = new TableManager();
+			    foreach (string tableName in tableInfo.tablesInDBFileWithoutRow(connectionManager))
+				{
+						insertResultInfo.Add("Null tábla : " + tableName);
 
-					foreach (string tableName in processId.getAllTableNameWithIdInDBFile(connectionManager))
-					{
-						insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
-
-					}
-
-
+				}
 
 
-					//T_REPORT_REFERENCED_FIELD_LOCATION
-					//	int maxProcessIdInSqlServer = Convert.ToInt32(getMaxdProcessIdFromSQLServer(connectionManager).First());
-					//	insertResultInfo.Add("getMaxdProcessIdFromSQLServer" + maxProcessIdInSqlServer.ToString());
-
-					//	insertResultInfo.AddRange(ActivityManager.changeAllActivityIdInDbFileToFitSqlServer(connectionManager));
-					//	insertResultInfo.AddRange(changeAllProcessDesignIdsInDBFileByNewValue(getMaxProcessDesignIdFromSQLServer(connectionManager), allTableWithProcessDesignId, connectionManager ));
-					//	foreach(string tableName in allTableWithProcessDesignId)
-					//	{
-					//	insertResultInfo.AddRange(getColumnTypesDictionary_v2(tableName , connectionManager).Keys);
-					//	}
-					//getMaxProcessDesignDrawIdFromSQLServer(connectionManager);
-					/*		List<string> allTableWithProcDesignDrawPartIds = new List<string>() { "T_PROC_DESIGN_DRAW_PART" };
-							int newMAx = getMaxProcessDesignDrawPartIdFromSQLServer(connectionManager);
-							insertResultInfo.Add("new max proc des id : ");
-							insertResultInfo.Add(newMAx.ToString());
-
-					getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager));
-					List<int>  uj = getNewProcessDesignDrawPartIdValueList(newMAx, getProcDesignDrawPartIdDifferences(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager)));
-					changeProcDesignDrawPartIdsInDBFileByUpdatedList(getProcDesignDrawPartIdsInOrderFromDBFile(connectionManager), uj, allTableWithProcDesignDrawPartIds, connectionManager);
-
-					insertResultInfo.AddRange(changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager));*/
-					//    changetempProcDesignDrawPartIdsInDBFileToRealNewtempProcDesignDrawPartIds(allTableWithProcDesignDrawPartIds, connectionManager);
-					//changeProcDesignDrawPartIdsInDBFileByUpdatedList();
-					//	insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_PROC_DESIGN_DRAW", true , connectionManager));
-					//	;
-					//	insertResultInfo.AddRange(changeAllProcessDesignDrawIdsInDBFileByNewValue(getMaxProcessDesignDrawIdFromSQLServer(connectionManager), connectionManager));
-					//     insertValuesFromDbFileToSqlServer();
-
-
-					//insertResultInfo.AddRange(changeActivityIdsInDBFileToFitSQLServer(maxActivityIdInSqlServer, connectionManager));
-					//insertResultInfo.AddRange(changeProcessIDsInDBFileToFitSQLServer(maxProcessIdInSqlServer , connectionManager));
 
 				}
 				catch (Exception ex)
@@ -328,80 +289,79 @@ namespace Process_Export_Import
 
 				var reader = obj.sqLiteDataReader("SELECT * FROM " + tableName);
 				int fieldCount = reader.FieldCount;
-		//		insertresultInfo.Add("Field Count :" + fieldCount);
-
-				for (var index = 0; index < columnTypes.Count; index++)
-				{
-					if (index == columnTypes.Count - 1)
-					{
-						commandText += columnTypes.ElementAt(index).Key;
-					}
-					else
-					{
-						commandText += columnTypes.ElementAt(index).Key + " ,";
-					}
-					columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
-				}
-
-				commandText += ") Values ";
-				while (reader.Read())
-				{
-					commandText += "( ";
+				//		insertresultInfo.Add("Field Count :" + fieldCount);
+				
 
 					for (var index = 0; index < columnTypes.Count; index++)
 					{
-					 
-						switch (columnTypes.ElementAt(index).Value)
+						if (index == columnTypes.Count - 1)
 						{
-							
-							case "bit":
-							case "binary":
-							case "varbinary":
-							case "image":
-							case "DateTime":
-							case "nvarchar":
-							case "varchar":
-								commandText += "'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'";
-								//values.Add("'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'");
-								break;
-
-							default:
-								
-								//values.Add(reader[columnTypes.ElementAt(index).Key.ToString()].ToString());
-								commandText += (reader[columnTypes.ElementAt(index).Key.ToString()].GetType() == typeof(DBNull) || reader[columnTypes.ElementAt(index).Key.ToString()] == "")  ? "NULL" :
-								reader[columnTypes.ElementAt(index).Key.ToString()] ;
-								break;
+							commandText += columnTypes.ElementAt(index).Key;
 						}
-						if (index < columnTypes.Count - 1)
+						else
 						{
-
-							commandText += ",";
+							commandText += columnTypes.ElementAt(index).Key + " ,";
 						}
+						columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
 					}
 
-					commandText += ") ,";
+					commandText += ") Values ";
+					while (reader.Read())
+					{
+						if (reader.GetValue(0) !=  "NULL" || reader.GetValue(0) != "" )
+					{
+
+							commandText += "( ";
+
+							for (var index = 0; index < columnTypes.Count; index++)
+							{
+
+								switch (columnTypes.ElementAt(index).Value)
+								{
+
+									case "bit":
+									case "binary":
+									case "varbinary":
+									case "image":
+									case "DateTime":
+									case "nvarchar":
+									case "varchar":
+										commandText += "'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'";
+										break;
+									default:
+										commandText += (reader[columnTypes.ElementAt(index).Key.ToString()].GetType() == typeof(DBNull) || reader[columnTypes.ElementAt(index).Key.ToString()] == "") ? "NULL" :
+										reader[columnTypes.ElementAt(index).Key.ToString()];
+										break;
+								}
+								if (index < columnTypes.Count - 1)
+								{
+
+									commandText += ",";
+								}
+							}
+
+							commandText += ") ,";
+						commandText = commandText.Substring(0, commandText.Length - 1);
+
+						insertresultInfo.Add("commandText: " + commandText);
+
+						if (needToSetIdentityInsertOn)
+						{
+					//		obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+						}
+						else
+						{
+					//		obj.executeQueriesInSqlServer(commandText);
+
+						}
+						}
+					else
+					{
+						insertresultInfo.Add(tableName + " has 0 rows");
+					}
 				}
-				commandText = commandText.Substring(0,commandText.Length - 1);
-
-		
-
-			
-				//insertresultInfo.Add("Insert for the table: " + tableName + " has " + values.Count.ToString() + " values ");
-				insertresultInfo.Add("commandText: " + commandText);
-
-		
-			  
-				if (needToSetIdentityInsertOn)
-				{
-					obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName  +  " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
-				}
-				else
-				{
-					obj.executeQueriesInSqlServer(commandText);
-
-				}
-
-			//	insertresultInfo.Add(commandText);
+				
+				//	insertresultInfo.Add(commandText);
 			}
 			catch (Exception ex)
 			{

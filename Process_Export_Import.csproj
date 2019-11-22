@@ -99,6 +99,7 @@
     <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="DrawManager.cs" />
     <Compile Include="FkManager.cs" />
+    <Compile Include="TableManager.cs" />
     <Compile Include="Tables_cwp.cs" />
     <Compile Include="Import.cs" />
     <Compile Include="OpenAndReadDBFile.cs" />
