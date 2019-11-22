@@ -24,7 +24,7 @@ namespace Process_Export_Import
                 " T_ACTIVITY_UI_COMPONENT ",
                 " T_CALCULATED_FIELD_CONSTANT_TYPE ",
                 " T_FIELD_DATE_CONSTRAINT ",
-                " T_FIELD_EXTENSION_NUMBER 1 ",
+                " T_FIELD_EXTENSION_NUMBER ",
                 " T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY ",
                 " T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY ",
                 " T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA ",
@@ -33,9 +33,6 @@ namespace Process_Export_Import
                 " T_FIELD_TO_FIELD_DEPENDENCY_TYPE ",
                 " T_FIELD_VALUE ",
                 " T_FIELD_VALUE_TRANSLATION ",
-                " T_GENERAL_DATA_PROTECTION_FIELD_TYPE ",
-                " T_NOTIFICATION_RECIPIENT ",
-                " T_NOTIFICATION_TYPE ",
                 " T_PROC_DESIGN_DRAW ",
                 " T_PROC_DESIGN_DRAW_PART ",
                 " T_PROC_DESIGN_DRAW_PART_DETAIL ",
@@ -53,23 +50,25 @@ namespace Process_Export_Import
             return firstRoundInsertTables;
         }
 
-        public List<string> tablesInDBFileWithoutRow(ConnectionManagerST obj)
+        public List<string> tablesInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
         {
             List<string> tablesWithoutRows = new List<string>();
             try
             {
-                foreach (string tableName in getFirstRoundInsertTables())
-                {
-                    var reader =  obj.sqLiteDataReader(" Select count(*) from " + tableName + " where 1 = 1;");
-                    {
-                        if (reader.Read())
-                        {
+             
+            
+                    var reader = obj.sqLiteDataReader("SELECT count(*) from" + tableName);
 
-                            tablesWithoutRows.Add(tableName);
-                            
-                        }
-                    }
+
+                while (reader.Read())
+                {
+                    tablesWithoutRows.Add(tableName);
+
                 }
+
+
+
+                
             }
             catch (Exception ex)
             {

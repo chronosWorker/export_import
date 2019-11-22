@@ -174,9 +174,21 @@ namespace Process_Export_Import
 				{
 					//Process
 					/*FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-					insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));
-					
+					insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));*/
 
+			
+					TableManager tableInfo = new TableManager();
+
+                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+                    {
+                        insertResultInfo.AddRange(tableInfo.tablesInDBFileWithoutRow(connectionManager, tableName));
+
+                    }
+			
+
+			
+
+				/*
 					//Activityk
 					FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
 					insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
@@ -224,13 +236,6 @@ namespace Process_Export_Import
 
 
 
-
-				TableManager tableInfo = new TableManager();
-			    foreach (string tableName in tableInfo.tablesInDBFileWithoutRow(connectionManager))
-				{
-						insertResultInfo.Add("Null tábla : " + tableName);
-
-				}
 
 
 

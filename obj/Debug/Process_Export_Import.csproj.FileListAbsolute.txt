@@ -155,4 +155,3 @@ C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_I
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.csproj.CopyComplete
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.pdb
-C:\Users\Devnotebook\Desktop\git_folder\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
