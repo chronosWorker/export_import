@@ -100,6 +100,18 @@ namespace Process_Export_Import
             return tablesWhereIdOccurs;
         }
 
+        public string noCheckConstraitForTableList(List<string> tableNames, ConnectionManagerST obj)
+        {
+            string queryText = "";
+            foreach (string tableName in tableNames)
+            {
+                 queryText += "ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL; ";
+
+            }
+            obj.executeQueriesInSqlServer(queryText);
+            return queryText;
+        }
+
         public static List<int> getNewIdValueList(int maxIdInSQLServer, List<int> idDifferenceList)
         {
             List<int> updatedIdList = new List<int>();
@@ -167,24 +179,18 @@ namespace Process_Export_Import
                 List<int> newIdList = new List<int>();
 
                 List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
+                
+                changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
 
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
                 idDifferenceList = getIdDifferencesList(idsInDbFile);
 
                 newIdList = getNewIdValueList(maxIdInSqlServer, idDifferenceList);
-                changingIdsInfoList = changeIdsInDBFileToTempValues(idsInDbFile, newIdList, tablesWithIdInDBFile, connectionManager);
-
-                changingIdsInfoList.Add("Ids In Db File : ");
-                changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
-                changingIdsInfoList.Add("Id difference list : ");
-                changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
-                changingIdsInfoList.Add("newActivitIdList : ");
-                changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
+                changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, tablesWithIdInDBFile, connectionManager));
 
                 changeIdsInDBFileToRealNewID(connectionManager, tablesWithIdInDBFile);
-
-         
+  
                 changingIdsInfoList.AddRange(idUpdateInfo);
             }
             catch (Exception ex)
