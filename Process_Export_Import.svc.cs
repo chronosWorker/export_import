@@ -118,42 +118,6 @@ namespace Process_Export_Import
 			return res;
 
 		}
-
-
-
-		public ServiceCallResult Import_Process_teszt(string name)
-		{
-			string connstrRe = ConfigurationManager.AppSettings.Get("connstrRe");
-			string strSQL = "SELECT count(*) from T_PROCESS WHERE   Name = @parameter ";
-			bool processNameFound = false;
-			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-			using (SqlConnection connection = new SqlConnection(connstrRe))
-			{
-				SqlCommand command = new SqlCommand(strSQL, connection);
-				command.Parameters.AddWithValue("@parameter", name);
-				try
-				{
-					connection.Open();
-					SqlDataReader reader;
-					reader = command.ExecuteReader();
-					reader.Read();
-					if ((int)reader[0] == 1)
-					{
-						processNameFound = true;
-					}
-
-					reader.Close();
-				}
-				catch (Exception ex)
-				{
-					res = FillServiceCallResult(ex);
-				}
-			}
-			res.Description = "van ilyen?" + processNameFound.ToString();
-
-			return res;
-
-		}
 		[OperationContract]
 		//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
 

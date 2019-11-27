@@ -43,8 +43,7 @@ namespace Process_Export_Import
                 " T_REPORT_FILTER ",
                 " T_REPORT_GROUP ",
                 " T_REPORT_REFERENCED_FIELD_LOCATION ",
-                " T_REPORT_TYPE ",
-                " T_SUBPROCESS_TYPE "
+                " T_REPORT_TYPE "
                 };
 
             return firstRoundInsertTables;
@@ -56,19 +55,18 @@ namespace Process_Export_Import
             try
             {
              
-            
-                    var reader = obj.sqLiteDataReader("SELECT count(*) from" + tableName);
-
+                 var reader = obj.sqLiteDataReader("SELECT count(*) from" + tableName);
 
                 while (reader.Read())
                 {
-                    tablesWithoutRows.Add(tableName);
+                    if (reader[0].ToString() == "0")
+                    {
+                        tablesWithoutRows.Add(tableName + "szám : " + reader[0].ToString());
+
+                    }
 
                 }
-
-
-
-                
+               
             }
             catch (Exception ex)
             {
@@ -77,6 +75,12 @@ namespace Process_Export_Import
             }
 
             return tablesWithoutRows;
+        }
+        public List<string> firstRoundTablesWithContent()
+        {
+            List<string> firstRoundTablesWithContent = new List<string>();
+
+            return firstRoundTablesWithContent;
         }
     }
 }
