@@ -61,7 +61,7 @@ namespace Process_Export_Import
                 {
                     if (reader[0].ToString() == "0")
                     {
-                        tablesWithoutRows.Add(tableName + "szám : " + reader[0].ToString());
+                        tablesWithoutRows.Add(tableName);
 
                     }
 
@@ -76,11 +76,25 @@ namespace Process_Export_Import
 
             return tablesWithoutRows;
         }
-        public List<string> firstRoundTablesWithContent()
+        public List<string> firstRoundTablesWithContent(ConnectionManagerST obj)
         {
+            List<string> allFirstRoundTables = getFirstRoundInsertTables();
             List<string> firstRoundTablesWithContent = new List<string>();
+            List<string> firstRoundTablesWithOutContent = new List<string>();
+            foreach (string tableName in allFirstRoundTables)
+            {
+                firstRoundTablesWithOutContent.AddRange(tablesInDBFileWithoutRow(obj, tableName));
+
+            }
+            firstRoundTablesWithContent.AddRange(allFirstRoundTables.Except(firstRoundTablesWithOutContent).ToList());
 
             return firstRoundTablesWithContent;
         }
+
+      //  public List<string> getAllTableWhereIdExits(ConnectionManagerST obj)
+       // {
+            //  List<string> tables
+            //select table_name from table_information where column_name like '%Process_Id%';
+       // }
     }
 }

@@ -137,18 +137,17 @@ namespace Process_Export_Import
 				try
 				{
 					//Process
-					/*FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-					insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));*/
+					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
 			
-					TableManager tableInfo = new TableManager();
+					//TableManager tableInfo = new TableManager();
+					//FkManager fkManager = new FkManager();
 
-                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
-                    {
-                        insertResultInfo.AddRange(tableInfo.tablesInDBFileWithoutRow(connectionManager, tableName));
+					
 
-                    }
-			
+					//fkManager.changeAllIdInDbFileToFitSqlServer(connectionManager , tableInfo.firstRoundTablesWithContent(connectionManager));
+					
 
 			
 
