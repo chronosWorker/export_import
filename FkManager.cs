@@ -304,7 +304,7 @@ namespace Process_Export_Import
                 List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
                 changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
                // List<string> tablesWithIdInDBFile = tableList;
-                changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
+          //      changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
                
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);

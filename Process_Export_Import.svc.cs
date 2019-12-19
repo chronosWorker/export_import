@@ -139,10 +139,26 @@ namespace Process_Export_Import
 				{
 					//Process
 					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-					//insertResultInfo.AddRange(processId.changeAllIdInDbFileToFitSqlServer(connectionManager));
-
-			
-					TableManager tableInfo = new TableManager();
+					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
+					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
+					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager fieldGroupToFieldGroupDependency = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", "Field_Group_To_Field_Group_Dependency_ID");
+					fieldGroupToFieldGroupDependency.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
+					insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					//insertResultInfo.Add("process_id táblák : ");
+					foreach (string tableWithProcessID in processId.getAllTableNameWithIdInDBFile(connectionManager))
+					{
+                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableWithProcessID, true, connectionManager));
+					}
+			/*		TableManager tableInfo = new TableManager();
+					foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
+					{
+						string cmdTxt = "SET IDENTITY_INSERT " + tableName + " ON ;";
+						connectionManager.executeQueriesInSqlServer(cmdTxt);
+					}*/
 					//	FkManager fkManager = new FkManager();
 
 					//fkManager.changeAllIdInDbFileToFitSqlServer(connectionManager , tableInfo.firstRoundTablesWithContent(connectionManager));
@@ -151,8 +167,7 @@ namespace Process_Export_Import
 					
 				
 					//Activityk
-					FkManager activityId = new FkManager ("T_ACTIVITY" , "Activity_ID");
-					//insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					
 
 					FkManager activityDesignId = new FkManager ("T_ACTIVITY_DESIGN" , "Activity_Design_ID");
 					//insertResultInfo.AddRange(activityDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager));
@@ -183,8 +198,8 @@ namespace Process_Export_Import
 					//insertResultInfo.AddRange(reportRefFieldLocationId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
 					*/
-					FkManager reportTypenId = new FkManager("T_REPORT_TYPE", "Report_Type_ID");
-					insertResultInfo.AddRange(reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+				//	FkManager reportTypenId = new FkManager("T_REPORT_TYPE", "Report_Type_ID");
+				//	insertResultInfo.AddRange(reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 					//Report Owners Kell-e vajon?
 					//Report Type?
 
@@ -204,12 +219,14 @@ namespace Process_Export_Import
 				   */
 
 					//firstRoundTablesWithContent.AddRange(tableInfo.firstRoundTablesWithContent(connectionManager));
-					/*foreach (string tableName in firstRoundTablesWithContent)
+			/*		foreach (string tableName in firstRoundTablesWithContent)
 					{
 						insertResultInfo.Add(tableName);
-					}*/
+						insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName , )
 
-					insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_REPORT_TYPE", false, connectionManager));
+					}
+					*/
+				//	insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer("T_REPORT_TYPE", false, connectionManager));
 
 
 
@@ -287,7 +304,7 @@ namespace Process_Export_Import
 					commandText += ") Values ";
 					while (reader.Read())
 					{
-						if (reader.GetValue(0) !=  "NULL" || reader.GetValue(0) != "" )
+						if (reader.GetValue(0).ToString() !=  "NULL" || reader.GetValue(0).ToString() != "" )
 						{
 
 							commandText += "( ";
@@ -331,19 +348,20 @@ namespace Process_Export_Import
 					}
 				}
 				commandText = commandText.Substring(0, commandText.Length - 1);
-				/*insertresultInfo.Add("commandText: " + commandText);
+                commandText += ";";
+                /*insertresultInfo.Add("commandText: " + commandText);
 				insertresultInfo.Add(" columnTypes.Count: " + columnTypes.Count.ToString());
 				insertresultInfo.Add("fieldCount: " + fieldCount.ToString());*/
-				insertresultInfo.Add(commandText);
+                insertresultInfo.Add(commandText);
 
 				if (needToSetIdentityInsertOn)
 				{
-						obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+			//			obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
 
-						obj.executeQueriesInSqlServer(commandText);
+			//			obj.executeQueriesInSqlServer(commandText);
 
 				}
 			}
