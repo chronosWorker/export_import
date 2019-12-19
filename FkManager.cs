@@ -18,7 +18,7 @@ namespace Process_Export_Import
         }
         public int getMaxIdFromSQLServer( ConnectionManagerST obj)
         {
-            int maxActivityIdList = new int();
+            int maxIdList = new int();
 
             try
             {
@@ -27,11 +27,11 @@ namespace Process_Export_Import
                 {
                     if (reader[0] != DBNull.Value)
                     {
-                        maxActivityIdList = Convert.ToInt32(reader["Max_Id"]);
+                        maxIdList = Convert.ToInt32(reader["Max_Id"]);
                     }
                     else
                     {
-                        maxActivityIdList = -1;
+                        maxIdList = -1;
                     }
                 }
 
@@ -42,13 +42,13 @@ namespace Process_Export_Import
 
             }
 
-            return maxActivityIdList;
+            return maxIdList;
 
         }
 
         public  List<int> getIdsInOrderFromDBFile(ConnectionManagerST obj)
         {
-            List<int> maxActivityIdList = new List<int>();
+            List<int> maxIdList = new List<int>();
 
             try
             {
@@ -57,7 +57,7 @@ namespace Process_Export_Import
                 {
                     if (reader[0] != DBNull.Value)
                     {
-                        maxActivityIdList.Add(Convert.ToInt32(reader[IdName]));
+                        maxIdList.Add(Convert.ToInt32(reader[IdName]));
                     }
                     else
                     {
@@ -73,7 +73,7 @@ namespace Process_Export_Import
 
             }
 
-            return maxActivityIdList;
+            return maxIdList;
 
         }
 
@@ -106,7 +106,7 @@ namespace Process_Export_Import
         public List<string> getAllTableNameWithIdInDBFile(ConnectionManagerST obj)
         {
             List<string> tablesWhereIdOccurs = new List<string>();
-            string queryText = "Select distinct(table_name) from table_information where Column_Name like '%" + IdName  + "%'";
+            string queryText = "Select distinct(table_name) from table_information where Column_Name = '" + IdName  + "'";
             var reader = obj.sqLiteDataReader(queryText);
             while (reader.Read())
             {
@@ -175,6 +175,19 @@ namespace Process_Export_Import
             return updateInfo;
 
         }
+        public Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
+        {
+            Dictionary<string, string> fields = new Dictionary<string, string>();
+            string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+            var reader = obj.sqlServerDataReader(commandText);
+            while (reader.Read())
+            {
+                fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
+            }
+            return fields;
+
+        }
+
 
         public List<string> convertIntListToStringList(List<int> inputStringList)
         {
@@ -182,7 +195,101 @@ namespace Process_Export_Import
             return convertedStringList;
         }
 
-       
+        public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
+        {
+            List<string> insertresultInfo = new List<string>();
+
+            List<string> columnNamesInDbFile = new List<string>();
+            List<string> values = new List<string>();
+            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
+            string commandText = "INSERT INTO " + tableName + "  ( ";
+            try
+            {
+                columnTypes = getColumnTypesDictionary_v2(tableName, obj);
+
+                var reader = obj.sqLiteDataReader("SELECT * FROM " + tableName);
+                int fieldCount = reader.FieldCount;
+                //		insertresultInfo.Add("Field Count :" + fieldCount);
+
+
+                for (var index = 0; index < columnTypes.Count; index++)
+                {
+                    if (index == columnTypes.Count - 1)
+                    {
+                        commandText += columnTypes.ElementAt(index).Key;
+                    }
+                    else
+                    {
+                        commandText += columnTypes.ElementAt(index).Key + " ,";
+                    }
+                    columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
+                }
+
+                commandText += ") Values ";
+                while (reader.Read())
+                {
+                    if (reader.GetValue(0) != "NULL" || reader.GetValue(0) != "")
+                    {
+
+                        commandText += "( ";
+
+                        for (var index = 0; index < columnTypes.Count; index++)
+                        {
+
+                            switch (columnTypes.ElementAt(index).Value)
+                            {
+
+                                case "bit":
+                                case "binary":
+                                case "varbinary":
+                                case "image":
+                                case "DateTime":
+                                case "nvarchar":
+                                case "varchar":
+                                    commandText += "'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'";
+                                    break;
+                                default:
+                                    commandText += (reader[columnTypes.ElementAt(index).Key.ToString()].GetType() == typeof(DBNull) || reader[columnTypes.ElementAt(index).Key.ToString()] == "") ? "NULL" :
+                                    reader[columnTypes.ElementAt(index).Key.ToString()];
+                                    break;
+                            }
+                            if (index < columnTypes.Count - 1)
+                            {
+
+                                commandText += ",";
+                            }
+                        }
+
+                        commandText += ") ,";
+                        commandText = commandText.Substring(0, commandText.Length - 1);
+
+                      //  insertresultInfo.Add("commandText: " + commandText);
+
+                        if (needToSetIdentityInsertOn)
+                        {
+                            //		obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+                        }
+                        else
+                        {
+                            //		obj.executeQueriesInSqlServer(commandText);
+
+                        }
+                    }
+                    else
+                    {
+                        insertresultInfo.Add(tableName + " has 0 rows");
+                    }
+                }
+                   
+
+                    insertresultInfo.Add(commandText);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return insertresultInfo;
+        }
         public  List<string> changeAllIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager )
         {
             List<string> changingIdsInfoList = new List<string>();
@@ -213,7 +320,16 @@ namespace Process_Export_Import
                 changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, tablesWithIdInDBFile, connectionManager));
 
                 changeIdsInDBFileToRealNewID(connectionManager, tablesWithIdInDBFile);
-                changingIdsInfoList.Add("Most itt");
+              /*  changingIdsInfoList.Add(" ID in db file");
+                changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
+                changingIdsInfoList.Add("Max ID");
+                changingIdsInfoList.Add(maxIdInSqlServer.ToString());
+                changingIdsInfoList.Add("idDifferenceList");
+                changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
+                changingIdsInfoList.Add("newIdList");
+                changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));*/
+               
+
                 changingIdsInfoList.AddRange(idUpdateInfo);
                 }
 
