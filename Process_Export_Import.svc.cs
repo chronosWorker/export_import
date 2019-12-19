@@ -127,8 +127,8 @@ namespace Process_Export_Import
 			List<string> insertResultInfo = new List<string>();
 			List<string> firstRoundTablesWithContent = new List<string>();
 			var connectionManager = new ConnectionManagerST();
-
-		//	List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
+			TableManager tableInfo = new TableManager();
+			//	List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
 			connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
 
@@ -151,7 +151,10 @@ namespace Process_Export_Import
 					//insertResultInfo.Add("process_id táblák : ");
 					foreach (string tableWithProcessID in processId.getAllTableNameWithIdInDBFile(connectionManager))
 					{
-                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableWithProcessID, true, connectionManager));
+						if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableWithProcessID)))
+						{
+							insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableWithProcessID, true, connectionManager));
+						}
 					}
 			/*		TableManager tableInfo = new TableManager();
 					foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
@@ -348,20 +351,20 @@ namespace Process_Export_Import
 					}
 				}
 				commandText = commandText.Substring(0, commandText.Length - 1);
-                commandText += ";";
-                /*insertresultInfo.Add("commandText: " + commandText);
+				commandText += ";";
+				/*insertresultInfo.Add("commandText: " + commandText);
 				insertresultInfo.Add(" columnTypes.Count: " + columnTypes.Count.ToString());
 				insertresultInfo.Add("fieldCount: " + fieldCount.ToString());*/
-                insertresultInfo.Add(commandText);
+				insertresultInfo.Add(commandText);
 
 				if (needToSetIdentityInsertOn)
 				{
-			//			obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+						obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
 
-			//			obj.executeQueriesInSqlServer(commandText);
+						obj.executeQueriesInSqlServer(commandText);
 
 				}
 			}

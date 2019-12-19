@@ -146,9 +146,9 @@ namespace Process_Export_Import
 
             return allTables;
         }
-        public List<string> tablesInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
+        public bool tableInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
         {
-            List<string> tablesWithoutRows = new List<string>();
+            bool tableWithoutRow = true;
             try
             {
              
@@ -156,9 +156,9 @@ namespace Process_Export_Import
 
                 while (reader.Read())
                 {
-                    if (reader[0].ToString() == "0")
+                    if (reader[0].ToString() != "0")
                     {
-                        tablesWithoutRows.Add(tableName);
+                        tableWithoutRow = false;
 
                     }
 
@@ -171,7 +171,7 @@ namespace Process_Export_Import
 
             }
 
-            return tablesWithoutRows;
+            return tableWithoutRow;
         }
         public List<string> firstRoundTablesWithContent(ConnectionManagerST obj)
         {
@@ -180,7 +180,7 @@ namespace Process_Export_Import
             List<string> firstRoundTablesWithOutContent = new List<string>();
             foreach (string tableName in allFirstRoundTables)
             {
-                firstRoundTablesWithOutContent.AddRange(tablesInDBFileWithoutRow(obj, tableName));
+                firstRoundTablesWithOutContent.Add(tableInDBFileWithoutRow(obj, tableName).ToString());
 
             }
             firstRoundTablesWithContent.AddRange(allFirstRoundTables.Except(firstRoundTablesWithOutContent).ToList());
