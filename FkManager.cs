@@ -267,11 +267,11 @@ namespace Process_Export_Import
 
                         if (needToSetIdentityInsertOn)
                         {
-                            //		obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+                            		obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
                         }
                         else
                         {
-                            //		obj.executeQueriesInSqlServer(commandText);
+                            		obj.executeQueriesInSqlServer(commandText);
 
                         }
                     }

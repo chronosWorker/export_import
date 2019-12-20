@@ -75,18 +75,14 @@ namespace Process_Export_Import
                 " T_ACTIVITY" ,
                 " T_ACTIVITY_FIELDS_UI_PARAMETERS" ,
                 " T_NOTIFICATION" ,
-                " T_PERSON" ,
                 " T_DEPARTMENT" ,
-                " T_DEPARTMENT_MEMBERS" ,
                 " T_CALCULATED_FIELD_RESULT_TYPE_ID" ,
                 " T_CATEGORY" ,
                 " T_PROCESS_OWNER" ,
                 " T_PROCESS_READER" ,
                 " T_ROLE" ,
-                " T_ROLE_MEMBERS" ,
                 " T_REPORT_GROUP" ,
                 " T_REPORT_GROUP_ADMINISTRATOR" ,
-                " T_REPORT_OWNERS" ,
                 " T_PROC_DESIGN_DRAW_PART_DETAIL" ,
                 " T_ROUTING_CONDITION" ,
                 " T_ROUTING_CONDITION_GROUP" ,
@@ -141,10 +137,20 @@ namespace Process_Export_Import
                 " T_ACTIVITY_PARTICIPANT_TYPE" ,
                 " T_CALCULATED_FIELD_CONSTANT_TYPE" ,
                 " T_COMPARE_OPERATION" ,
-                " T_DB_CONNECTION" ,
                 " T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA" };
 
             return allTables;
+        }
+
+        public List<string> listOfTablesThatDontNeedToBeInsert()
+        {
+
+            List<string> noInsertTables = new List<string>()
+                {
+                "T_PROCESS_OWNER",
+                "T_DB_CONNECTION"
+                };
+            return noInsertTables;
         }
         public bool tableInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
         {
@@ -152,9 +158,9 @@ namespace Process_Export_Import
             try
             {
              
-                 var reader = obj.sqLiteDataReader("SELECT count(*) from" + tableName);
+                var reader = obj.sqLiteDataReader("SELECT count(*) from " + tableName);
 
-                while (reader.Read())
+                if (reader.Read())
                 {
                     if (reader[0].ToString() != "0")
                     {

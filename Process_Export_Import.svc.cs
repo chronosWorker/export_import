@@ -147,15 +147,27 @@ namespace Process_Export_Import
 					FkManager fieldGroupToFieldGroupDependency = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", "Field_Group_To_Field_Group_Dependency_ID");
 					fieldGroupToFieldGroupDependency.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
-					insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					activityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager fieldGroupToFieldGroupDepCondFormula = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", "Field_Group_To_Field_Group_Dependency_Condition_Formula_ID");
+					fieldGroupToFieldGroupDepCondFormula.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//insertResultInfo.Add("process_id táblák : ");
-					foreach (string tableWithProcessID in processId.getAllTableNameWithIdInDBFile(connectionManager))
+					foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
 					{
-						if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableWithProcessID)))
+						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" )
 						{
-							insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableWithProcessID, true, connectionManager));
+
+							if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+							{
+								insertResultInfo.Add("NEM üres : " + tableName);
+
+								insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+							}
 						}
+					//	insertResultInfo.Add(tableWithProcessID);
+
+					//	insertResultInfo.Add((tableInfo.tableInDBFileWithoutRow(connectionManager, tableWithProcessID).ToString()));
 					}
+					//insertResultInfo.Add(processId.getAllTableNameWithIdInDBFile(connectionManager).Count.ToString());
 			/*		TableManager tableInfo = new TableManager();
 					foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
 					{
@@ -359,12 +371,12 @@ namespace Process_Export_Import
 
 				if (needToSetIdentityInsertOn)
 				{
-						obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+			//			obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
 
-						obj.executeQueriesInSqlServer(commandText);
+				//		obj.executeQueriesInSqlServer(commandText);
 
 				}
 			}
