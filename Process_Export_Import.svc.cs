@@ -129,15 +129,21 @@ namespace Process_Export_Import
 			var connectionManager = new ConnectionManagerST();
 			TableManager tableInfo = new TableManager();
          
-            //	List<string> allTableWithProcessDesignId = new List<string>() { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN" };
             connectionManager.openSqLiteConnection();
 			connectionManager.openSqlServerConnection();
 
 			//bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
-			if (true )
+			if (true)
 			{
 				try
 				{
+                    
+                 /*       foreach (KeyValuePair<string, string> entry in getColumnTypesDictionary_v3("T_PROCESS", connectionManager))
+                    {
+                        insertResultInfo.Add(entry.Key);
+                        insertResultInfo.Add(entry.Value);
+                    }
+                 */
                     //-----------PROCESS------------------------------------------------------
                     //-------------------------------------------------------------------------
                     FkManager processId = new FkManager("T_PROCESS", "Process_ID");
@@ -208,7 +214,7 @@ namespace Process_Export_Import
                     reportRefFieldLocationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     FkManager reportTypenId = new FkManager("T_REPORT_TYPE", "Report_Type_ID");
-                    reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     //-----------START INSERT------------------------------------------------------
                     //-----------------------------------------------------------------------------
@@ -220,8 +226,10 @@ namespace Process_Export_Import
 
 							if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
 							{
-                               insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-                               insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                    insertResultInfo.Add("Jelenlegi tábla:" + tableName);
+                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                               
+
                             }
                         }
                   
@@ -271,7 +279,6 @@ namespace Process_Export_Import
 		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
 		{
 			List<string> insertresultInfo = new List<string>();
-			List<string> columnNamesInDbFile = new List<string>();
 			List<string> values = new List<string>();
 			Dictionary<string, string> columnTypes = new Dictionary<string, string>();
 			string commandText = "INSERT INTO " + tableName + "  ( ";
@@ -281,8 +288,8 @@ namespace Process_Export_Import
                 
                 var reader = obj.sqLiteDataReader("SELECT * FROM " + tableName);
 				int fieldCount = reader.FieldCount;
-				insertresultInfo.Add("Field Count :" + fieldCount);
-				insertresultInfo.Add("columnTypes.Count :" + columnTypes.Count);
+				//insertresultInfo.Add("Field Count :" + fieldCount);
+				//insertresultInfo.Add("columnTypes.Count :" + columnTypes.Count);
 			
 
 					for (var index = 0; index < columnTypes.Count; index++)
@@ -295,7 +302,7 @@ namespace Process_Export_Import
 						{
 							commandText += columnTypes.ElementAt(index).Key + " ,";
 						}
-					//	columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
+					
 					}
 
 					commandText += ") Values ";
@@ -348,13 +355,11 @@ namespace Process_Export_Import
 		
 				if (needToSetIdentityInsertOn)
 				{
-			//			obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+						obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
-
-				//		obj.executeQueriesInSqlServer(commandText);
-
+						obj.executeQueriesInSqlServer(commandText);
 				}
 			}
 			catch (Exception ex)
