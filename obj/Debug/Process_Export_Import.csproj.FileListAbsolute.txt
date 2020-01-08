@@ -138,7 +138,6 @@ C:\Users\Devnotebook\Desktop\git_folder\exp_imp\export_import\obj\Debug\Process_
 C:\Users\Devnotebook\Desktop\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.pdb
 C:\Users\Devnotebook\Desktop\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
-D:\Chronos\git_repos\exp_imp\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.dll.config
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.dll
 C:\Users\Devnotebook\Desktop\git_folder\export_import\bin\Process_Export_Import.pdb
@@ -188,3 +187,4 @@ C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\obj
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.csproj.CopyComplete
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.pdb
+D:\Chronos\git_repos\exp_imp\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
