@@ -105,87 +105,164 @@ namespace Process_Export_Import
 
         public List<string> getAllTableNameWithIdInDBFile(ConnectionManagerST obj)
         {
-            List<string> tablesWhereIdOccurs = new List<string>();
-            string queryText = "Select distinct(table_name) from table_information where Column_Name = '" + IdName  + "'";
-            var reader = obj.sqLiteDataReader(queryText);
-            while (reader.Read())
-            {
-                tablesWhereIdOccurs.Add(reader["table_name"].ToString());
+            try
+            { 
+                List<string> tablesWhereIdOccurs = new List<string>();
+                string queryText = "Select distinct(table_name) from table_information where Column_Name = '" + IdName  + "'";
+                var reader = obj.sqLiteDataReader(queryText);
+                while (reader.Read())
+                {
+                    tablesWhereIdOccurs.Add(reader["table_name"].ToString());
+                }
+                return tablesWhereIdOccurs;
             }
-            return tablesWhereIdOccurs;
+            catch (Exception ex)
+            {
+                throw ex;
+
+            }
         }
 
         public string noCheckConstraitForTableList(List<string> tableNames, ConnectionManagerST obj)
         {
-            string queryText = "";
-            foreach (string tableName in tableNames)
+            try
+            { 
+                string queryText = "";
+                foreach (string tableName in tableNames)
+                {
+                     queryText += "ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL; ";
+
+                }
+                obj.executeQueriesInSqlServer(queryText);
+                return queryText;
+            }
+            catch (Exception ex)
             {
-                 queryText += "ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL; ";
+                throw ex;
 
             }
-            obj.executeQueriesInSqlServer(queryText);
-            return queryText;
         }
 
         public static List<int> getNewIdValueList(int maxIdInSQLServer, List<int> idDifferenceList)
         {
             List<int> updatedIdList = new List<int>();
-            int newMaxId = maxIdInSQLServer + 1;
-            updatedIdList.Add(newMaxId);
-            foreach (int difference in idDifferenceList)
-            {
-                updatedIdList.Add(updatedIdList[updatedIdList.Count - 1] - difference);
+            try
+            { 
+                int newMaxId = maxIdInSQLServer + 1;
+                updatedIdList.Add(newMaxId);
+                foreach (int difference in idDifferenceList)
+                {
+                    updatedIdList.Add(updatedIdList[updatedIdList.Count - 1] - difference);
+                }
             }
+            catch (Exception ex)
+            {
+                throw ex;
 
+            }
             return updatedIdList;
 
         }
 
-        public  List<string> changeIdsInDBFileToTempValues(List<int> oldIdList, List<int> newIdList, List<string> tablesWithId,  ConnectionManagerST obj)
+        public  List<string> changeIdsInDBFileToTempValues(List<int> oldIdList, List<int> newIdList, string TableName,  ConnectionManagerST obj)
         {
             List<string> updateInfo = new List<string>();
-
-            foreach (string tableName in tablesWithId)
-            {
-                for (int index = 0; index < newIdList.Count; index++)
-                {
-                    int tempId = 10000000 + newIdList[index];
-                    string updateText = "Update " + tableName + " Set " + IdName +  "  = " + tempId.ToString() + " where "+ IdName  + " = " + oldIdList[index].ToString();
-                    obj.executeQueriesInDbFile(updateText);
-            //        updateInfo.Add(updateText);
+            try
+            { 
+            //    foreach (string tableName in tablesWithId)
+             //   {
+                    for (int index = 0; index < newIdList.Count; index++)
+                    {
+                        int tempId = 10000000 + newIdList[index];
+                        string updateText = "Update " + TableName + " Set " + IdName +  "  = " + tempId.ToString() + " where "+ IdName  + " = " + oldIdList[index].ToString();
+                        obj.executeQueriesInDbFile(updateText);
+                   //     updateInfo.Add(updateText);
+                    //    updateInfo.Add("New ID List:");
+                      //  updateInfo.AddRange(convertIntListToStringList(newIdList));
                 }
+              //  }
             }
+            catch (Exception ex)
+            {
+                throw ex;
 
+            }
             return updateInfo;
 
         }
 
-        public  List<string> changeIdsInDBFileToRealNewID( ConnectionManagerST obj , List<string>  tablesWithId)
+
+
+        public  List<string> changeIdsInDBFileToRealNewID( ConnectionManagerST obj , string TableName)
         {
             List<string> updateInfo = new List<string>();
+            try
+            { 
 
-            foreach (string tableName in tablesWithId)
-            {
-                int tempActivityIdToDistract = 10000000;
-                string updateText = "Update " + tableName + " Set " + IdName + " =  " + IdName  +  " - " + tempActivityIdToDistract.ToString() + " where 1 = 1 ;";
-                obj.executeQueriesInDbFile(updateText);
-           //     updateInfo.Add(updateText);
+              //  foreach (string tableName in tablesWithId)
+              //  {
+                    int tempIdToDistract = 10000000;
+                    string updateText = "Update " + TableName + " Set " + IdName + " =  " + IdName  +  " - " + tempIdToDistract.ToString() + " where 1 = 1 ;";
+                    obj.executeQueriesInDbFile(updateText);
+               //     updateInfo.Add(updateText);
+              //  }
             }
+            catch (Exception ex)
+            {
+                throw ex;
 
+            }
             return updateInfo;
 
         }
         public Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
         {
+
             Dictionary<string, string> fields = new Dictionary<string, string>();
+            try
+            { 
+
             string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
             var reader = obj.sqlServerDataReader(commandText);
             while (reader.Read())
             {
                 fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
             }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+
+            }
             return fields;
 
+        }
+
+        public List<string> changeIdsInAllRelatedTableIfSameRecordFound(List<int> oldIdList, List<int> newIdList, ConnectionManagerST obj)
+        {
+            List<string> updateInfo = new List<string>();
+            List<string> allTableWithThatIdInIt = getAllTableNameWithIdInDBFile(obj);
+            allTableWithThatIdInIt.Remove(TableName);
+            foreach (string table in allTableWithThatIdInIt)
+            {
+                for (int oldIddListIndex = 0; oldIddListIndex < oldIdList.Count; oldIddListIndex++)
+                {
+                    string commandText = "Select Count(*) from " + table + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
+                    var reader = obj.sqLiteDataReader(commandText);
+                    updateInfo.Add(commandText);
+                    reader.Read();
+                    if(reader[0].ToString() == "1")
+                    {
+                        updateInfo.Add("Table where old Id Found : " + table);
+                        string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
+                        obj.executeQueriesInDbFile(updateCommandText);
+                        updateInfo.Add(updateCommandText);
+                    }
+
+                }
+            }
+            //Ha megtalálja a oldIdlistet akkor cserélje az ujra
+            return updateInfo;
         }
 
 
@@ -301,10 +378,10 @@ namespace Process_Export_Import
                 List<string> idUpdateInfo = new List<string>();
                 List<int> newIdList = new List<int>();
 
-                List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
-                changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
+             //   List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
+             //   changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
                // List<string> tablesWithIdInDBFile = tableList;
-          //      changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
+          // changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
                
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
@@ -317,20 +394,29 @@ namespace Process_Export_Import
                 idDifferenceList = getIdDifferencesList(idsInDbFile);
 
                 newIdList = getNewIdValueList(maxIdInSqlServer, idDifferenceList);
-                changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, tablesWithIdInDBFile, connectionManager));
+                changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, TableName, connectionManager));
 
-                changeIdsInDBFileToRealNewID(connectionManager, tablesWithIdInDBFile);
+                changeIdsInDBFileToRealNewID(connectionManager, TableName);
                  
                 changingIdsInfoList.Add(" ID in db file");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
+
+
+
+                 
+                    //az összes táblában ahol megtalálja ezeket ott cserélje idsInDbFile --> newIdList
+                    //fgv neveket átírni mert most félrevezet
+
+
+
                 changingIdsInfoList.Add("Max ID");
                 changingIdsInfoList.Add(maxIdInSqlServer.ToString());
                 changingIdsInfoList.Add("idDifferenceList");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
                 changingIdsInfoList.Add("newIdList");
                 changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
-               
-               
+
+                changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
 
                 changingIdsInfoList.AddRange(idUpdateInfo);
                 }
