@@ -47,7 +47,6 @@ namespace Process_Export_Import
 
             return firstRoundInsertTables;
         }
-
         public List<string> getAllTablesNameInDbFile()
         {
 
@@ -140,7 +139,12 @@ namespace Process_Export_Import
 
             return allTables;
         }
-
+        public List<string> getSecondRoundInsertTables()
+        {
+            List<string> secondRoundTables = (getAllTablesNameInDbFile()).Except(getFirstRoundInsertTables()).ToList();
+            return secondRoundTables;
+        }
+        
         public List<string> listOfTablesThatDontNeedToBeInsert()
         {
 

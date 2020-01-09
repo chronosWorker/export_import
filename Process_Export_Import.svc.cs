@@ -259,48 +259,48 @@ namespace Process_Export_Import
                     procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
                     //-----------START INSERT------------------------------------------------------
                     //-----------------------------------------------------------------------------
-                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
-                    {
-
-                        if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
+                    /*    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
                         {
 
-                            if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+                            if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
                             {
 
-                                if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
+                                if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
                                 {
-                                    insertResultInfo.Add(tableName + " true");
-                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+
+                                    if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
+                                    {
+                                        insertResultInfo.Add(tableName + " true");
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                    }
+                                    else
+                                    {
+                                        insertResultInfo.Add(tableName + " false");
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+                                    }                              
+
                                 }
-                                else
-                                {
-                                    insertResultInfo.Add(tableName + " false");
-                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
-                                }                              
-
                             }
-                        }
 
-                    };
+                        };
 
-                     /*  foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
-                       {
+                        foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
+                        {
 
-                           if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
-                           {
+                            if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
+                            {
 
-                               if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
-                               {
-                                       insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-                                       insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+                                {
+                                        insertResultInfo.Add("Jelenlegi tábla:" + tableName);
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
 
 
-                               }
-                           }
+                                }
+                            }
 
-                       }*/
-
+                        }*/
+                    insertResultInfo.AddRange(tableInfo.getSecondRoundInsertTables());
                 }
                 catch (Exception ex)
 				{

@@ -204,3 +204,4 @@ C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\exp_imp\export_im
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\exp_imp\export_import\obj\Debug\Process_Export_Import.csproj.CopyComplete
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\exp_imp\export_import\obj\Debug\Process_Export_Import.dll
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\exp_imp\export_import\obj\Debug\Process_Export_Import.pdb
+C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\exp_imp\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
