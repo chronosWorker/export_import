@@ -146,11 +146,11 @@ namespace Process_Export_Import
                  */
                     //-----------PROCESS------------------------------------------------------
                     //-------------------------------------------------------------------------
-                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                   // FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+				//	processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
                     //-----------ROUTING------------------------------------------------------
                     //-------------------------------------------------------------------------
-                    FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
+                /*    FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
 					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
@@ -160,22 +160,31 @@ namespace Process_Export_Import
                     routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
-                    routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);*/
                     //-----------ACTIVITY------------------------------------------------------
                     //-------------------------------------------------------------------------
                     FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
-					activityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
-                    FkManager activityDesignId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
+                   /* FkManager activityDesignId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
                     activityDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityBeforeFinishCheckQueryTypeIdId = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Activity_Before_Finish_Check_Query_Type_ID");
+                    activityBeforeFinishCheckQueryTypeIdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityFinishStepModedId = new FkManager("T_ACTIVITY_FINISH_STEP_MODE", "Activity_Finish_Step_Mode_ID");
+                    activityFinishStepModedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
+                    activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
                     //-----------FIELD------------------------------------------------------
                     //-------------------------------------------------------------------------
                     FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
-					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);*/
 
 					FkManager fieldGroupToFieldGroupDependency = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", "Field_Group_To_Field_Group_Dependency_ID");
-					fieldGroupToFieldGroupDependency.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                   
+                    insertResultInfo.AddRange(fieldGroupToFieldGroupDependency.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                 /*  
 					FkManager fieldGroupToFieldGroupDepCondFormula = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", "Field_Group_To_Field_Group_Dependency_Condition_Formula_ID");
 					fieldGroupToFieldGroupDepCondFormula.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
@@ -184,6 +193,9 @@ namespace Process_Export_Import
 
                     FkManager fieldDateConstraitId = new FkManager("T_FIELD_DATE_CONSTRAINT", "Field_Date_Constraint_ID");
                     fieldDateConstraitId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager calcFieldConstantTypeId = new FkManager("T_CALCULATED_FIELD_CONSTANT_TYPE", "Calculated_Field_Constant_Type_ID");
+                    calcFieldConstantTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
                     //-----------REPORTOK------------------------------------------------------
                     //-------------------------------------------------------------------------
                     FkManager reportId = new FkManager("T_REPORT", "Report_ID");
@@ -217,8 +229,33 @@ namespace Process_Export_Import
                     reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     //-----------START INSERT------------------------------------------------------
-                    //-----------------------------------------------------------------------------
-                    foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
+                    //-----------------------------------------------------------------------------getFirstRoundInsertTables
+                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+                    {
+
+                        if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
+                        {
+
+                            if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+                            {
+                                if (tableName == "T_FIELD_DATE_CONSTRAINT" )
+                                {
+                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+
+                                }
+                                else
+                                {
+                                    insertResultInfo.Add("Jelenlegi tábla:" + tableName);
+                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+                                }
+
+
+                            }
+                        }
+
+                    };
+
+                  /*  foreach (string tableName in tableInfo.getAllTablesNameInDbFile())
 					{
 
                         if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
@@ -233,7 +270,7 @@ namespace Process_Export_Import
                             }
                         }
                   
-					}
+					}*/
                     
                 }
 				catch (Exception ex)
@@ -323,7 +360,7 @@ namespace Process_Export_Import
 									case "binary":
 									case "varbinary":
 									case "image":
-									case "DateTime":
+									case "DateTime": 
 									case "nvarchar":
 									case "varchar":
                                     case "datetime":
@@ -355,11 +392,11 @@ namespace Process_Export_Import
 		
 				if (needToSetIdentityInsertOn)
 				{
-						obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+			//			obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
-						obj.executeQueriesInSqlServer(commandText);
+			//			obj.executeQueriesInSqlServer(commandText);
 				}
 			}
 			catch (Exception ex)

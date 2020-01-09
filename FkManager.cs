@@ -320,7 +320,7 @@ namespace Process_Export_Import
                 changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, tablesWithIdInDBFile, connectionManager));
 
                 changeIdsInDBFileToRealNewID(connectionManager, tablesWithIdInDBFile);
-               /*  
+                 
                 changingIdsInfoList.Add(" ID in db file");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
                 changingIdsInfoList.Add("Max ID");
@@ -329,7 +329,7 @@ namespace Process_Export_Import
                 changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
                 changingIdsInfoList.Add("newIdList");
                 changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
-               */
+               
                
 
                 changingIdsInfoList.AddRange(idUpdateInfo);
