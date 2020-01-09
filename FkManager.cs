@@ -52,7 +52,7 @@ namespace Process_Export_Import
 
             try
             {
-                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName +  "   order by " + IdName + "  asc ");
+                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName +  "   order by cast(" + IdName + " as REAL)  asc ");
                 while (reader.Read())
                 {
                     if (reader[0] != DBNull.Value)
@@ -251,7 +251,7 @@ namespace Process_Export_Import
                     var reader = obj.sqLiteDataReader(commandText);
                     updateInfo.Add(commandText);
                     reader.Read();
-                    if(reader[0].ToString() == "1")
+                    if(reader[0].ToString() != "0")
                     {
                         updateInfo.Add("Table where old Id Found : " + table);
                         string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
@@ -385,6 +385,8 @@ namespace Process_Export_Import
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
                
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
+                changingIdsInfoList.Add(" ID in db file");
+                changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
                 if (idsInDbFile.Count == 0)
                 {
 
@@ -398,8 +400,7 @@ namespace Process_Export_Import
 
                 changeIdsInDBFileToRealNewID(connectionManager, TableName);
                  
-                changingIdsInfoList.Add(" ID in db file");
-                changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
+                
 
 
 

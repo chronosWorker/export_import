@@ -151,6 +151,29 @@ namespace Process_Export_Import
                 };
             return noInsertTables;
         }
+
+        public List<string> listOfTablesWhereIdentityInsertNeeded()
+        {
+
+            List<string> listOfTablesWhereIdentityInsertNeeded = new List<string>()
+                {
+                "T_FIELD_DATE_CONSTRAINT",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS",
+                "T_FIELD_TO_FIELD_DEPENDENCY",
+                "T_FIELD_VALUE",
+                "T_FIELD_VALUE_TRANSLATION",
+                "T_PROC_DESIGN_DRAW",
+                "T_PROC_DESIGN_DRAW_PART",
+                "T_PROC_DESIGN_DRAW_PART_DETAIL",
+                "T_REPORT_GROUP"
+                };
+            return listOfTablesWhereIdentityInsertNeeded;
+        }
+
+
         public bool tableInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
         {
             bool tableWithoutRow = true;
