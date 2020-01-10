@@ -156,7 +156,12 @@ namespace Process_Export_Import
                 "T_FIELD_TYPE",
                 "T_FILE_FIELD_TYPE",
                 "T_CALCULATED_FIELD_RESULT_TYPE_ID",
-                "T_ACTIVITY_FIELDS"
+                "T_ACTIVITY_FIELDS",
+                "T_ACTIVITY_PARTICIPANT",
+                "T_CHART_TYPE",
+                "T_CHART_FIELD_TYPE",
+                "T_CALCULATED_FIELD_CONSTANT_TYPE",
+                "T_COMPARE_OPERATION"
             };
             return secondRoundInsertTablesWithoutIdentityProprty;
         }

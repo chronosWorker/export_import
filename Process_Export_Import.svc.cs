@@ -156,9 +156,9 @@ namespace Process_Export_Import
 
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
 					routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                    
+					
 					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
-                    routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------ACTIVITY------------------------------------------------------
 					//-------------------------------------------------------------------------
 					FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
@@ -178,7 +178,7 @@ namespace Process_Export_Import
 
 					FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
 					activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
+									
 					//-----------FIELD---------------------------------------------------------
 					//-------------------------------------------------------------------------
 					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
@@ -244,8 +244,8 @@ namespace Process_Export_Import
 					FkManager fieldValueTranslationId = new FkManager("T_FIELD_VALUE_TRANSLATION", "Field_Value_Translation_ID");
 					fieldValueTranslationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    FkManager fieldLabelTranslationId = new FkManager("T_FIELD_LABEL_TRANSLATION", "Field_Label_Translation_ID");
-                    fieldLabelTranslationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager fieldLabelTranslationId = new FkManager("T_FIELD_LABEL_TRANSLATION", "Field_Label_Translation_ID");
+					fieldLabelTranslationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager fieldDocumentReferenceImportTypeId = new FkManager("T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", "Field_Document_Reference_Import_Ttype_ID");
 					fieldDocumentReferenceImportTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -298,9 +298,18 @@ namespace Process_Export_Import
 
 					FkManager roleId = new FkManager("T_ROLE", "Role_ID");
 					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                    
-                    FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
-                    insertResultInfo.AddRange(userDefinedTableId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					
+					FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
+					userDefinedTableId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager chartTypeId = new FkManager("T_CHART_TYPE", "Chart_Type_ID");
+					chartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager chartTypeFiekldId = new FkManager("T_CHART_FIELD_TYPE", "Chart_Type_Field_ID");
+					chartTypeFiekldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
+					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					
 					//-----------START INSERT------------------------------------------------------
@@ -330,10 +339,10 @@ namespace Process_Export_Import
 
 						};
 						*/
-						foreach (string tableName in tableInfo.getSecondRoundInsertTables())
+					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 						{
 
-							if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY")
+							if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName !=  "T_ACTIVITY_PARTICIPANT_TYPE")
 							{
 
 								if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -4447,7 +4456,7 @@ namespace Process_Export_Import
 						GC.Collect();
 						GC.WaitForPendingFinalizers();
 						File.Delete(fileName);
-					}
+					} 
 					SQLiteConnection.CreateFile(fileName);
 					connSQLite = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
 					string strSql = "create table table_information(";
