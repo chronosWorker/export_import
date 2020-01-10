@@ -144,7 +144,23 @@ namespace Process_Export_Import
             List<string> secondRoundTables = (getAllTablesNameInDbFile()).Except(getFirstRoundInsertTables()).ToList();
             return secondRoundTables;
         }
-        
+
+        public List<string> secondRoundInsertTablesWithoutIdentityProprty()
+        {
+            List<string> secondRoundInsertTablesWithoutIdentityProprty = new List<string>()
+            {
+                "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE",
+                "T_FIELD_TYPE",
+                "T_FILE_FIELD_TYPE",
+                "T_CALCULATED_FIELD_RESULT_TYPE_ID",
+                "T_ACTIVITY_FIELDS"
+            };
+            return secondRoundInsertTablesWithoutIdentityProprty;
+        }
+
         public List<string> listOfTablesThatDontNeedToBeInsert()
         {
 
