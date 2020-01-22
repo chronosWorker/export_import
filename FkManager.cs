@@ -265,6 +265,69 @@ namespace Process_Export_Import
             return updateInfo;
         }
 
+        public List<string> changeProcess(ConnectionManagerST obj)
+        {
+            List<string> newNameList = new List<string>();
+            string processName = "";
+            var reader = obj.sqLiteDataReader("Select Name from T_PROCESS");
+            while (reader.Read())
+            {
+                processName = reader["Name"].ToString();
+            }
+            newNameList.Add("oiginal processName : ");
+            newNameList.Add(processName);
+            newNameList.Add("new processName :  : ");
+            string importedName = processName + "_IMPORTED";
+            newNameList.Add(importedName);
+            string updateNameText = "UPDATE T_PROCES  SET Name,Technical_Name = " + importedName + " where 1 = 1";
+            obj.executeQueriesInDbFile(updateNameText);
+
+            return newNameList;
+
+        }
+
+        public List<string> changeProcessName(ConnectionManagerST obj)
+        {
+            List<string> newNameList = new List<string>();
+            string processName = "";
+            var reader = obj.sqLiteDataReader("Select Name from T_PROCESS");
+            while (reader.Read())
+            {
+                processName = reader["Name"].ToString();
+            }
+            newNameList.Add("oiginal processName : ");
+            newNameList.Add(processName);
+            newNameList.Add("new processName :  : ");
+            string importedName = processName + "_IMPORTED";
+            newNameList.Add(importedName);
+            string updateNameText = "UPDATE T_PROCESS  SET Name = '" + importedName + "' , Technical_Name = '" + importedName + "' where 1 = 1";
+            obj.executeQueriesInDbFile(updateNameText);
+
+            return newNameList;
+
+        }
+
+        public List<string> changeProcessDesignName(ConnectionManagerST obj)
+        {
+            List<string> newDesignNameList = new List<string>();
+            string designName = "";
+            var reader = obj.sqLiteDataReader("Select Name from T_PROC_DESIGN_DRAW");
+            while (reader.Read())
+            {
+                designName = reader["Name"].ToString();
+            }
+            newDesignNameList.Add("oiginal processName : ");
+            newDesignNameList.Add(designName);
+            newDesignNameList.Add("new processName :  : ");
+            string importedName = designName + "_IMPORTED";
+            newDesignNameList.Add(importedName);
+            string updateNameText = "UPDATE T_PROC_DESIGN_DRAW  SET Name = '" + importedName + "' where Name = '" + designName + "'";
+            obj.executeQueriesInDbFile(updateNameText);
+
+            return newDesignNameList;
+
+        }
+
 
         public List<string> convertIntListToStringList(List<int> inputStringList)
         {
@@ -272,7 +335,7 @@ namespace Process_Export_Import
             return convertedStringList;
         }
 
-        public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
+      /*  public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
         {
             List<string> insertresultInfo = new List<string>();
 
@@ -367,6 +430,7 @@ namespace Process_Export_Import
             }
             return insertresultInfo;
         }
+        /*/
         public  List<string> changeAllIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager )
         {
             List<string> changingIdsInfoList = new List<string>();

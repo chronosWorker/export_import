@@ -142,15 +142,15 @@ namespace Process_Export_Import
 				{
                    //-----------PROCESS-------------------------------------------------------
                    //-------------------------------------------------------------------------
-                   FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
+                    insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
+                    insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
+
+                    FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
 					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-					//-----------ROUTING-------------------------------------------------------
-					//-------------------------------------------------------------------------
-					FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
-					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    //-----------ROUTING-------------------------------------------------------
 
 					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
 					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -158,6 +158,9 @@ namespace Process_Export_Import
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
 					routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					
+                    //-------------------------------------------------------------------------
+                    FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
+					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
 					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------ACTIVITY------------------------------------------------------
@@ -313,15 +316,7 @@ namespace Process_Export_Import
 					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     //Hova kéne ezt rakni?
-                    string processName = "";
-                    var reader = connectionManager.sqLiteDataReader("Select Name from T_PROCESS");
-                    while (reader.Read())
-                    {
-                        processName = (reader["Name"].ToString());
-                    }
-                    string importedName = processName + "_IMPORTED";
-                    string updateNameText = "UPDATE T_PROCES  SET Name,Technical_Name = " + importedName + " where 1 = 1";
-                    connectionManager.executeQueriesInDbFile(updateNameText);
+                  
 
 
                     //-----------START INSERT------------------------------------------------------
