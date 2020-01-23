@@ -122,7 +122,7 @@ namespace Process_Export_Import
 		[OperationContract]
 		//	[WebInvoke(Method = "POST", RequestFormat = WebMessageFormat.Json, UriTemplate = "postmethod/new")]
 
-		public List<string> Import_Process()
+		public List<string> Import_Process(string fileName)
 		{
 
 			List<string> insertResultInfo = new List<string>();
@@ -131,8 +131,11 @@ namespace Process_Export_Import
 			TableManager tableInfo = new TableManager();
 			List<string> listOfTablesWhereIdentityInsertNeeded = tableInfo.listOfTablesWhereIdentityInsertNeeded();
 			List<string> secondRoundInsertTablesWithoutIdentityProprty = tableInfo.secondRoundInsertTablesWithoutIdentityProprty();
-		 
-			connectionManager.openSqLiteConnection();
+			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
+
+			insertResultInfo.Add("sqliteSource:");
+			insertResultInfo.Add(sqliteSource);
+			connectionManager.openSqLiteConnection(sqliteSource);
 			connectionManager.openSqlServerConnection();
 
 			//bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
@@ -140,17 +143,18 @@ namespace Process_Export_Import
 			{
 				try
 				{
-                   //-----------PROCESS-------------------------------------------------------
-                   //-------------------------------------------------------------------------
-                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
-                    insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
+					insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
+					insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
+					
+				   //-----------PROCESS-------------------------------------------------------
+				   //-------------------------------------------------------------------------
 
-                    FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
+					FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
 					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                    //-----------ROUTING-------------------------------------------------------
+					//-----------ROUTING-------------------------------------------------------
 
 					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
 					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -158,8 +162,8 @@ namespace Process_Export_Import
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
 					routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					
-                    //-------------------------------------------------------------------------
-                    FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
+					//-------------------------------------------------------------------------
+					FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
 					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
 					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -315,16 +319,16 @@ namespace Process_Export_Import
 					FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
 					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    //Hova kéne ezt rakni?
-                  
+					//Hova kéne ezt rakni?
+				  
 
 
-                    //-----------START INSERT------------------------------------------------------
-                    //-----------------------------------------------------------------------------
-                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+					//-----------START INSERT------------------------------------------------------
+					//-----------------------------------------------------------------------------
+					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
-                        if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
+						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -346,35 +350,37 @@ namespace Process_Export_Import
 
 					};
 						
-                    
-                    foreach (string tableName in tableInfo.getSecondRoundInsertTables())
-                    {
-         
-                    if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName !=  "T_ACTIVITY_PARTICIPANT_TYPE")
-                        {
+					
+					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
+					{
+		 
+					if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName !=  "T_ACTIVITY_PARTICIPANT_TYPE")
+						{
 
-                            if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
-                            {
-                                if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
-                                {
-                                    insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+							if(!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+							{
+								if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
+								{
+									insertResultInfo.Add("Jelenlegi tábla:" + tableName);
+									insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
 
-                                }
-                                else
-                                {
-                                    insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
-                                }
+								}
+								else
+								{
+									insertResultInfo.Add("Jelenlegi tábla:" + tableName);
+									insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+								}
 
-                            }
-                        }
+							}
+						}
 
-                    }
-                
-                  
-                }
-                catch (Exception ex)
+					}
+				
+				  
+					
+
+				}
+				catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
 				}
@@ -3432,68 +3438,68 @@ namespace Process_Export_Import
 						}
 					}
 
-                    #endregion
-                    #region T_ACTIVITY_FIELD_TYPE
-                   /* columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELD_TYPE");
-                    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-                    cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELD_TYPE" + processId;
-                    readerMsSql = cmdMsSql.ExecuteReader();
+					#endregion
+					#region T_ACTIVITY_FIELD_TYPE
+				   /* columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELD_TYPE");
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELD_TYPE" + processId;
+					readerMsSql = cmdMsSql.ExecuteReader();
 
-                    while (readerMsSql.Read())
-                    {
+					while (readerMsSql.Read())
+					{
 
-                        strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELD_TYPE ;";
-                        cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
-                        readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
-                        strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELD_TYPE " + " ( ";
-                        currType = "";
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELD_TYPE ;";
+						cmdMsSqlDataChild = new SqlCommand(strMsSQLDataChild, MSSQLConnection);
+						readerMsSqlDataChild = cmdMsSqlDataChild.ExecuteReader();
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELD_TYPE " + " ( ";
+						currType = "";
 
-                        foreach (KeyValuePair<string, string> entry in columnTypes)
-                        {
-                            switch (entry.Value)
-                            {
-                                case "binary":
-                                case "varbinary":
-                                case "image":
-                                    break;
-                                default:
-                                    {
-                                        strSqLiteSQL += entry.Key + ",";
-                                        break;
-                                    }
-                            }
-                        }
-                        strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-                        while (readerMsSqlDataChild.Read())
-                        {
-                            strSQLiteValues = "";
-                            for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
-                            {
-                                columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
-                                switch (currType)
-                                {
-                                    case "binary":
-                                    case "varbinary":
-                                    case "image":
-                                        break;
-                                    default:
-                                        {
-                                            strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
-                                            break;
-                                        }
-                                }
-                            }
-                            strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-                            cmdSqlite = new SQLiteCommand(connSqlite);
-                            cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
-                            cmdSqlite.ExecuteNonQuery();
-                        }
-                    }
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (readerMsSqlDataChild.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < readerMsSqlDataChild.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(readerMsSqlDataChild.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + readerMsSqlDataChild[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							cmdSqlite = new SQLiteCommand(connSqlite);
+							cmdSqlite.CommandText = strSqLiteSQL + strSQLiteValues;
+							cmdSqlite.ExecuteNonQuery();
+						}
+					}
 
-    */
-                    #endregion
-                    #region T_ACTIVITY_FIELDS_FOR_ESIGNING
-                    columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS_FOR_ESIGNING");
+	*/
+					#endregion
+					#region T_ACTIVITY_FIELDS_FOR_ESIGNING
+					columnTypes = getColumnTypesDictionary("T_ACTIVITY_FIELDS_FOR_ESIGNING");
 					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
 					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
 					readerMsSql = cmdMsSql.ExecuteReader();
@@ -4479,7 +4485,7 @@ namespace Process_Export_Import
 
 			return res;
 		}
-     
+	 
 		private ServiceCallResult createDatabaseAndTables(int processId)
 		{
 			SQLiteConnection connSQLite = new SQLiteConnection();
@@ -4526,8 +4532,8 @@ namespace Process_Export_Import
 						File.Delete(fileName);
 					}       
 					SQLiteConnection.CreateFile(fileName);
-                    connSQLite = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
-                    string strSql = "create table table_information(";
+					connSQLite = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
+					string strSql = "create table table_information(";
 					strSql += "TABLE_NAME VARCHAR(100),COLUMN_NAME VARCHAR(100), COLUMN_DEFAULT VARCHAR(10) NULL,";
 					strSql += "IS_NULLABLE  VARCHAR(10) ,DATA_TYPE VARCHAR(30),";
 					strSql += "CHARACTER_MAXIMUM_LENGTH INTEGER NULL, NUMERIC_PRECISION INT NULL";
@@ -4595,8 +4601,7 @@ namespace Process_Export_Import
 			"T_FIELD_VALUE",
 			"T_ACTIVITY_DESIGN",
 			"T_ACTIVITY_FIELDS",
-            "T_ACTIVITY_FIELD_TYPE",
-            "T_ACTIVITY_FIELDS_FOR_ESIGNING",
+			"T_ACTIVITY_FIELDS_FOR_ESIGNING",
 			"T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION",
 			"T_ACTIVITY_DEPENDENT_COMPONENTS",
 			"T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION",
@@ -4647,9 +4652,9 @@ namespace Process_Export_Import
 					return res;
 				}
 				sqliteDbPath = res.Description;
-                SQLiteConnection connSQLite2 = new SQLiteConnection();
-                connSQLite2 = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
-                connSQLite2.Open();
+				SQLiteConnection connSQLite2 = new SQLiteConnection();
+				connSQLite2 = new SQLiteConnection(String.Format("Data Source={0} ;Version=3;", fileName));
+				connSQLite2.Open();
 				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
 				{
 					string strSqLiteSQL = "";

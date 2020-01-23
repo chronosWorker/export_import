@@ -51,9 +51,9 @@ namespace Process_Export_Import
         SqlConnection connectionToOldSqlServer;
 
 
-        public void openSqLiteConnection()
+        public void openSqLiteConnection(string connecSünString)
         {
-            connSqlite = new SQLiteConnection(connectionStringToDbFile);
+            connSqlite = new SQLiteConnection(connecSünString);
             connSqlite.Open();
         }
 

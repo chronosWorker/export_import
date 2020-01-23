@@ -136,7 +136,7 @@ namespace Process_Export_Import
                 "T_CALCULATED_FIELD_CONSTANT_TYPE" ,
                 "T_COMPARE_OPERATION" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
-                "T_ACTIVITY_FIELD_TYPE" };
+                 };
 
             return allTables;
         }
