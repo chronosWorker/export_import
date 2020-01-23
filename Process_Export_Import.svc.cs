@@ -146,6 +146,10 @@ namespace Process_Export_Import
 					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
+					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
+					automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+				
+
 					insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
 					insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
 					
@@ -243,6 +247,12 @@ namespace Process_Export_Import
 					FkManager fieldToFieldDependecyId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Field_To_Field_Dependency_ID");
 					fieldToFieldDependecyId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
+					FkManager dependentFieldId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Dependent_Field_ID");
+					dependentFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager compareOperationId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Compare_Operation_Id");
+					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
 					FkManager fieldToFieldDependecyTypeId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY_TYPE", "Field_To_Field_Dependency_Type_ID");
 					fieldToFieldDependecyTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
@@ -316,8 +326,11 @@ namespace Process_Export_Import
 					FkManager chartTypeFiekldId = new FkManager("T_CHART_FIELD_TYPE", "Chart_Type_Field_ID");
 					chartTypeFiekldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
-					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					//FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
+					//compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager notificationId = new FkManager("T_NOTIFICATION", "Notification_ID");
+					notificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					//Hova kéne ezt rakni?
 				  
