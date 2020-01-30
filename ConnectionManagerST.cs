@@ -97,6 +97,14 @@ namespace Process_Export_Import
             return dr;
         }
 
+        public SqlDataReader sqlServerDataReaderWithSingleParameter(string Query_, string parameter)
+        {
+            SqlCommand cmd = new SqlCommand(Query_, connectionToNewSqlServer);
+            cmd.Parameters.AddWithValue("@param", parameter);
+            SqlDataReader dr = cmd.ExecuteReader();
+            return dr;
+        }
+
         public void closeSqlServerConnection()
         {
             connectionToNewSqlServer.Close();
