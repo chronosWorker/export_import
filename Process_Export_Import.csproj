@@ -98,6 +98,7 @@
     <Compile Include="ActivityManager.cs" />
     <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="DrawManager.cs" />
+    <Compile Include="Export.cs" />
     <Compile Include="FkManager.cs" />
     <Compile Include="KnownFolders.cs" />
     <Compile Include="TableManager.cs" />
