@@ -75,8 +75,6 @@ namespace Process_Export_Import
             connSqlite.Close();
         }
 
-
-
         public void openSqlServerConnection()
         {
             connectionToNewSqlServer = new SqlConnection(connectionStringToSqlServer);

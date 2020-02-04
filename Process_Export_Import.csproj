@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActivityManager.cs" />
+    <Compile Include="ComparsionClass.cs" />
     <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="DrawManager.cs" />
     <Compile Include="Export.cs" />

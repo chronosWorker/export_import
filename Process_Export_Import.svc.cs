@@ -123,6 +123,7 @@ namespace Process_Export_Import
 			return res;
 
 		}
+
 		[OperationContract]
 		public ServiceCallResult Export_Process_v2(int processId)
 		{
@@ -179,6 +180,7 @@ namespace Process_Export_Import
 			return res;
 
 		}
+
 		[OperationContract]
 		public List<string> Import_Process(string fileName)
 		{
@@ -462,8 +464,19 @@ namespace Process_Export_Import
 			return insertResultInfo;
 
 		}
-		
-		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
+
+        [OperationContract]
+        public Dictionary<string, int> compareTwoDbFiles()
+        {
+            ComparsionClass comp = new ComparsionClass();
+            var connectionManager = new ConnectionManagerST();
+            Dictionary<string, int> differences = new Dictionary<string, int>();
+            differences = comp.Main(connectionManager);
+
+            return differences;
+
+        }
+        public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
 		{
 			List<string> insertresultInfo = new List<string>();
 			List<string> values = new List<string>();
@@ -998,7 +1011,7 @@ namespace Process_Export_Import
 			}
 			return ret;
 		}
-		private ServiceCallResult TransferReport(int processId, bool recurs = false)
+		private ServiceCallResult TransferReport(int processId, bool recurs = false)    
 		{
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			string strSqLiteSQL = "";
@@ -1633,7 +1646,7 @@ namespace Process_Export_Import
 
 			return res;
 		}
-		private ServiceCallResult TransferProcess(Int64 processId, bool recurs = false)
+        private ServiceCallResult TransferProcess(Int64 processId, bool recurs = false)
 		{
 			ServiceCallResult res = new ServiceCallResult();
 			res = getSqlitePath(processId);

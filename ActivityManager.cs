@@ -87,7 +87,6 @@ namespace Process_Export_Import
 
 		}
 
-
 		public static List<string> changeActivityIdsInDBFileByUpdatedList(List<int> oldActivityIdList, List<int> newActivityIdList, List<string> tablesWithActivityId, ConnectionManagerST obj)
 		{
 			List<string> updateInfo = new List<string>();
@@ -122,7 +121,6 @@ namespace Process_Export_Import
 			return updateInfo;
 
 		}
-
 
 		public static List<string> getAllTableNameWithActivityIdInDBFile(ConnectionManagerST obj)
 		{
