@@ -161,7 +161,7 @@ namespace Process_Export_Import
 				if (processIdExistInLocalDb)
 				{
 					
-					res.Description = "processIdExistInLocalDb:" + ExportManager.processes_v2.Count.ToString() + "  activityCount : " + ExportManager.activities_v2.Count.ToString();
+					res.Description = "activityCount_v2:" + ExportManager.processes_v2.Count.ToString() + "  activityCount : " +  activities.Count.ToString();
 
 				}
 

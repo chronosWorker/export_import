@@ -45,7 +45,7 @@ namespace Process_Export_Import
 			Int64 ret = 0;
 			string strSQLServer;
 			strSQLServer = "SELECT PROCESS_DESIGN_ID FROM T_PROCESS WHERE PROCESS_ID =" + processId.ToString();
-			var reader = obj.sqlServerDataReader(strSQLServer);
+			var reader = obj.sqlServerDataReaderOld(strSQLServer);
 			reader.Read();
 			ret = Convert.ToInt64(reader["PROCESS_DESIGN_ID"]);
 
@@ -57,7 +57,7 @@ namespace Process_Export_Import
 			Int64 ret = 0;
 			string strSQLServer;
 			strSQLServer = "SELECT PROC_DESIGN_DRAW_ID FROM T_PROC_DESIGN_DRAW WHERE PROCESS_DESIGN_ID =" + processDesignId.ToString();
-			var reader = obj.sqlServerDataReader(strSQLServer);
+			var reader = obj.sqlServerDataReaderOld(strSQLServer);
 			reader.Read();
 			ret = Convert.ToInt64(reader["PROC_DESIGN_DRAW_ID"]);
 
@@ -125,6 +125,18 @@ namespace Process_Export_Import
 
         }
 
+        private Dictionary<string, string> getColumnTypesDictionary_v3(string CWPTableName, ConnectionManagerST obj)
+        {
+            Dictionary<string, string> fields = new Dictionary<string, string>();
+            string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+            var reader = obj.sqlServerDataReaderOld(commandText);
+            while (reader.Read())
+            {
+                fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
+            }
+            return fields;
+
+        }
         private List<Int64> getActivities_v2(Int64 pid , ConnectionManagerST obj)
         {
             List<long> ret = new List<long>();
@@ -206,7 +218,7 @@ namespace Process_Export_Import
 
             string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
 
-            // tables that can be transfer in simple way
+            #region tables that can be transfer in simple way
             try
             {
                 string strSqLiteSQL = "";
@@ -231,9 +243,9 @@ namespace Process_Export_Import
 
                 for (int i = 0; i < tables_v2.Count; i++)
                 {
-                    columnTypes = getColumnTypesDictionary_v2(tables_v2[i].TableName, obj);
+                    columnTypes = getColumnTypesDictionary_v3(tables_v2[i].TableName, obj);
                     strMsSQLData = "SELECT * FROM " + tables_v2[i].TableName + tables_v2[i].Condition;
-                    var reader = obj.sqlServerDataReader(strMsSQLData);
+                    var reader = obj.sqlServerDataReaderOld(strMsSQLData);
 
                     strSqLiteSQL = "INSERT INTO " + tables_v2[i].TableName + " ( ";
                     currType = "";
@@ -278,12 +290,12 @@ namespace Process_Export_Import
 
                     }
                 }
+                #endregion
 
-                #region other tables
                 // fill activities array
                 strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
 
-                var reader2 = obj.sqlServerDataReader(strMsSQL);
+                var reader2 = obj.sqlServerDataReaderOld(strMsSQL);
 
                 activities_v2 = new List<long>();
                 while (reader2.Read())
@@ -291,7 +303,7 @@ namespace Process_Export_Import
                     activities_v2.Add(Convert.ToInt64(reader2["activity_id"].ToString()));
                 }
                 #region T_ACTIVITY_OWNER_BY_CONDITION
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_OWNER_BY_CONDITION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_CONDITION", obj);
                 for (int i = 0; i < activities_v2.Count; i++)
                 {
 
@@ -299,7 +311,7 @@ namespace Process_Export_Import
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION " + " ( ";
                     currType = "";
 
-                    var reader3 = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader3 = obj.sqlServerDataReaderOld(strMsSQLDataChild);
 
                     foreach (KeyValuePair<string, string> entry in columnTypes)
                     {
@@ -343,14 +355,14 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT", obj);
                 for (var i = 0; i < activityOwnerByCondition_v2.Count; i++)
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_COND_PARTICIPANT WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition_v2[i].ToString();
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_COND_PARTICIPANT " + " ( ";
                     currType = "";
 
-                    var reader4 = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader4 = obj.sqlServerDataReaderOld(strMsSQLDataChild);
 
                     foreach (KeyValuePair<string, string> entry in columnTypes)
                     {
@@ -394,11 +406,11 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION", obj);
                 for (var i = 0; i < activityOwnerByCondition_v2.Count; i++)
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition_v2[i].ToString();
-                    var reader5 = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader5 = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION " + " ( ";
                     currType = "";
 
@@ -446,11 +458,11 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP", obj);
                 for (var i = 0; i < activityOwnerByCondition_v2.Count; i++)
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP WHERE Activity_Owner_By_Condition_ID=" + activityOwnerByCondition_v2[i].ToString();
-                    var reader6 = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader6 = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP " + " ( ";
                     currType = "";
 
@@ -497,11 +509,11 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ACTIVITY_PARTICIPANT
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_PARTICIPANT", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_PARTICIPANT", obj);
                 for (var i = 0; i < activities_v2.Count; i++)
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_PARTICIPANT WHERE Activity_ID=" + activities_v2[i].ToString();
-                    var reader7 = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader7 = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_PARTICIPANT " + " ( ";
                     currType = "";
 
@@ -548,15 +560,15 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_PROC_DESIGN_DRAW_PART_DETAIL
-                columnTypes = getColumnTypesDictionary_v2("T_PROC_DESIGN_DRAW_PART_DETAIL", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_PROC_DESIGN_DRAW_PART_DETAIL", obj);
                 // transfer  data                
                 string reader8CmdTxt = "SELECT * FROM T_PROC_DESIGN_DRAW_PART  WHERE PROC_DESIGN_DRAW_ID=" + procDesignDrawId.ToString();
-                var reader8 = obj.sqlServerDataReader(reader8CmdTxt);
+                var reader8 = obj.sqlServerDataReaderOld(reader8CmdTxt);
 
                 while (reader8.Read())
                 {
                     strMsSQLDataChild = "SELECT * FROM T_PROC_DESIGN_DRAW_PART_DETAIL WHERE PROC_DESIGN_DRAW_PART_ID=" + reader8["PROC_DESIGN_DRAW_PART_ID"].ToString();
-                    var reader8Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader8Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_PROC_DESIGN_DRAW_PART_DETAIL " + " ( ";
                     currType = "";
                     foreach (KeyValuePair<string, string> entry in columnTypes)
@@ -600,14 +612,14 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ROUTING_CONDITION
-                columnTypes = getColumnTypesDictionary_v2("T_ROUTING_CONDITION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ROUTING_CONDITION", obj);
                 string reader9CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-                var reader9 = obj.sqlServerDataReader(reader9CmdTxt);
+                var reader9 = obj.sqlServerDataReaderOld(reader9CmdTxt);
 
                 while (reader9.Read())
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION WHERE ROUTING_ID = " + reader9["ROUTING_ID"].ToString();
-                    var reader9Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader9Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION " + " ( ";
                     currType = "";
 
@@ -653,14 +665,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ROUTING_CONDITION_GROUP
-                columnTypes = getColumnTypesDictionary_v2("T_ROUTING_CONDITION_GROUP", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ROUTING_CONDITION_GROUP", obj);
                 string reader10CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-                var reader10 = obj.sqlServerDataReader(reader10CmdTxt);
+                var reader10 = obj.sqlServerDataReaderOld(reader10CmdTxt);
                 while (reader10.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ROUTING_CONDITION_GROUP WHERE ROUTING_ID = " + reader10["ROUTING_ID"].ToString();
-                    var reader10Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader10Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ROUTING_CONDITION_GROUP " + " ( ";
                     currType = "";
 
@@ -705,13 +717,13 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ROUTING_DESIGN
-                columnTypes = getColumnTypesDictionary_v2("T_ROUTING_DESIGN", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ROUTING_DESIGN", obj);
                 string reader11CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-                var reader11 = obj.sqlServerDataReader(reader11CmdTxt);
+                var reader11 = obj.sqlServerDataReaderOld(reader11CmdTxt);
                 while (reader11.Read())
                 {
                     strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + reader11["ROUTING_DESIGN_ID"].ToString();
-                    var reader11Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader11Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
                     currType = "";
 
@@ -757,14 +769,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_CONDITION
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_CONDITION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION", obj);
                 string reader12CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader12 = obj.sqlServerDataReader(reader12CmdTxt);
+                var reader12 = obj.sqlServerDataReaderOld(reader12CmdTxt);
                 while (reader12.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION WHERE FIELD_ID = " + reader12["FIELD_ID"].ToString();
-                    var reader12Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader12Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION " + " ( ";
                     currType = "";
 
@@ -810,14 +822,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_DATE_CONSTRAINT
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_DATE_CONSTRAINT", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_DATE_CONSTRAINT", obj);
                 string reader13CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader13 = obj.sqlServerDataReader(reader13CmdTxt);
+                var reader13 = obj.sqlServerDataReaderOld(reader13CmdTxt);
                 while (reader13.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_DATE_CONSTRAINT WHERE FIELD_ID = " + reader13["FIELD_ID"].ToString();
-                    var reader13Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader13Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_FIELD_DATE_CONSTRAINT " + " ( ";
                     currType = "";
 
@@ -863,14 +875,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_EXTENSION_NUMBER
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_EXTENSION_NUMBER", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_EXTENSION_NUMBER", obj);
                 string reader14CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader14 = obj.sqlServerDataReader(reader14CmdTxt);
+                var reader14 = obj.sqlServerDataReaderOld(reader14CmdTxt);
                 while (reader14.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_EXTENSION_NUMBER WHERE FIELD_ID = " + reader14["FIELD_ID"].ToString();
-                    var reader14Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader14Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_FIELD_EXTENSION_NUMBER " + " ( ";
                     currType = "";
 
@@ -916,14 +928,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS", obj);
                 string reader15CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader15 = obj.sqlServerDataReader(reader15CmdTxt);
+                var reader15 = obj.sqlServerDataReaderOld(reader15CmdTxt);
                 while (reader15.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS WHERE FIELD_ID = " + reader15["FIELD_ID"].ToString();
-                    var reader15Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader15Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS " + " ( ";
                     currType = "";
 
@@ -969,14 +981,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_LABEL_TRANSLATION
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_LABEL_TRANSLATION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_LABEL_TRANSLATION", obj);
                 string reader16CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader16 = obj.sqlServerDataReader(reader16CmdTxt);
+                var reader16 = obj.sqlServerDataReaderOld(reader16CmdTxt);
                 while (reader16.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_LABEL_TRANSLATION WHERE FIELD_ID = " + reader16["FIELD_ID"].ToString();
-                    var reader16Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader16Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_FIELD_LABEL_TRANSLATION " + " ( ";
                     currType = "";
 
@@ -1022,15 +1034,15 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_FIELD_VALUE
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_VALUE", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_VALUE", obj);
                 string reader17CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
-                var reader17 = obj.sqlServerDataReader(reader17CmdTxt);
+                var reader17 = obj.sqlServerDataReaderOld(reader17CmdTxt);
                 while (reader17.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_FIELD_VALUE WHERE FIELD_ID = " + reader17["FIELD_ID"].ToString();
                     strSqLiteSQL = "INSERT INTO T_FIELD_VALUE " + " ( ";
-                    var reader17Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader17Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     currType = "";
 
                     foreach (KeyValuePair<string, string> entry in columnTypes)
@@ -1076,14 +1088,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ACTIVITY_DESIGN
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_DESIGN", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_DESIGN", obj);
                 string reader18CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader18 = obj.sqlServerDataReader(reader18CmdTxt);
+                var reader18 = obj.sqlServerDataReaderOld(reader18CmdTxt);
                 while (reader18.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DESIGN WHERE ACTIVITY_DESIGN_ID = " + reader18["ACTIVITY_DESIGN_ID"].ToString();
-                    var reader18Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader18Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_DESIGN " + " ( ";
                     currType = "";
 
@@ -1129,14 +1141,14 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ACTIVITY_FIELDS
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_FIELDS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_FIELDS", obj);
                 string reader19CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader19 = obj.sqlServerDataReader(reader19CmdTxt);
+                var reader19 = obj.sqlServerDataReaderOld(reader19CmdTxt);
                 while (reader19.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS WHERE ACTIVITY_ID = " + reader19["ACTIVITY_ID"].ToString();
-                    var reader19Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader19Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS " + " ( ";
                     currType = "";
 
@@ -1241,14 +1253,14 @@ namespace Process_Export_Import
  */
                 #endregion
                 #region T_ACTIVITY_FIELDS_FOR_ESIGNING
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_FIELDS_FOR_ESIGNING", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_FIELDS_FOR_ESIGNING", obj);
                 string reader20CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader20 = obj.sqlServerDataReader(reader20CmdTxt);
+                var reader20 = obj.sqlServerDataReaderOld(reader20CmdTxt);
                 while (reader20.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_FIELDS_FOR_ESIGNING WHERE ACTIVITY_ID = " + reader20["ACTIVITY_ID"].ToString();
-                    var reader20Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader20Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_FIELDS_FOR_ESIGNING " + " ( ";
                     currType = "";
 
@@ -1293,15 +1305,15 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION", obj);
                 string reader21CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader21 = obj.sqlServerDataReader(reader21CmdTxt);
+                var reader21 = obj.sqlServerDataReaderOld(reader21CmdTxt);
 
                 while (reader21.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION WHERE ACTIVITY_ID = " + reader21["ACTIVITY_ID"].ToString();
-                    var reader21Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader21Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     strSqLiteSQL = "INSERT INTO T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION " + " ( ";
                     currType = "";
 
@@ -1346,14 +1358,14 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_ACTIVITY_DEPENDENT_COMPONENTS
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_DEPENDENT_COMPONENTS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_DEPENDENT_COMPONENTS", obj);
                 string reader22CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader22 = obj.sqlServerDataReader(reader22CmdTxt);
+                var reader22 = obj.sqlServerDataReaderOld(reader22CmdTxt);
                 while (reader22.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + reader22["ACTIVITY_ID"].ToString();
-                    var reader22Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader22Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
                     currType = "";
 
                     foreach (KeyValuePair<string, string> entry in columnTypes)
@@ -1398,22 +1410,22 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
-                columnTypes = getColumnTypesDictionary_v2("T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION", obj);
                 strSQLiteValues = "";
                 string reader23CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-                var reader23 = obj.sqlServerDataReader(reader23CmdTxt);
+                var reader23 = obj.sqlServerDataReaderOld(reader23CmdTxt);
 
                 while (reader23.Read())
                 {
 
                     strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENTS WHERE ACTIVITY_ID = " + reader23["ACTIVITY_ID"].ToString();
-                    var reader23Child = obj.sqlServerDataReader(strMsSQLDataChild);
+                    var reader23Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
 
                     while (reader23Child.Read())
                     {
                         //strMsSQLDataGrandChild = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + reader23Child["Activity_Dependent_UI_Components_ID"].ToString();
                         string reader23GrandChildCmdTxt = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + reader23Child["Activity_Dependent_UI_Components_ID"].ToString();
-                        var reader23GrandChild = obj.sqlServerDataReader(reader23GrandChildCmdTxt);
+                        var reader23GrandChild = obj.sqlServerDataReaderOld(reader23GrandChildCmdTxt);
 
 
                         while (reader23GrandChild.Read())
@@ -1463,10 +1475,10 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_DYNAMIC ROUTING
-                columnTypes = getColumnTypesDictionary_v2("T_DYNAMIC_ROUTING", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_DYNAMIC_ROUTING", obj);
                 List<long> selectedActivities = getActivities_v2(processId, obj);
                 string reader24CmdTxt = "SELECT * FROM T_DYNAMIC_ROUTING";
-                var reader24 = obj.sqlServerDataReader(reader24CmdTxt);
+                var reader24 = obj.sqlServerDataReaderOld(reader24CmdTxt);
 
                 while (reader24.Read())
                 {
@@ -1521,9 +1533,9 @@ namespace Process_Export_Import
                 #region T_CALCFIELD_FORMULA_STEPS___T_CALCFIELD_OPERAND
                 // load process fields to list   
                 fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
-                columnTypes = getColumnTypesDictionary_v2("T_CALCFIELD_FORMULA_STEPS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_CALCFIELD_FORMULA_STEPS", obj);
                 string reader25CmdTxt = "SELECT * FROM T_CALCFIELD_FORMULA_STEPS";
-                var reader25 = obj.sqlServerDataReader(reader25CmdTxt);
+                var reader25 = obj.sqlServerDataReaderOld(reader25CmdTxt);
 
                 while (reader25.Read())
                 {
@@ -1579,7 +1591,7 @@ namespace Process_Export_Import
                 }
 
                 string reader26CmdTxt = "SELECT * FROM T_CALCFIELD_OPERAND";
-                var reader26 = obj.sqlServerDataReader(reader26CmdTxt);
+                var reader26 = obj.sqlServerDataReaderOld(reader26CmdTxt);
 
                 while (reader26.Read())
                 {
@@ -1628,10 +1640,10 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", obj);
                 // transfer structure info
                 string reader27CmdTxt = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS";
-                var reader27 = obj.sqlServerDataReader(reader27CmdTxt);
+                var reader27 = obj.sqlServerDataReaderOld(reader27CmdTxt);
 
                 while (reader27.Read())
                 {
@@ -1680,9 +1692,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_USER_DEFINED_TABLE
-                columnTypes = getColumnTypesDictionary_v2("T_USER_DEFINED_TABLE", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_USER_DEFINED_TABLE", obj);
                 string reader28CmdTxt = "SELECT * FROM T_USER_DEFINED_TABLE";
-                var reader28 = obj.sqlServerDataReader(reader28CmdTxt);
+                var reader28 = obj.sqlServerDataReaderOld(reader28CmdTxt);
 
                 while (reader28.Read())
                 {
@@ -1733,9 +1745,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_FORMULA_STEPS
-                columnTypes = getColumnTypesDictionary_v2("T_FORMULA_STEPS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FORMULA_STEPS", obj);
                 string reader29CmdTxt = "SELECT * FROM T_FORMULA_STEPS";
-                var reader29 = obj.sqlServerDataReader(reader29CmdTxt);
+                var reader29 = obj.sqlServerDataReaderOld(reader29CmdTxt);
 
                 while (reader29.Read())
                 {
@@ -1785,9 +1797,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_OPERAND
-                columnTypes = getColumnTypesDictionary_v2("T_OPERAND", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_OPERAND", obj);
                 string reader30CmdTxt = "SELECT * FROM T_OPERAND";
-                var reader30 = obj.sqlServerDataReader(reader30CmdTxt);
+                var reader30 = obj.sqlServerDataReaderOld(reader30CmdTxt);
 
                 while (reader30.Read())
                 {
@@ -1842,9 +1854,9 @@ namespace Process_Export_Import
 
                 #endregion
                 #region T_PROCFIELD_PARTICIPANT
-                columnTypes = getColumnTypesDictionary_v2("T_PROCFIELD_PARTICIPANT", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_PROCFIELD_PARTICIPANT", obj);
                 string reader31CmdTxt = "SELECT * FROM T_PROCFIELD_PARTICIPANT";
-                var reader31 = obj.sqlServerDataReader(reader31CmdTxt);
+                var reader31 = obj.sqlServerDataReaderOld(reader31CmdTxt);
 
                 while (reader31.Read())
                 {
@@ -1893,9 +1905,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_PROCFIELD_WORD_MERGE
-                columnTypes = getColumnTypesDictionary_v2("T_PROCFIELD_WORD_MERGE", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_PROCFIELD_WORD_MERGE", obj);
                 string reader32CmdTxt = "SELECT * FROM T_PROCFIELD_WORD_MERGE";
-                var reader32 = obj.sqlServerDataReader(reader32CmdTxt);
+                var reader32 = obj.sqlServerDataReaderOld(reader32CmdTxt);
 
                 while (reader32.Read())
                 {
@@ -1948,9 +1960,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_PROCFIELD_WORD_MERGE_FIELD
-                columnTypes = getColumnTypesDictionary_v2("T_PROCFIELD_WORD_MERGE_FIELD", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_PROCFIELD_WORD_MERGE_FIELD", obj);
                 string reader33CmdTxt = "SELECT * FROM T_PROCFIELD_WORD_MERGE_FIELD";
-                var reader33 = obj.sqlServerDataReader(reader33CmdTxt);
+                var reader33 = obj.sqlServerDataReaderOld(reader33CmdTxt);
 
                 while (reader33.Read())
                 {
@@ -2004,9 +2016,9 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_AUTOMATIC_PROCESS
-                columnTypes = getColumnTypesDictionary_v2("T_AUTOMATIC_PROCESS", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_AUTOMATIC_PROCESS", obj);
                 string reader34CmdTxt = "SELECT * FROM T_AUTOMATIC_PROCESS";
-                var reader34 = obj.sqlServerDataReader(reader34CmdTxt);
+                var reader34 = obj.sqlServerDataReaderOld(reader34CmdTxt);
 
                 while (reader34.Read())
                 {
@@ -2061,9 +2073,9 @@ namespace Process_Export_Import
                 #endregion
 
                 #region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
                 string reader35CmdTxt = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY";
-                var reader35 = obj.sqlServerDataReader(reader35CmdTxt);
+                var reader35 = obj.sqlServerDataReaderOld(reader35CmdTxt);
 
                 while (reader35.Read())
                 {
@@ -2117,11 +2129,11 @@ namespace Process_Export_Import
                 }
                 #endregion
                 #region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
-                columnTypes = getColumnTypesDictionary_v2("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
                 for (var i = 0; i < activities_v2.Count; i++)
                 {
                     string reader36CmdTxt = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY WHERE Activity_ID=" + activities_v2[i].ToString();
-                    var reader36 = obj.sqlServerDataReader(reader36CmdTxt);
+                    var reader36 = obj.sqlServerDataReaderOld(reader36CmdTxt);
                     strSqLiteSQL = "INSERT INTO T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY " + " ( ";
                     currType = "";
 
@@ -2171,7 +2183,7 @@ namespace Process_Export_Import
 
             }
             #endregion
-            #endregion
+
             catch (Exception ex)
             {
 
@@ -2270,9 +2282,9 @@ namespace Process_Export_Import
 			return res;
 		}
 
-        public void FillProcesses_v2(Int64 processId , ConnectionManagerST obj)
+        public void FillProcesses_v2(Int64 processId, ConnectionManagerST obj)
         {
-            fieldsForProcess_v2 = getProcessFields_v2(processId , obj);
+            fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
             string strMsSQL = "";
             SqlCommand cmdMsSql;
             SqlDataReader readerMsSql;
@@ -2282,10 +2294,10 @@ namespace Process_Export_Import
             SqlDataReader readerMsSqlGrandChild;
             string strMSSqlChild;
             processes_v2.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
-                // -----  ProcessReasonType.SubProcess
+            // -----  ProcessReasonType.SubProcess
 
             string cmdTxt = "SELECT * FROM T_ACTIVITY_FIELDS";
-            var reader = obj.sqlServerDataReader(cmdTxt);
+            var reader = obj.sqlServerDataReaderOld(cmdTxt);
             while (reader.Read())
             {
                 if ((fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader["Field_Id"].ToString())) > -1) &&
@@ -2321,7 +2333,7 @@ namespace Process_Export_Import
             // -----  ProcessReasonType.Report ----------------------------------------
 
             string cmdTxt2 = "SELECT * FROM T_REPORT_FIELD";
-            var reader2 = obj.sqlServerDataReader(cmdTxt2);
+            var reader2 = obj.sqlServerDataReaderOld(cmdTxt2);
             while (reader2.Read())
             {
                 if (fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader2["FIELD_ID"].ToString())) > 0)
@@ -2338,7 +2350,7 @@ namespace Process_Export_Import
                 }
             }
             string cmdTxt3 = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-            var reader3 = obj.sqlServerDataReader(cmdTxt3);
+            var reader3 = obj.sqlServerDataReaderOld(cmdTxt3);
 
             while (reader3.Read())
             {
@@ -2359,7 +2371,7 @@ namespace Process_Export_Import
                 }
             }
             string cmdTxt4 = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-            var reader4 = obj.sqlServerDataReader(cmdTxt4);
+            var reader4 = obj.sqlServerDataReaderOld(cmdTxt4);
 
             while (reader4.Read())
             {
@@ -2386,7 +2398,7 @@ namespace Process_Export_Import
 
             strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
             string cmdTxt5 = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
-            var reader5 = obj.sqlServerDataReader(cmdTxt5);
+            var reader5 = obj.sqlServerDataReaderOld(cmdTxt5);
 
             while (reader5.Read())
             {
@@ -2395,7 +2407,7 @@ namespace Process_Export_Import
                                         "WHERE Version_Status = 2 AND Activity_Id = " + Convert.ToInt64(reader5["activity_id"].ToString()).ToString();
 
 
-                var reader5Child = obj.sqlServerDataReader(strMSSqlChild);
+                var reader5Child = obj.sqlServerDataReaderOld(strMSSqlChild);
                 while (reader5Child.Read())
                 {
                     if (!IsProcessInList(Convert.ToInt64(reader5Child["process_id"].ToString())))
@@ -2412,7 +2424,7 @@ namespace Process_Export_Import
             }
 
 
-            
+
         }
 
         public bool CheckIfProcessExistInDatabase_v2(Int64 process_Id , ConnectionManagerST obj)

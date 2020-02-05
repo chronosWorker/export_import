@@ -63,6 +63,12 @@ namespace Process_Export_Import
             cmdTxt.ExecuteNonQuery();
         }
 
+        public void executeQueriesInDbFile_v2(string Query_)
+        {
+            SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite);
+            cmdTxt.ExecuteNonQuery();
+        }
+
         public SQLiteDataReader sqLiteDataReader(string Query_)
         {
             SQLiteCommand cmd = new SQLiteCommand(Query_, connSqlite);

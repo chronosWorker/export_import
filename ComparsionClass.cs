@@ -43,7 +43,7 @@ namespace Process_Export_Import
 
             }
             obj.closeSqLiteConnection();
-
+    
             if (countListForFirstDbFile.Count == countListForSecondDbFile.Count)
             {
                 for (int index = 0; index < countListForSecondDbFile.Count; index++)
@@ -54,15 +54,15 @@ namespace Process_Export_Import
                     {
                         if (item1.Value == item2.Value)
                         {
-                          //  differences.Add("No difference at : " + item1.Key, 0);
+                            differences.Add("No difference spotted at "  + item1.Key.ToString() ,  0);
                         }
                         else if (item1.Value > item2.Value)
                         {
-                            differences.Add("Difference at " + item1.Key + " in the 1.db file", item1.Value);
+                            differences.Add("Difference at " + item1.Key + " in the 1.db file", item1.Value - item2.Value);
                         }
-                        else
+                        else if (item2.Value > item1.Value)
                         {
-                            differences.Add("Difference at " + item2.Key + " in the 1.db file", item2.Value);
+                            differences.Add("Difference at " + item2.Key + " in the 2.db file", item2.Value - item1.Value);
                         }
                     }
                 }

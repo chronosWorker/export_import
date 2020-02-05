@@ -145,7 +145,6 @@ namespace Process_Export_Import
             List<string> secondRoundTables = (getAllTablesNameInDbFile()).Except(getFirstRoundInsertTables()).ToList();
             return secondRoundTables;
         }
-
         public List<string> secondRoundInsertTablesWithoutIdentityProprty()
         {
             List<string> secondRoundInsertTablesWithoutIdentityProprty = new List<string>()
@@ -166,7 +165,6 @@ namespace Process_Export_Import
             };
             return secondRoundInsertTablesWithoutIdentityProprty;
         }
-
         public List<string> listOfTablesThatDontNeedToBeInsert()
         {
 
@@ -177,7 +175,6 @@ namespace Process_Export_Import
                 };
             return noInsertTables;
         }
-
         public List<string> listOfTablesWhereIdentityInsertNeeded()
         {
 
@@ -197,9 +194,7 @@ namespace Process_Export_Import
                 "T_REPORT_GROUP"
                 };
             return listOfTablesWhereIdentityInsertNeeded;
-        }
-
-
+        }   
         public bool tableInDBFileWithoutRow(ConnectionManagerST obj, string tableName)
         {
             bool tableWithoutRow = true;
