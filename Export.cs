@@ -2246,7 +2246,7 @@ namespace Process_Export_Import
 
 			string strSQL = "SELECT Process_Id FROM T_PROCESS WHERE Process_Id = @param";
 			string processName = "";
-			var reader = obj.sqlServerDataReaderWithSingleParameter(strSQL, processId.ToString());
+			var reader = obj.sqlOldServerDataReaderWithSingleParameter(strSQL, processId.ToString());
 			try
 			{
 				while (reader.Read())

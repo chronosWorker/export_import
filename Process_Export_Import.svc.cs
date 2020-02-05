@@ -131,6 +131,7 @@ namespace Process_Export_Import
 			var connectionManager = new ConnectionManagerST();
 			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
 			connectionManager.openSqlServerConnection();
+            connectionManager.openOldSqlServerConnection();
 			var ExportManager = new Export();
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
             res = ExportManager.getSqlitePath_v2(processId, connectionManager);
@@ -161,14 +162,14 @@ namespace Process_Export_Import
 				if (processIdExistInLocalDb)
 				{
 					
-					res.Description = "activityCount_v2:" + ExportManager.processes_v2.Count.ToString() + "  activityCount : " +  activities.Count.ToString();
+					res.Description = "activityCount_v2:" + ExportManager.processes_v2.Count.ToString() + "  activityCount : " +  activities.Count.ToString() + " sqliteSource : " + sqliteSource;
 
 				}
 
 			
 				connectionManager.closeSqLiteConnection();
                 connectionManager.closeSqlServerConnection();
-
+                connectionManager.closeOldSqlServerConnection();
 
             }
 			catch (Exception e)
