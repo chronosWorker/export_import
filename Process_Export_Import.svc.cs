@@ -45,7 +45,6 @@ namespace Process_Export_Import
 
 		private List<long> activityOwnerByCondition = new List<long>();
        
-
         string connStrSQLite;
 		SQLiteConnection connSqlite;
 		string sqliteDbPath;
@@ -166,11 +165,6 @@ namespace Process_Export_Import
 
 				}
 
-			
-				connectionManager.closeSqLiteConnection();
-                connectionManager.closeSqlServerConnection();
-                connectionManager.closeOldSqlServerConnection();
-
             }
 			catch (Exception e)
 			{
@@ -178,7 +172,19 @@ namespace Process_Export_Import
 
 			}
 
-			return res;
+
+			connectionManager.closeSqLiteConnection();
+            connectionManager.closeSqlServerConnection();
+            connectionManager.closeOldSqlServerConnection();
+            string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+            if (File.Exists(fileName))
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            return res;
+            
 
 		}
 

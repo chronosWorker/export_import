@@ -59,8 +59,11 @@ namespace Process_Export_Import
 
         public void executeQueriesInDbFile(string Query_)
         {
-            SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite);
+            using (SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite)) {
+                
             cmdTxt.ExecuteNonQuery();
+
+            }
         }
 
         public void executeQueriesInDbFile_v2(string Query_)
@@ -78,7 +81,8 @@ namespace Process_Export_Import
 
         public void closeSqLiteConnection()
         {
-            connSqlite.Close();
+           connSqlite.Close();
+           SQLiteConnection.ClearAllPools();
         }
 
         public void openSqlServerConnection()
