@@ -44,8 +44,8 @@ namespace Process_Export_Import
 		private List<long> activities = new List<long>();
 
 		private List<long> activityOwnerByCondition = new List<long>();
-       
-        string connStrSQLite;
+	   
+		string connStrSQLite;
 		SQLiteConnection connSqlite;
 		string sqliteDbPath;
 
@@ -102,7 +102,7 @@ namespace Process_Export_Import
 						res = TransferProcess(processes[i].ProcessId);
 					}
 				}
-               
+			   
 				if (processIdExistInLocalDb)
 				{
 
@@ -130,14 +130,14 @@ namespace Process_Export_Import
 			var connectionManager = new ConnectionManagerST();
 			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
 			connectionManager.openSqlServerConnection();
-            connectionManager.openOldSqlServerConnection();
+			connectionManager.openOldSqlServerConnection();
 			var ExportManager = new Export();
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-            res = ExportManager.getSqlitePath_v2(processId, connectionManager);
+			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
 			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
 			connectionManager.openSqLiteConnection(sqliteSource);
-            ExportManager.addTablesAndInfos(connectionManager);
-            bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId , connectionManager);
+			ExportManager.addTablesAndInfos(connectionManager);
+			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId , connectionManager);
 			
 			if (res.Code != 0)
 			{
@@ -146,9 +146,9 @@ namespace Process_Export_Import
 			try
 			{
 
-                ExportManager.processes_v2 = new List<ProcessListItem>();
+				ExportManager.processes_v2 = new List<ProcessListItem>();
 				ExportManager.FillProcesses_v2(processId, connectionManager);
-                ExportManager.fieldsForProcess_v2 = new List<long>();
+				ExportManager.fieldsForProcess_v2 = new List<long>();
 
 				if (ExportManager.processes_v2.Count > 0)
 				{
@@ -165,7 +165,7 @@ namespace Process_Export_Import
 
 				}
 
-            }
+			}
 			catch (Exception e)
 			{
 					res = ExportManager.FillServiceCallResult_v2(e);
@@ -174,17 +174,17 @@ namespace Process_Export_Import
 
 
 			connectionManager.closeSqLiteConnection();
-            connectionManager.closeSqlServerConnection();
-            connectionManager.closeOldSqlServerConnection();
-            string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
-            if (File.Exists(fileName))
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
+			connectionManager.closeSqlServerConnection();
+			connectionManager.closeOldSqlServerConnection();
+			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+			if (File.Exists(fileName))
+			{
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+			}
 
-            return res;
-            
+			return res;
+			
 
 		}
 
@@ -236,7 +236,14 @@ namespace Process_Export_Import
 					//-------------------------------------------------------------------------
 					FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
 					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
 					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
+					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
+					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager routingDesignToActivityId = new FkManager("T_ROUTING_DESIGN", "To_Activity_Design_ID");
 					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------ACTIVITY------------------------------------------------------
 					//-------------------------------------------------------------------------
@@ -399,6 +406,12 @@ namespace Process_Export_Import
 					FkManager notificationId = new FkManager("T_NOTIFICATION", "Notification_ID");
 					notificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
+					FkManager formulaStepId = new FkManager("T_FORMULA_STEPS", "FORMULA_STEPS_ID");
+					formulaStepId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager operandId = new FkManager("T_OPERAND", "OPERAND_ID");
+					operandId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
 					//Hova kéne ezt rakni?
 
 
@@ -408,7 +421,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
-						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_PROCESS_DESIGN")
+						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" )
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -434,7 +447,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 					{
 
-						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName != "T_ACTIVITY_PARTICIPANT_TYPE")
+						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName != "T_ACTIVITY_PARTICIPANT_TYPE" && tableName != "T_FORMULA_STEPS" && tableName != "T_OPERAND" && tableName != "T_COMPARE_OPERATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -472,18 +485,18 @@ namespace Process_Export_Import
 
 		}
 
-        [OperationContract]
-        public Dictionary<string, int> compareTwoDbFiles()
-        {
-            ComparsionClass comp = new ComparsionClass();
-            var connectionManager = new ConnectionManagerST();
-            Dictionary<string, int> differences = new Dictionary<string, int>();
-            differences = comp.Main(connectionManager);
+		[OperationContract]
+		public Dictionary<string, int> compareTwoDbFiles()
+		{
+			ComparsionClass comp = new ComparsionClass();
+			var connectionManager = new ConnectionManagerST();
+			Dictionary<string, int> differences = new Dictionary<string, int>();
+			differences = comp.Main(connectionManager);
 
-            return differences;
+			return differences;
 
-        }
-        public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
+		}
+		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
 		{
 			List<string> insertresultInfo = new List<string>();
 			List<string> values = new List<string>();
@@ -517,12 +530,13 @@ namespace Process_Export_Import
 				{
 					if (reader.GetValue(0).ToString() != "NULL" || reader.GetValue(0).ToString() != "" || reader.GetValue(0).GetType() != typeof(DBNull))
 					{
-
 						commandText += "( ";
 
 						for (var index = 0; index < columnTypes.Count; index++)
 						{
-
+							string currentRecord = reader[columnTypes.ElementAt(index).Key.ToString()].ToString();
+							string currentRecordSingleQuoteFormalized = currentRecord.Replace("'", "''");
+						  
 							switch (columnTypes.ElementAt(index).Value)
 							{
 
@@ -534,11 +548,32 @@ namespace Process_Export_Import
 								case "nvarchar":
 								case "varchar":
 								case "datetime":
-									commandText += "'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'";
+									if (currentRecord.Contains("'"))
+									{
+
+										commandText += "'" + currentRecordSingleQuoteFormalized + "'";
+
+									}
+									else
+									{
+										commandText += "'" + currentRecord + "'";
+
+									}
 									break;
 								default:
-									commandText += (reader[columnTypes.ElementAt(index).Key.ToString()].GetType() == typeof(DBNull) || reader[columnTypes.ElementAt(index).Key.ToString()] == "") ? "NULL" :
-									reader[columnTypes.ElementAt(index).Key.ToString()];
+									if (currentRecord.Contains("'"))
+									{
+
+										commandText += (currentRecordSingleQuoteFormalized.GetType() == typeof(DBNull) || currentRecordSingleQuoteFormalized == "") ? "NULL" :
+										currentRecordSingleQuoteFormalized;
+
+									}
+									else
+									{
+										commandText += (currentRecord.GetType() == typeof(DBNull) || currentRecord == "") ? "NULL" :
+										currentRecord;
+
+									}
 									break;
 							}
 							if (index < columnTypes.Count - 1)
@@ -1653,15 +1688,15 @@ namespace Process_Export_Import
 
 			return res;
 		}
-        private ServiceCallResult TransferProcess(Int64 processId, bool recurs = false)
+		private ServiceCallResult TransferProcess(Int64 processId, bool recurs = false)
 		{
 			ServiceCallResult res = new ServiceCallResult();
 			res = getSqlitePath(processId);
 
 			Int64 processDesignId = getProcessDesignIdFromProcess(processId);
 			Int64 procDesignDrawId = getProcessDesignDrawId(processDesignId);
-            fieldsForProcess = getProcessFields(processId);
-            #region tablesAdd
+			fieldsForProcess = getProcessFields(processId);
+			#region tablesAdd
 			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS", Condition = " WHERE PROCESS_ID = " + processId.ToString() });
 			tables.Add(new TableNameAndCondition { TableName = "T_PROCESS_DESIGN", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
 			tables.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
@@ -1713,8 +1748,8 @@ namespace Process_Export_Import
 			tables.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
 			tables.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
 
-            #endregion
-            string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+			#endregion
+			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
 
 			// tables that can be transfer in simple way
 			try
@@ -3813,8 +3848,8 @@ namespace Process_Export_Import
 
 						}
 					}
-                    #endregion
-                    connSqlite.Close();
+					#endregion
+					connSqlite.Close();
 				}
 			}
 			catch (Exception ex)
@@ -4383,152 +4418,152 @@ namespace Process_Export_Import
 
 			}
 		}
-	    public void getFil(Int64 processId)
+		public void getFil(Int64 processId)
 		{
-			    fieldsForProcess = getProcessFields(processId);
+				fieldsForProcess = getProcessFields(processId);
 
-			    string strMsSQL = "";
-			    SqlCommand cmdMsSql;
-			    SqlDataReader readerMsSql;
-			    SqlCommand cmdMsSqlChild;
-			    SqlDataReader readerMsSqlChild;
-			    SqlCommand cmdMsSqlGrandChild;
-			    SqlDataReader readerMsSqlGrandChild;
-			    string strMSSqlChild;
+				string strMsSQL = "";
+				SqlCommand cmdMsSql;
+				SqlDataReader readerMsSql;
+				SqlCommand cmdMsSqlChild;
+				SqlDataReader readerMsSqlChild;
+				SqlCommand cmdMsSqlGrandChild;
+				SqlDataReader readerMsSqlGrandChild;
+				string strMSSqlChild;
 
-			    string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
-			    processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
-			    using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
-			    {
-				    MSSQLConnection.Open();
-				    // -----  ProcessReasonType.SubProcess
-				    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-				    cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
-				    readerMsSql = cmdMsSql.ExecuteReader();
-				    while (readerMsSql.Read())
-				    {
-					    if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1) &&
-							    Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1)
-					    {
-						    if ((readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != ""))
-						    {
-							    if (!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString())))
-							    {
-								    processes.Add(new ProcessListItem
-								    {
-									    ProcessId = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()),
-									    Processed = false,
-									    ReasonType = ProcessReasonType.SubProcess
-								    });
-							    }
-						    }
-						    if ((readerMsSql["parent_process_id"] != null) && (readerMsSql["parent_process_id"].ToString() != ""))
-						    {
-							    if (!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString())))
-							    {
-								    processes.Add(new ProcessListItem
-								    {
-									    ProcessId = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()),
-									    Processed = false,
-									    ReasonType = ProcessReasonType.ParentProcess
-								    });
-							    }
-						    }
-					    }
-				    }
+				string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
+				processes.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
+				using (SqlConnection MSSQLConnection = new SqlConnection(connStrSQLServer))
+				{
+					MSSQLConnection.Open();
+					// -----  ProcessReasonType.SubProcess
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_ACTIVITY_FIELDS";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if ((fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["Field_Id"].ToString())) > -1) &&
+								Convert.ToInt64(readerMsSql["Field_Type"].ToString()) > 1)
+						{
+							if ((readerMsSql["sub_process_id"] != null) && (readerMsSql["sub_process_id"].ToString() != ""))
+							{
+								if (!IsProcessInList(Convert.ToInt64(readerMsSql["sub_process_id"].ToString())))
+								{
+									processes.Add(new ProcessListItem
+									{
+										ProcessId = Convert.ToInt64(readerMsSql["sub_process_id"].ToString()),
+										Processed = false,
+										ReasonType = ProcessReasonType.SubProcess
+									});
+								}
+							}
+							if ((readerMsSql["parent_process_id"] != null) && (readerMsSql["parent_process_id"].ToString() != ""))
+							{
+								if (!IsProcessInList(Convert.ToInt64(readerMsSql["parent_process_id"].ToString())))
+								{
+									processes.Add(new ProcessListItem
+									{
+										ProcessId = Convert.ToInt64(readerMsSql["parent_process_id"].ToString()),
+										Processed = false,
+										ReasonType = ProcessReasonType.ParentProcess
+									});
+								}
+							}
+						}
+					}
 
-				    // -----  ProcessReasonType.Report ----------------------------------------
-				    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-				    cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
-				    readerMsSql = cmdMsSql.ExecuteReader();
-				    while (readerMsSql.Read())
-				    {
-					    if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
-					    {
-						    if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
-						    {
-							    reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
-						    }
-						    reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
-						    if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
-						    {
-							    udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
-						    }
-					    }
-				    }
-				    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-				    cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-				    readerMsSql = cmdMsSql.ExecuteReader();
-				    while (readerMsSql.Read())
-				    {
-					    if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-					    {
-						    if (readerMsSql["Referenced_Process_ID"] != null)
-						    {
-							    if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
-							    {
-								    processes.Add(new ProcessListItem
-								    {
-									    ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
-									    Processed = false,
-									    ReasonType = ProcessReasonType.Report
-								    });
-							    }
-						    }
-					    }
-				    }
-				    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-				    cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
-				    readerMsSql = cmdMsSql.ExecuteReader();
-				    while (readerMsSql.Read())
-				    {
-					    if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
-					    {
-						    if (readerMsSql["Referenced_Process_ID"] != null)
-						    {
-							    if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
-							    {
-								    processes.Add(new ProcessListItem
-								    {
-									    ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
-									    Processed = false,
-									    ReasonType = ProcessReasonType.Report
-								    });
-							    }
-						    }
-					    }
-				    }
-
-
-				    strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
-				    cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
-				    readerMsSql = cmdMsSql.ExecuteReader();
-				    while (readerMsSql.Read())
-				    {
-					    strMSSqlChild = "SELECT T_PROCESS.Process_Alias_Id, T_PROCESS.Process_ID, T_AUTOMATIC_PROCESS.Activity_ID,T_PROCESS.Version_Status" +
-								    " FROM  T_PROCESS INNER JOIN T_AUTOMATIC_PROCESS ON T_PROCESS.Process_Alias_Id = T_AUTOMATIC_PROCESS.Process_Alias_ID_To_Start " +
-											    "WHERE Version_Status = 2 AND Activity_Id = " + Convert.ToInt64(readerMsSql["activity_id"].ToString()).ToString();
-
-					    cmdMsSqlChild = new SqlCommand(strMSSqlChild, MSSQLConnection);
-					    readerMsSqlChild = cmdMsSqlChild.ExecuteReader();
-					    while (readerMsSqlChild.Read())
-					    {
-						    if (!IsProcessInList(Convert.ToInt64(readerMsSqlChild["process_id"].ToString())))
-						    {
-							    processes.Add(new ProcessListItem
-							    {
-								    ProcessId = Convert.ToInt64(readerMsSqlChild["process_id"].ToString()),
-								    Processed = false,
-								    ReasonType = ProcessReasonType.AutomaticProcess
-							    });
-
-						    }
-					    }
-				    }
+					// -----  ProcessReasonType.Report ----------------------------------------
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_FIELD";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (fieldsForProcess.FindIndex(a => a == Convert.ToInt64(readerMsSql["FIELD_ID"].ToString())) > 0)
+						{
+							if (!IsReportInList(Convert.ToInt64(readerMsSql["REPORT_ID"].ToString())))
+							{
+								reports.Add(new ReportListItem { ReportId = Convert.ToInt64(readerMsSql["REPORT_ID"].ToString()), Processed = false, });
+							}
+							reportFields.Add(Convert.ToInt64(readerMsSql["REPORT_FIELD_ID"].ToString()));
+							if (readerMsSql["UDT_FIELD_ID"].ToString() != "")
+							{
+								udtReportFields.Add(Convert.ToInt64(readerMsSql["UDT_FIELD_ID"].ToString()));
+							}
+						}
+					}
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+						{
+							if (readerMsSql["Referenced_Process_ID"] != null)
+							{
+								if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+								{
+									processes.Add(new ProcessListItem
+									{
+										ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+										Processed = false,
+										ReasonType = ProcessReasonType.Report
+									});
+								}
+							}
+						}
+					}
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					cmdMsSql.CommandText = "SELECT * FROM T_REPORT_REFERENCED_FIELD_LOCATION";
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						if (reportFields.FindIndex(a => a == Convert.ToInt64(readerMsSql["Report_Field_ID"].ToString())) > 0)
+						{
+							if (readerMsSql["Referenced_Process_ID"] != null)
+							{
+								if (!IsProcessInList(Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString())))
+								{
+									processes.Add(new ProcessListItem
+									{
+										ProcessId = Convert.ToInt64(readerMsSql["Referenced_Process_ID"].ToString()),
+										Processed = false,
+										ReasonType = ProcessReasonType.Report
+									});
+								}
+							}
+						}
+					}
 
 
-			    }
-		    }
+					strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
+					cmdMsSql = new SqlCommand(strMsSQL, MSSQLConnection);
+					readerMsSql = cmdMsSql.ExecuteReader();
+					while (readerMsSql.Read())
+					{
+						strMSSqlChild = "SELECT T_PROCESS.Process_Alias_Id, T_PROCESS.Process_ID, T_AUTOMATIC_PROCESS.Activity_ID,T_PROCESS.Version_Status" +
+									" FROM  T_PROCESS INNER JOIN T_AUTOMATIC_PROCESS ON T_PROCESS.Process_Alias_Id = T_AUTOMATIC_PROCESS.Process_Alias_ID_To_Start " +
+												"WHERE Version_Status = 2 AND Activity_Id = " + Convert.ToInt64(readerMsSql["activity_id"].ToString()).ToString();
+
+						cmdMsSqlChild = new SqlCommand(strMSSqlChild, MSSQLConnection);
+						readerMsSqlChild = cmdMsSqlChild.ExecuteReader();
+						while (readerMsSqlChild.Read())
+						{
+							if (!IsProcessInList(Convert.ToInt64(readerMsSqlChild["process_id"].ToString())))
+							{
+								processes.Add(new ProcessListItem
+								{
+									ProcessId = Convert.ToInt64(readerMsSqlChild["process_id"].ToString()),
+									Processed = false,
+									ReasonType = ProcessReasonType.AutomaticProcess
+								});
+
+							}
+						}
+					}
+
+
+				}
+			}
 	public enum ProcessReasonType
 	{
 		MainProcess,
@@ -4764,5 +4799,5 @@ namespace Process_Export_Import
 #endregion
 
 
-    }
+	}
 }

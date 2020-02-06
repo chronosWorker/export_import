@@ -128,7 +128,7 @@ namespace Process_Export_Import
 
         public void openOldSqlServerConnection()
         {
-            connectionToOldSqlServer = new SqlConnection(connectionStringToSqlServer);
+            connectionToOldSqlServer = new SqlConnection(connectionStringToOldSqlServer);
             connectionToOldSqlServer.Open();
 
         }
