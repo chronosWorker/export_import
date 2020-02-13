@@ -161,7 +161,7 @@ namespace Process_Export_Import
 				if (processIdExistInLocalDb)
 				{
 					
-					res.Description = "activityCount_v2:" + ExportManager.processes_v2.Count.ToString() + "  activityCount : " +  activities.Count.ToString() + " sqliteSource : " + sqliteSource;
+					res.Description = "activityCount_v2:" + ExportManager.activities_v2.Count.ToString() + "  activityCount : " +  activities.Count.ToString() + " sqliteSource : " + sqliteSource;
 
 				}
 
@@ -210,7 +210,8 @@ namespace Process_Export_Import
 			{
 				try
 				{
-					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+                    #region FKMANAGER
+                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
@@ -265,9 +266,17 @@ namespace Process_Export_Import
 					FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
 					activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					//-----------FIELD---------------------------------------------------------
-					//-------------------------------------------------------------------------
-					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
+					FkManager activityOwnerByConditionId = new FkManager("T_ACTIVITY_OWNER_BY_CONDITION", "Activity_Owner_By_Condition_ID");
+					activityOwnerByConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityParticipantTypeId = new FkManager("T_ACTIVITY_PARTICIPANT_TYPE", "Activity_Participant_Type_ID");
+                    activityParticipantTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityFieldUIParametersId = new FkManager("T_ACTIVITY_FIELDS_UI_PARAMETERS", "Activity_Fields_UI_Paramaters_ID");
+                    activityFieldUIParametersId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    //-----------FIELD---------------------------------------------------------
+                    //-------------------------------------------------------------------------
+                    FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
 					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager fieldTypeId = new FkManager("T_FIELD_TYPE", "Field_Type_ID");
@@ -385,10 +394,13 @@ namespace Process_Export_Import
 
 					FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
 					procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-					//-----------ALL OTHER---------------------------------------------------------
-					//-----------------------------------------------------------------------------
 
-					FkManager roleId = new FkManager("T_ROLE", "Role_ID");
+                    FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
+                    procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    //-----------ALL OTHER---------------------------------------------------------
+                    //-----------------------------------------------------------------------------
+
+                    FkManager roleId = new FkManager("T_ROLE", "Role_ID");
 					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
@@ -412,8 +424,9 @@ namespace Process_Export_Import
 					FkManager operandId = new FkManager("T_OPERAND", "OPERAND_ID");
 					operandId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					//Hova kéne ezt rakni?
-
+                    //Hova kéne ezt rakni?
+#endregion
+                    insertResultInfo.AddRange(tableInfo.getSecondRoundInsertTables());
 
 
 					//-----------START INSERT------------------------------------------------------
@@ -421,7 +434,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
-						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" )
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_CATEGORY")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -447,7 +460,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 					{
 
-						if (tableName != "T_PROCESS_OWNER" && tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_CATEGORY" && tableName != "T_LANGUAGE" && tableName != "T_ACTIVITY_PARTICIPANT_TYPE" && tableName != "T_FORMULA_STEPS" && tableName != "T_OPERAND" && tableName != "T_COMPARE_OPERATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT"  && tableName != "T_LANGUAGE" && tableName !=  "T_CATEGORY"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T_COMPARE_OPERATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -468,7 +481,6 @@ namespace Process_Export_Import
 						}
 
 					}
-
 
 
 

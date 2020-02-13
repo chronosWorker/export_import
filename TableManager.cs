@@ -40,7 +40,7 @@ namespace Process_Export_Import
                 "T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE",
                 "T_REPORT_FIELD_UDT_COLUMNS",
                 "T_REPORT_FILTER",
-                "T_REPORT_GROUP",
+                "T_REPORT_GROUP",  
                 "T_REPORT_REFERENCED_FIELD_LOCATION",
                 "T_REPORT_TYPE"
                 };
@@ -59,9 +59,9 @@ namespace Process_Export_Import
                 "T_PROC_DESIGN_DRAW_PART_TYPE" ,
                 "T_ROUTING_DESIGN" ,
                 "T_ROUTING" ,
-                "T_FIELD" ,
                 "T_FIELD_CONDITION_GROUP" ,
                 "T_FIELD_DATE_TYPE" ,
+                "T_FIELD" ,
                 "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY" ,
@@ -105,7 +105,6 @@ namespace Process_Export_Import
                 "T_OPERAND" ,
                 "T_PROCFIELD_PARTICIPANT" ,
                 "T_PROCFIELD_WORD_MERGE" ,
-                "T_PROCFIELD_WORD_MERGE_FIELD" ,
                 "T_REPORT_FIELD" ,
                 "T_REPORT" ,
                 "T_REPORT_2_FIELD_COND_GROUP" ,
@@ -135,6 +134,7 @@ namespace Process_Export_Import
                 "T_ACTIVITY_PARTICIPANT_TYPE" ,
                 "T_CALCULATED_FIELD_CONSTANT_TYPE" ,
                 "T_COMPARE_OPERATION" ,
+                "T_PROCFIELD_WORD_MERGE_FIELD" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
                  };
 
@@ -158,7 +158,10 @@ namespace Process_Export_Import
                 "T_CALCULATED_FIELD_RESULT_TYPE_ID",
                 "T_ACTIVITY_FIELDS",
                 "T_ACTIVITY_PARTICIPANT",
+                "T_ACTIVITY_PARTICIPANT_TYPE",
                 "T_CHART_TYPE",
+                "T_CHART_TYPE",
+                "T_PROCESS_OWNER",
                 "T_CHART_FIELD_TYPE",
                 "T_CALCULATED_FIELD_CONSTANT_TYPE",
                 "T_COMPARE_OPERATION"
@@ -181,6 +184,7 @@ namespace Process_Export_Import
             List<string> listOfTablesWhereIdentityInsertNeeded = new List<string>()
                 {
                 "T_FIELD_DATE_CONSTRAINT",
+                "T_ACTIVITY_FIELDS_UI_PARAMETERS",
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY",
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY",
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
