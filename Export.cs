@@ -200,7 +200,6 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_VALUE_TRANSLATION", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
@@ -212,6 +211,14 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_CONSTANT_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
+			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID =  " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.dependent_Field_ID ) )
+			and
+			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID = " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.independent_Field_ID ) )
+			and
+			(T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID = 0
+			or 
+			( exists ( Select a.Activity_ID from T_ACTIVITY a where a.Process_ID =" + processId.ToString() + " and a.Activity_ID = T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID ) ) )" });
 			#endregion
 
 
@@ -251,6 +258,7 @@ namespace Process_Export_Import
 					currType = "";
 					foreach (KeyValuePair<string, string> entry in columnTypes)
 					{
+
 						switch (entry.Value)
 						{
 							case "binary":
@@ -302,6 +310,10 @@ namespace Process_Export_Import
 				{
 					activities_v2.Add(Convert.ToInt64(reader2["activity_id"].ToString()));
 				}
+				#region T_FIELD_TO_FIELD_DEPENDENCY
+ 
+				
+				#endregion
 				#region T_ACTIVITY_OWNER_BY_CONDITION
 				columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_CONDITION", obj);
 				for (int i = 0; i < activities_v2.Count; i++)

@@ -191,8 +191,6 @@ namespace Process_Export_Import
 
         }
 
-
-
         public  List<string> changeIdsInDBFileToRealNewID( ConnectionManagerST obj , string TableName)
         {
             List<string> updateInfo = new List<string>();
@@ -215,6 +213,7 @@ namespace Process_Export_Import
             return updateInfo;
 
         }
+
         public Dictionary<string, string> getColumnTypesDictionary_v2(string CWPTableName, ConnectionManagerST obj)
         {
 
@@ -286,6 +285,30 @@ namespace Process_Export_Import
 
         }
 
+        public int selectCountImportedProcesses(ConnectionManagerST obj , string processName)
+        {
+            int importedProcessQuantity = 0 ;
+            string counterQuery = " Select count(*) as Counter from T_PROCESS where NAME like '%" + processName + " (IMP%'; ";
+            var reader = obj.sqlServerDataReader(counterQuery);
+            while (reader.Read())
+            {
+                importedProcessQuantity = Convert.ToInt32(reader["Counter"]);
+            }
+            return importedProcessQuantity;
+        }
+
+        public int selectCountImportedProcessesDesignName(ConnectionManagerST obj, string designName)
+        {
+            int importeddDsignNameQuantity = 0;
+            string counterQuery = " Select count(*) as Counter from T_PROC_DESIGN_DRAW where NAME like '%" + designName + " (IMP%'; ";
+            var reader = obj.sqlServerDataReader(counterQuery);
+            while (reader.Read())
+            {
+                importeddDsignNameQuantity = Convert.ToInt32(reader["Counter"]);
+            }
+            return importeddDsignNameQuantity;
+        }
+
         public List<string> changeProcessName(ConnectionManagerST obj)
         {
             List<string> newNameList = new List<string>();
@@ -295,14 +318,21 @@ namespace Process_Export_Import
             {
                 processName = reader["Name"].ToString();
             }
-            newNameList.Add("oiginal processName : ");
-            newNameList.Add(processName);
-            newNameList.Add("new processName :  : ");
-            string importedName = processName + "_IMPORTED";
-            newNameList.Add(importedName);
-            string updateNameText = "UPDATE T_PROCESS  SET Name = '" + importedName + "' , Technical_Name = '" + importedName + "' where 1 = 1";
-            obj.executeQueriesInDbFile(updateNameText);
-
+            int processImportedQuantity = selectCountImportedProcesses(obj, processName);
+            if (processImportedQuantity == 0)
+            {
+                string newProcessName = processName + " (IMPORTED)";
+                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED";
+                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' , Technical_Name = '" + newProcessTechnicalName + "' ,  Short_Name = '" + newProcessTechnicalName + "' WHERE NAME =  '" + processName + "'";
+                obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+            }
+            else
+            {
+                string newProcessName = processName + " (IMPORTED_" + processImportedQuantity.ToString() + ")";
+                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString() ;
+                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME  = '" + newProcessName + "' , Technical_Name = '" + newProcessTechnicalName + "' ,  Short_Name = '" + newProcessTechnicalName + "' WHERE NAME =  '" + processName + "'";
+                obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+            }
             return newNameList;
 
         }
@@ -319,10 +349,19 @@ namespace Process_Export_Import
             newDesignNameList.Add("oiginal processName : ");
             newDesignNameList.Add(designName);
             newDesignNameList.Add("new processName :  : ");
-            string importedName = designName + "_IMPORTED";
-            newDesignNameList.Add(importedName);
-            string updateNameText = "UPDATE T_PROC_DESIGN_DRAW  SET Name = '" + importedName + "' where Name = '" + designName + "'";
-            obj.executeQueriesInDbFile(updateNameText);
+            int processImportedDesignQuantity = selectCountImportedProcessesDesignName(obj, designName);
+            if (processImportedDesignQuantity == 0)
+            {
+                string newdesignName = designName + " (IMPORTED)";
+                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
+            }
+            else
+            {
+                string newdesignName = designName + " (IMPORTED_" + processImportedDesignQuantity.ToString() + ")";
+                string newDesignNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
+            }
 
             return newDesignNameList;
 
@@ -335,102 +374,7 @@ namespace Process_Export_Import
             return convertedStringList;
         }
 
-      /*  public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
-        {
-            List<string> insertresultInfo = new List<string>();
-
-            List<string> columnNamesInDbFile = new List<string>();
-            List<string> values = new List<string>();
-            Dictionary<string, string> columnTypes = new Dictionary<string, string>();
-            string commandText = "INSERT INTO " + tableName + "  ( ";
-            try
-            {
-                columnTypes = getColumnTypesDictionary_v2(tableName, obj);
-
-                var reader = obj.sqLiteDataReader("SELECT * FROM " + tableName);
-                int fieldCount = reader.FieldCount;
-                //		insertresultInfo.Add("Field Count :" + fieldCount);
-
-
-                for (var index = 0; index < columnTypes.Count; index++)
-                {
-                    if (index == columnTypes.Count - 1)
-                    {
-                        commandText += columnTypes.ElementAt(index).Key;
-                    }
-                    else
-                    {
-                        commandText += columnTypes.ElementAt(index).Key + " ,";
-                    }
-                    columnNamesInDbFile.Add(columnTypes.ElementAt(index).Key);
-                }
-
-                commandText += ") Values ";
-                while (reader.Read())
-                {
-                    if (reader.GetValue(0) != "NULL" || reader.GetValue(0) != "")
-                    {
-
-                        commandText += "( ";
-
-                        for (var index = 0; index < columnTypes.Count; index++)
-                        {
-
-                            switch (columnTypes.ElementAt(index).Value)
-                            {
-
-                                case "bit":
-                                case "binary":
-                                case "varbinary":
-                                case "image":
-                                case "DateTime":
-                                case "nvarchar":
-                                case "varchar":
-                                    commandText += "'" + reader[columnTypes.ElementAt(index).Key.ToString()] + "'";
-                                    break;
-                                default:
-                                    commandText += (reader[columnTypes.ElementAt(index).Key.ToString()].GetType() == typeof(DBNull) || reader[columnTypes.ElementAt(index).Key.ToString()] == "") ? "NULL" :
-                                    reader[columnTypes.ElementAt(index).Key.ToString()];
-                                    break;
-                            }
-                            if (index < columnTypes.Count - 1)
-                            {
-
-                                commandText += ",";
-                            }
-                        }
-
-                        commandText += ") ,";
-                        commandText = commandText.Substring(0, commandText.Length - 1);
-
-                      //  insertresultInfo.Add("commandText: " + commandText);
-
-                        if (needToSetIdentityInsertOn)
-                        {
-                            		obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ;" + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
-                        }
-                        else
-                        {
-                            		obj.executeQueriesInSqlServer(commandText);
-
-                        }
-                    }
-                    else
-                    {
-                        insertresultInfo.Add(tableName + " has 0 rows");
-                    }
-                }
-                   
-
-                    insertresultInfo.Add(commandText);
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            return insertresultInfo;
-        }
-        /*/
+      
         public  List<string> changeAllIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager )
         {
             List<string> changingIdsInfoList = new List<string>();
@@ -463,16 +407,8 @@ namespace Process_Export_Import
                 changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, TableName, connectionManager));
 
                 changeIdsInDBFileToRealNewID(connectionManager, TableName);
-                 
-                
-
-
-
-                 
                     //az összes táblában ahol megtalálja ezeket ott cserélje idsInDbFile --> newIdList
                     //fgv neveket átírni mert most félrevezet
-
-
 
                 changingIdsInfoList.Add("Max ID");
                 changingIdsInfoList.Add(maxIdInSqlServer.ToString());

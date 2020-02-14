@@ -164,7 +164,8 @@ namespace Process_Export_Import
                 "T_PROCESS_OWNER",
                 "T_CHART_FIELD_TYPE",
                 "T_CALCULATED_FIELD_CONSTANT_TYPE",
-                "T_COMPARE_OPERATION"
+                "T_COMPARE_OPERATION",
+                "T_PROCESS_READER",
             };
             return secondRoundInsertTablesWithoutIdentityProprty;
         }
