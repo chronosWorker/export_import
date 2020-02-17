@@ -365,7 +365,7 @@ namespace Process_Export_Import
 
             return newDesignNameList;
 
-        }
+        }   
 
         public List<string> convertIntListToStringList(List<int> inputStringList)
         {
@@ -428,83 +428,100 @@ namespace Process_Export_Import
             return changingIdsInfoList;
         }
         //Típus táblák.
-        public Dictionary<string, string> getTwoDimensionalTypeTableValuesFromDbFile(ConnectionManagerST connectionManager)
+        public List<string> getTwoDimensionalTypeTableValuesFromDbFile(ConnectionManagerST connectionManager)
         {
-            Dictionary<string, string> twoDimensionalTypeTableValuesInDbFile = new Dictionary<string, string>();
+            List<string> twoDimensionalTypeTableValuesInDbFile = new List<string>();
             string readerQuery = "Select " + IdName + " from " + TableName;
             var reader = connectionManager.sqLiteDataReader(readerQuery);
             try
             {
                 while (reader.Read())
                 {
-                    twoDimensionalTypeTableValuesInDbFile.Add(TableName, reader[IdName].ToString());
+                    twoDimensionalTypeTableValuesInDbFile.Add(reader[IdName].ToString());
                 }
             }
             catch (Exception ex)
             {
-                ex.ToString();
+                throw ex;
             }
             return twoDimensionalTypeTableValuesInDbFile;
         }
 
-        public Dictionary<string, string> getTwoDimensionalTypeTableValuesFromSqlserver(ConnectionManagerST connectionManager)
+        public List<string> getTwoDimensionalTypeTableValuesFromSqlserver(ConnectionManagerST connectionManager)
         {
-            Dictionary<string, string> twoDimensionalTypeTableValuesInSqlServer = new Dictionary<string, string>();
+            List<string> twoDimensionalTypeTableValuesInSqlServer = new List<string>();
             string readerQuery = "Select " + IdName + " from " + TableName;
             var reader = connectionManager.sqlServerDataReader(readerQuery);
             try
             {
                 while (reader.Read())
                 {
-                    twoDimensionalTypeTableValuesInSqlServer.Add(readerQuery, reader[IdName].ToString());
+                    twoDimensionalTypeTableValuesInSqlServer.Add(reader[IdName].ToString());
                 }
             }
             catch (Exception ex)
             {
-                ex.ToString();
+                throw ex;
             }
             return twoDimensionalTypeTableValuesInSqlServer;
         }
 
-        public Dictionary<string, string> compareTwoTypeTableDictionaryToGetSameRecords(Dictionary<string, string> twoDimensionalTypeTableValuesInDbFile , Dictionary<string, string> twoDimensionalTypeTableValuesInSqlServer)
+        public List<string> compareTwoTypeTableListToGetSameRecords(List<string> twoDimensionalTypeTableValuesInDbFile , List<string> twoDimensionalTypeTableValuesInSqlServer)
         {
-            Dictionary<string, string> recordsToDelete = new Dictionary<string, string>();
+            List<string> recordsToDelete = new List<string>();
             try
             {
-                foreach (KeyValuePair<string, string> entryInDbFile in twoDimensionalTypeTableValuesInDbFile)
+                foreach (string valueInDbFile in twoDimensionalTypeTableValuesInDbFile)
                 {
-                    foreach (KeyValuePair<string, string> entryInDbFileSqlServer in twoDimensionalTypeTableValuesInSqlServer)
+                    foreach (string valueInDbFileSqlServer in twoDimensionalTypeTableValuesInSqlServer)
                     {
-                        if ((entryInDbFile.Key == entryInDbFileSqlServer.Key) && (entryInDbFile.Value == entryInDbFileSqlServer.Value))
+                        if (valueInDbFileSqlServer == valueInDbFile)
                         {
-                            recordsToDelete.Add(entryInDbFileSqlServer.Key, entryInDbFileSqlServer.Value);
+                            recordsToDelete.Add(valueInDbFile);
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                ex.ToString();
+                throw ex;
             }
             return recordsToDelete;
         }
 
-        public void deleteSameRecordsFromTypeTable(ConnectionManagerST connectionManager , Dictionary<string, string> recordsToDelete )
+        public void deleteSameRecordsFromTypeTable(ConnectionManagerST connectionManager , List<string> recordsToDelete )
         {
-
             try
             {
-                foreach (KeyValuePair<string, string> entry in recordsToDelete)
+                foreach(string record in recordsToDelete)
                 {
-                    string deleteQuery = "Delete From " + entry.Key + " where " + IdName + " = " + entry.Value;
+                    string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + record + "';" ;
                     connectionManager.executeQueriesInDbFile(deleteQuery);
                 }
             }
             catch (Exception ex)
             {
-                ex.ToString();
+                throw ex;
             }
         }
 
+        public void deleteUnnecessaryRecordsFromTypeTables(ConnectionManagerST connectionManager)
+        {
+            try
+            {
+
+                List<string> recordsDeleted = new List<string>();
+                List<string> tempCategoryDictDbFile = getTwoDimensionalTypeTableValuesFromDbFile(connectionManager);
+                List<string> tempCategoryDictInServer = getTwoDimensionalTypeTableValuesFromSqlserver(connectionManager);
+                List<string> sameRecordInDictioaries = compareTwoTypeTableListToGetSameRecords(tempCategoryDictDbFile, tempCategoryDictInServer);
+                deleteSameRecordsFromTypeTable(connectionManager, sameRecordInDictioaries);
+                recordsDeleted.AddRange(sameRecordInDictioaries);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
     }
 }

@@ -210,8 +210,8 @@ namespace Process_Export_Import
 			{
 				try
 				{
-					#region FKMANAGER
-					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					//#region FKMANAGER
+				/*	FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
@@ -402,15 +402,17 @@ namespace Process_Export_Import
 
 					FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
 					procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    */
                     //-----------TYPE TABLES--------------------------------------------------------
                     //-----------------------------------------------------------------------------
                     FkManager categoryTable = new FkManager("T_CATEGORY", "NAME");
-                    Dictionary<string, string> tempCategoryDictDbFile = categoryTable.getTwoDimensionalTypeTableValuesFromDbFile(connectionManager);
-                    Dictionary<string, string> tempCategoryDictInServer = categoryTable.getTwoDimensionalTypeTableValuesFromSqlserver(connectionManager);
-                    Dictionary<string, string> sameRecordInDictioaries = categoryTable.compareTwoTypeTableDictionaryToGetSameRecords(tempCategoryDictDbFile, tempCategoryDictInServer);
+                    categoryTable.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
+                    FkManager reportId = new FkManager("T_REPORT_TYPE", "Name");
+                    reportId.changeAllIdInDbFileToFitSqlServer(connectionManager);
                     //-----------ALL OTHER---------------------------------------------------------
                     //-----------------------------------------------------------------------------
+                    /*
                     FkManager roleId = new FkManager("T_ROLE", "Role_ID");
 					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
@@ -491,8 +493,9 @@ namespace Process_Export_Import
 						}
 
 					}
+                    */
+                }
 
-				}
 				catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
