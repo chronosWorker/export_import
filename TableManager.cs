@@ -241,11 +241,34 @@ namespace Process_Export_Import
 
             return firstRoundTablesWithContent;
         }
+        public List<string> twoDimensionaltypeTables()
+        {
+            List<string> twoDimensionaltypeTables = new List<string>()
+            {
+                "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
+                "T_ACTIVITY_PARTICIPANT_TYPE",
+                "T_CALCULATED_FIELD_CONSTANT_TYPE",
+                "T_CALCULATED_FIELD_RESULT_TYPE_ID",
+                "T_CATEGORY",
+                "T_CHART_FIELD_TYPE",
+                "T_CHART_TYPE",
+                "T_COMPARE_OPERATION",
+                "T_FIELD_DATE_TYPE",
+                "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE",
+                "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE",
+                "T_FIELD_TO_FIELD_DEPENDENCY_TYPE",
+                "T_FILE_FIELD_TYPE",
+                "T_PROC_DESIGN_DRAW_PART_TYPE",
+                "T_REPORT_TYPE",
+            };
 
-      //  public List<string> getAllTableWhereIdExits(ConnectionManagerST obj)
-       // {
-            //  List<string> tables
-            //select table_name from table_information where column_name like '%Process_Id%';
-       // }
+            return twoDimensionaltypeTables;
+        }
+
+        //  public List<string> getAllTableWhereIdExits(ConnectionManagerST obj)
+        // {
+        //  List<string> tables
+        //select table_name from table_information where column_name like '%Process_Id%';
+        // }
     }
 }

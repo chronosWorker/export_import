@@ -16,7 +16,7 @@ namespace Process_Export_Import
             this.IdName = IdName;
 
         }
-        public int getMaxIdFromSQLServer( ConnectionManagerST obj)
+        public int getMaxIdFromSQLServer(ConnectionManagerST obj)
         {
             int maxIdList = new int();
 
@@ -46,13 +46,13 @@ namespace Process_Export_Import
 
         }
 
-        public  List<int> getIdsInOrderFromDBFile(ConnectionManagerST obj)
+        public List<int> getIdsInOrderFromDBFile(ConnectionManagerST obj)
         {
             List<int> maxIdList = new List<int>();
 
             try
             {
-                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName +  "   order by cast(" + IdName + " as REAL)  asc ");
+                var reader = obj.sqLiteDataReader("Select distinct(" + IdName + ") from " + TableName + "   order by cast(" + IdName + " as REAL)  asc ");
                 while (reader.Read())
                 {
                     if (reader[0] != DBNull.Value)
@@ -77,7 +77,7 @@ namespace Process_Export_Import
 
         }
 
-        public  List<int> getIdDifferencesList(List<int> Id_Int_List)
+        public List<int> getIdDifferencesList(List<int> Id_Int_List)
         {
             List<int> IdDifferenceList = new List<int>();
 
@@ -106,9 +106,9 @@ namespace Process_Export_Import
         public List<string> getAllTableNameWithIdInDBFile(ConnectionManagerST obj)
         {
             try
-            { 
+            {
                 List<string> tablesWhereIdOccurs = new List<string>();
-                string queryText = "Select distinct(table_name) from table_information where Column_Name = '" + IdName  + "'";
+                string queryText = "Select distinct(table_name) from table_information where Column_Name = '" + IdName + "'";
                 var reader = obj.sqLiteDataReader(queryText);
                 while (reader.Read())
                 {
@@ -126,11 +126,11 @@ namespace Process_Export_Import
         public string noCheckConstraitForTableList(List<string> tableNames, ConnectionManagerST obj)
         {
             try
-            { 
+            {
                 string queryText = "";
                 foreach (string tableName in tableNames)
                 {
-                     queryText += "ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL; ";
+                    queryText += "ALTER TABLE " + tableName + " NOCHECK CONSTRAINT ALL; ";
 
                 }
                 obj.executeQueriesInSqlServer(queryText);
@@ -147,7 +147,7 @@ namespace Process_Export_Import
         {
             List<int> updatedIdList = new List<int>();
             try
-            { 
+            {
                 int newMaxId = maxIdInSQLServer + 1;
                 updatedIdList.Add(newMaxId);
                 foreach (int difference in idDifferenceList)
@@ -164,23 +164,23 @@ namespace Process_Export_Import
 
         }
 
-        public  List<string> changeIdsInDBFileToTempValues(List<int> oldIdList, List<int> newIdList, string TableName,  ConnectionManagerST obj)
+        public List<string> changeIdsInDBFileToTempValues(List<int> oldIdList, List<int> newIdList, string TableName, ConnectionManagerST obj)
         {
             List<string> updateInfo = new List<string>();
             try
-            { 
-            //    foreach (string tableName in tablesWithId)
-             //   {
-                    for (int index = 0; index < newIdList.Count; index++)
-                    {
-                        int tempId = 10000000 + newIdList[index];
-                        string updateText = "Update " + TableName + " Set " + IdName +  "  = " + tempId.ToString() + " where "+ IdName  + " = " + oldIdList[index].ToString();
-                        obj.executeQueriesInDbFile(updateText);
-                   //     updateInfo.Add(updateText);
+            {
+                //    foreach (string tableName in tablesWithId)
+                //   {
+                for (int index = 0; index < newIdList.Count; index++)
+                {
+                    int tempId = 10000000 + newIdList[index];
+                    string updateText = "Update " + TableName + " Set " + IdName + "  = " + tempId.ToString() + " where " + IdName + " = " + oldIdList[index].ToString();
+                    obj.executeQueriesInDbFile(updateText);
+                    //     updateInfo.Add(updateText);
                     //    updateInfo.Add("New ID List:");
-                      //  updateInfo.AddRange(convertIntListToStringList(newIdList));
+                    //  updateInfo.AddRange(convertIntListToStringList(newIdList));
                 }
-              //  }
+                //  }
             }
             catch (Exception ex)
             {
@@ -191,19 +191,19 @@ namespace Process_Export_Import
 
         }
 
-        public  List<string> changeIdsInDBFileToRealNewID( ConnectionManagerST obj , string TableName)
+        public List<string> changeIdsInDBFileToRealNewID(ConnectionManagerST obj, string TableName)
         {
             List<string> updateInfo = new List<string>();
             try
-            { 
+            {
 
-              //  foreach (string tableName in tablesWithId)
-              //  {
-                    int tempIdToDistract = 10000000;
-                    string updateText = "Update " + TableName + " Set " + IdName + " =  " + IdName  +  " - " + tempIdToDistract.ToString() + " where 1 = 1 ;";
-                    obj.executeQueriesInDbFile(updateText);
-               //     updateInfo.Add(updateText);
-              //  }
+                //  foreach (string tableName in tablesWithId)
+                //  {
+                int tempIdToDistract = 10000000;
+                string updateText = "Update " + TableName + " Set " + IdName + " =  " + IdName + " - " + tempIdToDistract.ToString() + " where 1 = 1 ;";
+                obj.executeQueriesInDbFile(updateText);
+                //     updateInfo.Add(updateText);
+                //  }
             }
             catch (Exception ex)
             {
@@ -219,14 +219,14 @@ namespace Process_Export_Import
 
             Dictionary<string, string> fields = new Dictionary<string, string>();
             try
-            { 
-
-            string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-            var reader = obj.sqlServerDataReader(commandText);
-            while (reader.Read())
             {
-                fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
-            }
+
+                string commandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
+                var reader = obj.sqlServerDataReader(commandText);
+                while (reader.Read())
+                {
+                    fields.Add(reader["COLUMN_NAME"].ToString(), reader["DATA_TYPE"].ToString());
+                }
             }
             catch (Exception ex)
             {
@@ -250,7 +250,7 @@ namespace Process_Export_Import
                     var reader = obj.sqLiteDataReader(commandText);
                     updateInfo.Add(commandText);
                     reader.Read();
-                    if(reader[0].ToString() != "0")
+                    if (reader[0].ToString() != "0")
                     {
                         updateInfo.Add("Table where old Id Found : " + table);
                         string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
@@ -285,9 +285,9 @@ namespace Process_Export_Import
 
         }
 
-        public int selectCountImportedProcesses(ConnectionManagerST obj , string processName)
+        public int selectCountImportedProcesses(ConnectionManagerST obj, string processName)
         {
-            int importedProcessQuantity = 0 ;
+            int importedProcessQuantity = 0;
             string counterQuery = " Select count(*) as Counter from T_PROCESS where NAME like '%" + processName + " (IMP%'; ";
             var reader = obj.sqlServerDataReader(counterQuery);
             while (reader.Read())
@@ -329,7 +329,7 @@ namespace Process_Export_Import
             else
             {
                 string newProcessName = processName + " (IMPORTED_" + processImportedQuantity.ToString() + ")";
-                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString() ;
+                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString();
                 string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME  = '" + newProcessName + "' , Technical_Name = '" + newProcessTechnicalName + "' ,  Short_Name = '" + newProcessTechnicalName + "' WHERE NAME =  '" + processName + "'";
                 obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
             }
@@ -367,15 +367,13 @@ namespace Process_Export_Import
 
         }
 
-
         public List<string> convertIntListToStringList(List<int> inputStringList)
         {
             List<string> convertedStringList = inputStringList.ConvertAll<string>(delegate (int i) { return i.ToString(); });
             return convertedStringList;
         }
 
-      
-        public  List<string> changeAllIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager )
+        public List<string> changeAllIdInDbFileToFitSqlServer(ConnectionManagerST connectionManager)
         {
             List<string> changingIdsInfoList = new List<string>();
 
@@ -386,12 +384,12 @@ namespace Process_Export_Import
                 List<string> idUpdateInfo = new List<string>();
                 List<int> newIdList = new List<int>();
 
-             //   List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
-             //   changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
-               // List<string> tablesWithIdInDBFile = tableList;
-          // changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
+                //   List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
+                //   changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
+                // List<string> tablesWithIdInDBFile = tableList;
+                // changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
-               
+
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
                 changingIdsInfoList.Add(" ID in db file");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
@@ -400,26 +398,26 @@ namespace Process_Export_Import
 
                 }
                 else
-                { 
-                idDifferenceList = getIdDifferencesList(idsInDbFile);
+                {
+                    idDifferenceList = getIdDifferencesList(idsInDbFile);
 
-                newIdList = getNewIdValueList(maxIdInSqlServer, idDifferenceList);
-                changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, TableName, connectionManager));
+                    newIdList = getNewIdValueList(maxIdInSqlServer, idDifferenceList);
+                    changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, TableName, connectionManager));
 
-                changeIdsInDBFileToRealNewID(connectionManager, TableName);
+                    changeIdsInDBFileToRealNewID(connectionManager, TableName);
                     //az összes táblában ahol megtalálja ezeket ott cserélje idsInDbFile --> newIdList
                     //fgv neveket átírni mert most félrevezet
 
-                changingIdsInfoList.Add("Max ID");
-                changingIdsInfoList.Add(maxIdInSqlServer.ToString());
-                changingIdsInfoList.Add("idDifferenceList");
-                changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
-                changingIdsInfoList.Add("newIdList");
-                changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
+                    changingIdsInfoList.Add("Max ID");
+                    changingIdsInfoList.Add(maxIdInSqlServer.ToString());
+                    changingIdsInfoList.Add("idDifferenceList");
+                    changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
+                    changingIdsInfoList.Add("newIdList");
+                    changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
 
-                changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
+                    changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
 
-                changingIdsInfoList.AddRange(idUpdateInfo);
+                    changingIdsInfoList.AddRange(idUpdateInfo);
                 }
 
             }
@@ -429,7 +427,84 @@ namespace Process_Export_Import
             }
             return changingIdsInfoList;
         }
+        //Típus táblák.
+        public Dictionary<string, string> getTwoDimensionalTypeTableValuesFromDbFile(ConnectionManagerST connectionManager)
+        {
+            Dictionary<string, string> twoDimensionalTypeTableValuesInDbFile = new Dictionary<string, string>();
+            string readerQuery = "Select " + IdName + " from " + TableName;
+            var reader = connectionManager.sqLiteDataReader(readerQuery);
+            try
+            {
+                while (reader.Read())
+                {
+                    twoDimensionalTypeTableValuesInDbFile.Add(TableName, reader[IdName].ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString();
+            }
+            return twoDimensionalTypeTableValuesInDbFile;
+        }
 
+        public Dictionary<string, string> getTwoDimensionalTypeTableValuesFromSqlserver(ConnectionManagerST connectionManager)
+        {
+            Dictionary<string, string> twoDimensionalTypeTableValuesInSqlServer = new Dictionary<string, string>();
+            string readerQuery = "Select " + IdName + " from " + TableName;
+            var reader = connectionManager.sqlServerDataReader(readerQuery);
+            try
+            {
+                while (reader.Read())
+                {
+                    twoDimensionalTypeTableValuesInSqlServer.Add(readerQuery, reader[IdName].ToString());
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString();
+            }
+            return twoDimensionalTypeTableValuesInSqlServer;
+        }
+
+        public Dictionary<string, string> compareTwoTypeTableDictionaryToGetSameRecords(Dictionary<string, string> twoDimensionalTypeTableValuesInDbFile , Dictionary<string, string> twoDimensionalTypeTableValuesInSqlServer)
+        {
+            Dictionary<string, string> recordsToDelete = new Dictionary<string, string>();
+            try
+            {
+                foreach (KeyValuePair<string, string> entryInDbFile in twoDimensionalTypeTableValuesInDbFile)
+                {
+                    foreach (KeyValuePair<string, string> entryInDbFileSqlServer in twoDimensionalTypeTableValuesInSqlServer)
+                    {
+                        if ((entryInDbFile.Key == entryInDbFileSqlServer.Key) && (entryInDbFile.Value == entryInDbFileSqlServer.Value))
+                        {
+                            recordsToDelete.Add(entryInDbFileSqlServer.Key, entryInDbFileSqlServer.Value);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString();
+            }
+            return recordsToDelete;
+        }
+
+        public void deleteSameRecordsFromTypeTable(ConnectionManagerST connectionManager , Dictionary<string, string> recordsToDelete )
+        {
+
+            try
+            {
+                foreach (KeyValuePair<string, string> entry in recordsToDelete)
+                {
+                    string deleteQuery = "Delete From " + entry.Key + " where " + IdName + " = " + entry.Value;
+                    connectionManager.executeQueriesInDbFile(deleteQuery);
+                }
+            }
+            catch (Exception ex)
+            {
+                ex.ToString();
+            }
+        }
 
     }
 }

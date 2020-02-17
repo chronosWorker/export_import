@@ -46,7 +46,6 @@ namespace Process_Export_Import
         public string connectionStringToSqlServer { get; set; } = ConfigurationManager.AppSettings.Get("connstrRe");
         SqlConnection connectionToNewSqlServer;
 
-
         public string connectionStringToOldSqlServer { get; set; } = ConfigurationManager.AppSettings.Get("connstr");
         SqlConnection connectionToOldSqlServer;
 
@@ -59,17 +58,10 @@ namespace Process_Export_Import
 
         public void executeQueriesInDbFile(string Query_)
         {
-            using (SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite)) {
-                
-            cmdTxt.ExecuteNonQuery();
-
+            using (SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite))
+            {
+                cmdTxt.ExecuteNonQuery();
             }
-        }
-
-        public void executeQueriesInDbFile_v2(string Query_)
-        {
-            SQLiteCommand cmdTxt = new SQLiteCommand(Query_, connSqlite);
-            cmdTxt.ExecuteNonQuery();
         }
 
         public SQLiteDataReader sqLiteDataReader(string Query_)

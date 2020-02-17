@@ -214,15 +214,14 @@ namespace Process_Export_Import
 					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
+					insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
+					insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
+
+                    FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
 					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
 					automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
-
-					insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
-					insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
 
 					//-----------PROCESS-------------------------------------------------------
 					//-------------------------------------------------------------------------
@@ -339,7 +338,6 @@ namespace Process_Export_Import
 					FkManager compareOperationId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Compare_Operation_Id");
 					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-
                     FkManager dependencyActivationId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Dependency_Activation_Activity_ID");
                     dependencyActivationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
@@ -404,10 +402,16 @@ namespace Process_Export_Import
 
 					FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
 					procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-					//-----------ALL OTHER---------------------------------------------------------
-					//-----------------------------------------------------------------------------
+                    //-----------TYPE TABLES--------------------------------------------------------
+                    //-----------------------------------------------------------------------------
+                    FkManager categoryTable = new FkManager("T_CATEGORY", "NAME");
+                    Dictionary<string, string> tempCategoryDictDbFile = categoryTable.getTwoDimensionalTypeTableValuesFromDbFile(connectionManager);
+                    Dictionary<string, string> tempCategoryDictInServer = categoryTable.getTwoDimensionalTypeTableValuesFromSqlserver(connectionManager);
+                    Dictionary<string, string> sameRecordInDictioaries = categoryTable.compareTwoTypeTableDictionaryToGetSameRecords(tempCategoryDictDbFile, tempCategoryDictInServer);
 
-					FkManager roleId = new FkManager("T_ROLE", "Role_ID");
+                    //-----------ALL OTHER---------------------------------------------------------
+                    //-----------------------------------------------------------------------------
+                    FkManager roleId = new FkManager("T_ROLE", "Role_ID");
 					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
@@ -434,7 +438,6 @@ namespace Process_Export_Import
 					//Hova kéne ezt rakni?
 #endregion
 					insertResultInfo.AddRange(tableInfo.getSecondRoundInsertTables());
-
 
 					//-----------START INSERT------------------------------------------------------
 					//-----------------------------------------------------------------------------
@@ -467,7 +470,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 					{
 
-						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT"  && tableName != "T_LANGUAGE" && tableName !=  "T_CATEGORY"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T_COMPARE_OPERATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT"  && tableName != "T_LANGUAGE" && tableName !=  "T_CATEGORY"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -488,8 +491,6 @@ namespace Process_Export_Import
 						}
 
 					}
-
-
 
 				}
 				catch (Exception ex)
