@@ -384,10 +384,6 @@ namespace Process_Export_Import
                 List<string> idUpdateInfo = new List<string>();
                 List<int> newIdList = new List<int>();
 
-                //   List<string> tablesWithIdInDBFile = getAllTableNameWithIdInDBFile(connectionManager);
-                //   changingIdsInfoList.AddRange(getAllTableNameWithIdInDBFile(connectionManager));
-                // List<string> tablesWithIdInDBFile = tableList;
-                // changingIdsInfoList.Add(noCheckConstraitForTableList(tablesWithIdInDBFile, connectionManager));
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
 
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
@@ -414,9 +410,7 @@ namespace Process_Export_Import
                     changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
                     changingIdsInfoList.Add("newIdList");
                     changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
-
                     changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
-
                     changingIdsInfoList.AddRange(idUpdateInfo);
                 }
 
@@ -495,8 +489,18 @@ namespace Process_Export_Import
             {
                 foreach(string record in recordsToDelete)
                 {
-                    string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + record + "';" ;
-                    connectionManager.executeQueriesInDbFile(deleteQuery);
+                    if (record.Contains("'"))
+                    {
+                        string currentRecordSingleQuoteFormalized = record.Replace("'", "''");
+                        string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + currentRecordSingleQuoteFormalized + "';";
+                        connectionManager.executeQueriesInDbFile(deleteQuery);
+                    }
+                    else
+                    {
+                        string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + record + "';" ;
+                        connectionManager.executeQueriesInDbFile(deleteQuery);
+
+                    }
                 }
             }
             catch (Exception ex)
@@ -509,7 +513,6 @@ namespace Process_Export_Import
         {
             try
             {
-
                 List<string> recordsDeleted = new List<string>();
                 List<string> tempCategoryDictDbFile = getTwoDimensionalTypeTableValuesFromDbFile(connectionManager);
                 List<string> tempCategoryDictInServer = getTwoDimensionalTypeTableValuesFromSqlserver(connectionManager);

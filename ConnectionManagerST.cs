@@ -142,6 +142,15 @@ namespace Process_Export_Import
         {
             connectionToOldSqlServer.Close();
         }
+
+        public void setPasswordOnDbFile()
+        {
+            connSqlite.ChangePassword("!#zSnP+n%m!8k@(/");
+        }    
+        public void removePasswordOnDbFile()
+        {
+            connSqlite.ChangePassword(String.Empty);
+        }
     }
 
 }

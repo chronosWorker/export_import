@@ -245,7 +245,7 @@ namespace Process_Export_Import
         {
             List<string> twoDimensionaltypeTables = new List<string>()
             {
-                "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
+                "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", 
                 "T_ACTIVITY_PARTICIPANT_TYPE",
                 "T_CALCULATED_FIELD_CONSTANT_TYPE",
                 "T_CALCULATED_FIELD_RESULT_TYPE_ID",
