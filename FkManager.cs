@@ -256,6 +256,30 @@ namespace Process_Export_Import
                         string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
                         obj.executeQueriesInDbFile(updateCommandText);
                         updateInfo.Add(updateCommandText);
+                        //ha találok olyan értéket ami routing_design activity_des_id-ban ami benne van ACTIVITY_DESIGn-ban  from vagy to act_design id-ként akkor azokat ugyanarra updatelem
+                        if (IdName == "Activity_Design_ID")
+                        {
+                            string updateFromActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set From_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where From_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateFromActivityDesignCommandText);
+                            string updateToActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set To_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where To_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateToActivityDesignCommandText);
+                            updateInfo.Add(updateFromActivityDesignCommandText);
+                            updateInfo.Add(updateToActivityDesignCommandText);
+                        }
+                        if (IdName == "Field_ID" && TableName == "T_FIELD")
+                        {
+                            string updateDependentFieldId =   " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateDependentFieldId);
+                            string updateIndependentFieldId =   " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateIndependentFieldId);
+                            updateInfo.Add(updateDependentFieldId);
+                            updateInfo.Add(updateIndependentFieldId);
+                        }
+                        if (IdName == "Activity_ID")
+                        {
+                            string updateDependencyActivationId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependency_Activation_Activity_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependency_Activation_Activity_ID = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateDependencyActivationId);
+                        }
                     }
 
                 }
@@ -354,18 +378,28 @@ namespace Process_Export_Import
             {
                 string newdesignName = designName + " (IMPORTED)";
                 string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
                 obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
+                obj.executeQueriesInDbFile(newProcDesignNameUpdateQuery);
             }
             else
             {
                 string newdesignName = designName + " (IMPORTED_" + processImportedDesignQuantity.ToString() + ")";
-                string newDesignNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
                 obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
+                obj.executeQueriesInDbFile(newProcDesignNameUpdateQuery);
             }
 
             return newDesignNameList;
 
-        }   
+        }
+
+        public void updateProcessDesignDrawCreationDateToToday(ConnectionManagerST obj)
+        {
+            string updateQuery = " UPDATE T_PROC_DESIGN_DRAW set Creation_Date = datetime('now');";
+            obj.executeQueriesInDbFile(updateQuery);
+        }
 
         public List<string> convertIntListToStringList(List<int> inputStringList)
         {

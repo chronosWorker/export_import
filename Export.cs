@@ -212,13 +212,14 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
-			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID =  " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.dependent_Field_ID ) )
+			(( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID =  " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.dependent_Field_ID ) )
+			or
+			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID = " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.independent_Field_ID ) ))		
 			and
-			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID = " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.independent_Field_ID ) )
-			and
-			(T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID = 0
+			((T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID = 0
 			or 
-			( exists ( Select a.Activity_ID from T_ACTIVITY a where a.Process_ID =" + processId.ToString() + " and a.Activity_ID = T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID ) ) )" });
+			( exists ( Select a.Activity_ID from T_ACTIVITY a where a.Process_ID =" + processId.ToString() + " and a.Activity_ID = T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID ) ) ) )" });
+
 			#endregion
 
 
