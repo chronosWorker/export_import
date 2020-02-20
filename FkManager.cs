@@ -263,8 +263,8 @@ namespace Process_Export_Import
                             obj.executeQueriesInDbFile(updateFromActivityDesignCommandText);
                             string updateToActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set To_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where To_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateToActivityDesignCommandText);
-                            updateInfo.Add(updateFromActivityDesignCommandText);
-                            updateInfo.Add(updateToActivityDesignCommandText);
+                     //       updateInfo.Add(updateFromActivityDesignCommandText);
+                     //       updateInfo.Add(updateToActivityDesignCommandText);
                         }
                         if (IdName == "Field_ID" && TableName == "T_FIELD")
                         {
@@ -272,8 +272,8 @@ namespace Process_Export_Import
                             obj.executeQueriesInDbFile(updateDependentFieldId);
                             string updateIndependentFieldId =   " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateIndependentFieldId);
-                            updateInfo.Add(updateDependentFieldId);
-                            updateInfo.Add(updateIndependentFieldId);
+                   //         updateInfo.Add(updateDependentFieldId);
+                   //         updateInfo.Add(updateIndependentFieldId);
                         }
                         if (IdName == "Activity_ID")
                         {

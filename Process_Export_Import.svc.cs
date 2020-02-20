@@ -136,7 +136,7 @@ namespace Process_Export_Import
 			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
 			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
 			connectionManager.openSqLiteConnection(sqliteSource);
-			//connectionManager.setPasswordOnDbFile();
+			connectionManager.setPasswordOnDbFile();
 			ExportManager.addTablesAndInfos(connectionManager);
 			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId , connectionManager);
 			
@@ -199,8 +199,8 @@ namespace Process_Export_Import
 			TableManager tableInfo = new TableManager();
 			List<string> listOfTablesWhereIdentityInsertNeeded = tableInfo.listOfTablesWhereIdentityInsertNeeded();
 			List<string> secondRoundInsertTablesWithoutIdentityProprty = tableInfo.secondRoundInsertTablesWithoutIdentityProprty();
-			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
-			//string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;Password=!#zSnP+n%m!8k@(/;";
+			//string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
+			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;Password=!#zSnP+n%m!8k@(/;";
 			insertResultInfo.Add("sqliteSource:");
 			insertResultInfo.Add(sqliteSource);
 			connectionManager.openSqLiteConnection(sqliteSource);
@@ -218,8 +218,8 @@ namespace Process_Export_Import
 						FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 						processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						insertResultInfo.AddRange(processId.changeProcessName(connectionManager));
-						insertResultInfo.AddRange(processId.changeProcessDesignName(connectionManager));
+						processId.changeProcessName(connectionManager);
+						processId.changeProcessDesignName(connectionManager);
 						processId.updateProcessDesignDrawCreationDateToToday(connectionManager);
 
 						FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
@@ -304,7 +304,7 @@ namespace Process_Export_Import
 							   fieldGroupToFieldGroupDependencyModeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 							   FkManager fieldGroupToFieldGroupDependencyActivationActivityId = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", "Field_Group_To_Field_Group_Dependency_Activation_Activity_ID");
-							   fieldGroupToFieldGroupDependencyActivationActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                               insertResultInfo.AddRange(fieldGroupToFieldGroupDependencyActivationActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
 							   FkManager fieldGroupToFieldGroupDepCondFormula = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", "Field_Group_To_Field_Group_Dependency_Condition_Formula_ID");
 							   fieldGroupToFieldGroupDepCondFormula.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -418,7 +418,7 @@ namespace Process_Export_Import
 							   #region TypeTables
 						   //-----------TYPE TABLES--------------------------------------------------------
 						   //-----------------------------------------------------------------------------
-						   insertResultInfo.Add("Current Table " + "T_CATEGORY");
+				
 						   FkManager categoryType = new FkManager("T_CATEGORY", "NAME");
 						   categoryType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
@@ -490,8 +490,8 @@ namespace Process_Export_Import
 						   operandId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
                     FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
-                    insertResultInfo.AddRange(fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager));
-                    insertResultInfo.AddRange(fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                   fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
 
 
                     #endregion
@@ -509,13 +509,14 @@ namespace Process_Export_Import
 
 									 if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
 									 {
-										 insertResultInfo.Add(tableName + " true");
-										 insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+									
+									    insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 									 }
 									 else
 									 {
-										 insertResultInfo.Add(tableName + " false");
-										 insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+
+                                        insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
 									 }
 
 								 }
@@ -534,14 +535,14 @@ namespace Process_Export_Import
 								 {
 									 if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
 									 {
-										 insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-										 insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+									
+										insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 
 									 }
 									 else
 									 {
-										 insertResultInfo.Add("Jelenlegi tábla:" + tableName);
-										 insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+										
+										 insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 									 }
 
 								 }

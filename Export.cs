@@ -2086,7 +2086,7 @@ namespace Process_Export_Import
 				#endregion
 
 				#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
-				columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
+			/*	columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
 				string reader35CmdTxt = "SELECT * FROM T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY";
 				var reader35 = obj.sqlServerDataReaderOld(reader35CmdTxt);
 
@@ -2139,7 +2139,7 @@ namespace Process_Export_Import
 						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 
 					}
-				}
+				}*/
 				#endregion
 				#region T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY
 				columnTypes = getColumnTypesDictionary_v3("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_ACTIVATION_ACTIVITY", obj);
@@ -2168,27 +2168,29 @@ namespace Process_Export_Import
 					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
 					while (reader36.Read())
 					{
-
-						strSQLiteValues = "";
-						for (int j = 0; j < reader36.FieldCount; j++)
+						if (activities_v2.FindIndex(a => a == Convert.ToInt64(reader34["Activity_Id"].ToString())) > 0)
 						{
-							columnTypes.TryGetValue(reader36.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
-								case "image":
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + reader36[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 
+							strSQLiteValues = "";
+							for (int j = 0; j < reader36.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(reader36.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + reader36[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+						}
 					}
 				}
 
