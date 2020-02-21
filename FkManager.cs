@@ -279,6 +279,10 @@ namespace Process_Export_Import
                         {
                             string updateDependencyActivationId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependency_Activation_Activity_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependency_Activation_Activity_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateDependencyActivationId);
+                            string updateNotificationTriggerFromActivatyId = " Update T_NOTIFICATION_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateNotificationTriggerFromActivatyId);
+                            string updateNotificationTriggerToActivatyId = " Update T_NOTIFICATION_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
                         }
                     }
 
@@ -287,6 +291,8 @@ namespace Process_Export_Import
             //Ha megtalálja a oldIdlistet akkor cserélje az ujra
             return updateInfo;
         }
+
+
 
         public List<string> changeProcess(ConnectionManagerST obj)
         {
@@ -302,7 +308,7 @@ namespace Process_Export_Import
             newNameList.Add("new processName :  : ");
             string importedName = processName + "_IMPORTED";
             newNameList.Add(importedName);
-            string updateNameText = "UPDATE T_PROCES  SET Name,Technical_Name = " + importedName + " where 1 = 1";
+            string updateNameText = "UPDATE T_PROCES  SET Name  = " + importedName + " where 1 = 1";
             obj.executeQueriesInDbFile(updateNameText);
 
             return newNameList;
@@ -347,14 +353,14 @@ namespace Process_Export_Import
             {
                 string newProcessName = processName + " (IMPORTED)";
                 string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED";
-                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' , Technical_Name = '" + newProcessTechnicalName + "' ,  Short_Name = '" + newProcessTechnicalName + "' WHERE NAME =  '" + processName + "'";
+                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
                 obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
             }
             else
             {
                 string newProcessName = processName + " (IMPORTED_" + processImportedQuantity.ToString() + ")";
                 string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString();
-                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME  = '" + newProcessName + "' , Technical_Name = '" + newProcessTechnicalName + "' ,  Short_Name = '" + newProcessTechnicalName + "' WHERE NAME =  '" + processName + "'";
+                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
                 obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
             }
             return newNameList;

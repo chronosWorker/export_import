@@ -34,6 +34,8 @@ namespace Process_Export_Import
 
 		public List<long> activityOwnerByCondition_v2 = new List<long>();
 
+		public List<long> notification_id = new List<long>();
+
 		public Export()
 		{
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
@@ -183,7 +185,6 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FIELDS_UI_PARAMETERS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_PERSON", Condition = " WHERE 1=1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT", Condition = " WHERE 1=1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT_MEMBERS", Condition = " WHERE 1=1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_RESULT_TYPE_ID", Condition = " WHERE 1=1 " });
@@ -204,6 +205,8 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_LANGUAGE", Condition = " WHERE 1 = 1 " });
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_TYPE", Condition = " WHERE 1 = 1 " });
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_RECIPIENT_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FINISH_STEP_MODE", Condition = " WHERE 1 = 1 " });
@@ -303,7 +306,6 @@ namespace Process_Export_Import
 
 				// fill activities array
 				strMsSQL = "SELECT * FROM T_ACTIVITY WHERE process_id = " + processId.ToString();
-
 				var reader2 = obj.sqlServerDataReaderOld(strMsSQL);
 
 				activities_v2 = new List<long>();
@@ -311,10 +313,118 @@ namespace Process_Export_Import
 				{
 					activities_v2.Add(Convert.ToInt64(reader2["activity_id"].ToString()));
 				}
-				#region T_FIELD_TO_FIELD_DEPENDENCY
- 
-				
-				#endregion
+  
+
+				notification_id = new List<long>();
+				strMsSQL = "SELECT Notification_Id FROM T_NOTIFICATION WHERE process_id = " + processId.ToString(); ;
+				var notificationIdReader = obj.sqlServerDataReaderOld(strMsSQL);
+				while (notificationIdReader.Read())
+				{
+					notification_id.Add(Convert.ToInt64(notificationIdReader["Notification_Id"].ToString()));
+				}
+
+
+				columnTypes = getColumnTypesDictionary_v3("T_NOTIFICATION_TRIGGER", obj);
+				for (var i = 0; i < notification_id.Count; i++)
+				{
+					strMsSQLDataChild = "SELECT * FROM T_NOTIFICATION_TRIGGER WHERE Notification_Id = " + notification_id[i].ToString();
+					var readerNotificationTriggers = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+					strSqLiteSQL = "INSERT INTO T_NOTIFICATION_TRIGGER " + " ( ";
+					currType = "";
+
+					foreach (KeyValuePair<string, string> entry in columnTypes)
+					{
+						switch (entry.Value)
+						{
+							case "binary":
+							case "varbinary":
+							case "image":
+								break;
+							default:
+								{
+									strSqLiteSQL += entry.Key + ",";
+									break;
+								}
+						}
+					}
+					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+					while (readerNotificationTriggers.Read())
+					{
+					   // activityOwnerByCondition_v2.Add(Convert.ToInt64(readerNotificationTriggers["Activity_Owner_By_Condition_Id"].ToString()));
+						strSQLiteValues = "";
+						for (int j = 0; j < readerNotificationTriggers.FieldCount; j++)
+						{
+							columnTypes.TryGetValue(readerNotificationTriggers.GetName(j), out currType);
+							switch (currType)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSQLiteValues += "'" + readerNotificationTriggers[j].ToString().Replace("'", "''") + "',";
+										break;
+									}
+							}
+						}
+						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+
+					}
+				}
+
+				columnTypes = getColumnTypesDictionary_v3("T_NOTIFICATION_ADDRESS", obj);
+				for (var i = 0; i < notification_id.Count; i++)
+				{
+					strMsSQLDataChild = "SELECT * FROM T_NOTIFICATION_ADDRESS WHERE Notification_Id = " + notification_id[i].ToString();
+					var readerNotificationAddress = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+					strSqLiteSQL = "INSERT INTO T_NOTIFICATION_ADDRESS " + " ( ";
+					currType = "";
+
+					foreach (KeyValuePair<string, string> entry in columnTypes)
+					{
+						switch (entry.Value)
+						{
+							case "binary":
+							case "varbinary":
+							case "image":
+								break;
+							default:
+								{
+									strSqLiteSQL += entry.Key + ",";
+									break;
+								}
+						}
+					}
+					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+					while (readerNotificationAddress.Read())
+					{
+					    // activityOwnerByCondition_v2.Add(Convert.ToInt64(readerNotificationTriggers["Activity_Owner_By_Condition_Id"].ToString()));
+						strSQLiteValues = "";
+						for (int j = 0; j < readerNotificationAddress.FieldCount; j++)
+						{
+							columnTypes.TryGetValue(readerNotificationAddress.GetName(j), out currType);
+							switch (currType)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSQLiteValues += "'" + readerNotificationAddress[j].ToString().Replace("'", "''") + "',";
+										break;
+									}
+							}
+						}
+						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+
+					}
+				}
+
+
 				#region T_ACTIVITY_OWNER_BY_CONDITION
 				columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_OWNER_BY_CONDITION", obj);
 				for (int i = 0; i < activities_v2.Count; i++)
@@ -2549,7 +2659,6 @@ namespace Process_Export_Import
 			"T_ACTIVITY",
 			"T_ACTIVITY_FIELDS_UI_PARAMETERS",
 			"T_NOTIFICATION",
-			"T_PERSON",
 			"T_DEPARTMENT",
 			"T_DEPARTMENT_MEMBERS",
 			"T_CALCULATED_FIELD_RESULT_TYPE_ID",
@@ -2609,10 +2718,14 @@ namespace Process_Export_Import
 			"T_CHART_TYPE",
 			"T_CHART_FIELD_TYPE",
 			"T_LANGUAGE",
+			"T_NOTIFICATION_TRIGGER",
+			"T_NOTIFICATION_TYPE",
+			"T_NOTIFICATION_RECIPIENT_TYPE",
 			"T_REPORT_TYPE",
 			"T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE",
 			"T_ACTIVITY_FINISH_STEP_MODE",
 			"T_ACTIVITY_PARTICIPANT_TYPE",
+			"T_NOTIFICATION_ADDRESS",
 			"T_CALCULATED_FIELD_CONSTANT_TYPE",
 			"T_COMPARE_OPERATION",
 			"T_DB_CONNECTION",

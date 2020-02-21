@@ -104,7 +104,6 @@
     <Compile Include="KnownFolders.cs" />
     <Compile Include="TableManager.cs" />
     <Compile Include="Tables_cwp.cs" />
-    <Compile Include="Import.cs" />
     <Compile Include="OpenAndReadDBFile.cs" />
     <Compile Include="Process_Export_Import.svc.cs">
       <DependentUpon>Process_Export_Import.svc</DependentUpon>
