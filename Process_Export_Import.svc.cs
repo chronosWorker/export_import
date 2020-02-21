@@ -202,8 +202,8 @@ namespace Process_Export_Import
 						FkManager activityDesigndId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
 						activityDesigndId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-				        // FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
-					    //	routingDesignFromActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+						// FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
+						//	routingDesignFromActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 						//FkManager routingDesignToActivityId = new FkManager("T_ROUTING_DESIGN", "To_Activity_Design_ID");
 						//routingDesignToActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -508,6 +508,9 @@ namespace Process_Export_Import
 							 }
 
 						 }
+
+					deleteNotificationAddresses(connectionManager);
+
 				}
 
 				catch (Exception ex)
@@ -642,11 +645,12 @@ namespace Process_Export_Import
 		public List<string> allTableRelatedToDraws = new List<string> { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_PROC_DESIGN_DRAW_PART", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN", "T_PROC_DESIGN_DRAW_PART_DETAIL", "T_PROC_DESIGN_DRAW_PART_TYPE" };
 		//51 T_PROC_DESIGN_DRAW
 		/*
-52 T_PROC_DESIGN_DRAW_PART
-53 T_PROC_DESIGN_DRAW_PART_DETAIL
-54 T_PROC_DESIGN_DRAW_PART_TYPE
-55 T_PROCESS
-56 T_PROCESS_DESIGN*/
+		52 T_PROC_DESIGN_DRAW_PART
+		53 T_PROC_DESIGN_DRAW_PART_DETAIL
+		54 T_PROC_DESIGN_DRAW_PART_TYPE
+		55 T_PROCESS
+		56 T_PROCESS_DESIGN  
+		*/
 	
 
 		#endregion
@@ -663,6 +667,12 @@ namespace Process_Export_Import
 			}
 			return fields;
 
+		}
+
+		public void deleteNotificationAddresses(ConnectionManagerST obj)
+		{
+			string commandText = "UPDATE T_NOTIFICATION_ADDRESS SET Address_Email = ' '  where 1 = 1";
+			obj.executeQueriesInDbFile(commandText);
 		}
 	public enum ProcessReasonType
 	{
