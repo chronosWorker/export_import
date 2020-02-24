@@ -56,6 +56,9 @@
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.12.0.3\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data.SQLite, Version=1.0.103.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
@@ -95,16 +98,12 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityManager.cs" />
     <Compile Include="ComparsionClass.cs" />
     <Compile Include="ConnectionManagerST.cs" />
-    <Compile Include="DrawManager.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="FkManager.cs" />
     <Compile Include="KnownFolders.cs" />
     <Compile Include="TableManager.cs" />
-    <Compile Include="Tables_cwp.cs" />
-    <Compile Include="OpenAndReadDBFile.cs" />
     <Compile Include="Process_Export_Import.svc.cs">
       <DependentUpon>Process_Export_Import.svc</DependentUpon>
     </Compile>

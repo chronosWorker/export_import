@@ -263,17 +263,17 @@ namespace Process_Export_Import
                             obj.executeQueriesInDbFile(updateFromActivityDesignCommandText);
                             string updateToActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set To_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where To_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateToActivityDesignCommandText);
-                     //       updateInfo.Add(updateFromActivityDesignCommandText);
-                     //       updateInfo.Add(updateToActivityDesignCommandText);
+                            //       updateInfo.Add(updateFromActivityDesignCommandText);
+                            //       updateInfo.Add(updateToActivityDesignCommandText);
                         }
                         if (IdName == "Field_ID" && TableName == "T_FIELD")
                         {
-                            string updateDependentFieldId =   " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateDependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateDependentFieldId);
-                            string updateIndependentFieldId =   " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateIndependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateIndependentFieldId);
-                   //         updateInfo.Add(updateDependentFieldId);
-                   //         updateInfo.Add(updateIndependentFieldId);
+                            //         updateInfo.Add(updateDependentFieldId);
+                            //         updateInfo.Add(updateIndependentFieldId);
                         }
                         if (IdName == "Activity_ID")
                         {
@@ -291,8 +291,6 @@ namespace Process_Export_Import
             //Ha megtalálja a oldIdlistet akkor cserélje az ujra
             return updateInfo;
         }
-
-
 
         public List<string> changeProcess(ConnectionManagerST obj)
         {
@@ -500,7 +498,7 @@ namespace Process_Export_Import
             return twoDimensionalTypeTableValuesInSqlServer;
         }
 
-        public List<string> compareTwoTypeTableListToGetSameRecords(List<string> twoDimensionalTypeTableValuesInDbFile , List<string> twoDimensionalTypeTableValuesInSqlServer)
+        public List<string> compareTwoTypeTableListToGetSameRecords(List<string> twoDimensionalTypeTableValuesInDbFile, List<string> twoDimensionalTypeTableValuesInSqlServer)
         {
             List<string> recordsToDelete = new List<string>();
             try
@@ -523,11 +521,11 @@ namespace Process_Export_Import
             return recordsToDelete;
         }
 
-        public void deleteSameRecordsFromTypeTable(ConnectionManagerST connectionManager , List<string> recordsToDelete )
+        public void deleteSameRecordsFromTypeTable(ConnectionManagerST connectionManager, List<string> recordsToDelete)
         {
             try
             {
-                foreach(string record in recordsToDelete)
+                foreach (string record in recordsToDelete)
                 {
                     if (record.Contains("'"))
                     {
@@ -537,7 +535,7 @@ namespace Process_Export_Import
                     }
                     else
                     {
-                        string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + record + "';" ;
+                        string deleteQuery = "Delete From " + TableName + " where " + IdName + " = '" + record + "';";
                         connectionManager.executeQueriesInDbFile(deleteQuery);
 
                     }
@@ -566,5 +564,79 @@ namespace Process_Export_Import
             }
 
         }
+
+        //Notification raelted functions
+
+        //     public bool checkIfNotificationAddressBeenSet(ConnectionManagerST connectionManager)
+        //    {
+        //        string query = ""
+        //  }
+        //Set importőr person to process owner
+        public int getProcessOwnerType(ConnectionManagerST connectionManager)
+        {
+            int processOwnerType = -1;
+            try
+            {
+                string query = "Select PARTICIPANT_TYPE from T_PROCESS_OWNER";
+                var reader = connectionManager.sqLiteDataReader(query);
+                while (reader.Read())
+                {
+                    processOwnerType = Convert.ToInt32(reader["PARTICIPANT_TYPE"]);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return processOwnerType;
+        }
+
+        public void setImportPersonToProcessOwner(ConnectionManagerST connectionManager, int importPersonId)
+        {
+            int processOwnerType = getProcessOwnerType(connectionManager);
+            if (processOwnerType == 1)
+            {
+                string updateOwnerQuery = "UPDATE T_PROCESS_OWNER SET Participant_ID = " + importPersonId.ToString() + " where 1 = 1";
+                connectionManager.executeQueriesInDbFile(updateOwnerQuery);
+            }
+        }
+
+
+        public bool detectNotificationEmailAddress(ConnectionManagerST obj)
+        {
+            bool foundNotificationAddress = false;
+            string commandText = "select count(address_email) as 'mail_address' from T_NOTIFICATION_ADDRESS";
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    if (Convert.ToInt32(reader["mail_address"]) != 0)
+                    {
+                        foundNotificationAddress = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return foundNotificationAddress;
+        }
+
+        public void deleteNotificationAddresses(ConnectionManagerST obj)
+        {
+            string commandText = "UPDATE T_NOTIFICATION_ADDRESS SET Address_Email = ' '  where 1 = 1";
+            obj.executeQueriesInDbFile(commandText);
+        }
+
+        /*  public string checkNotificaionEmailAddressIfFoundSendBackData(ConnectionManagerST obj)
+          {
+              if(detectNotificationEmailAddress(obj))
+              {
+                  deleteNotificationAddresses(obj);
+              }
+
+          }*/
     }
 }

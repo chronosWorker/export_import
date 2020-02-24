@@ -13,7 +13,7 @@ using System.Text;
 using static System.Collections.IEnumerable;
 using static System.Data.Common.DbDataReader;
 using System.ServiceModel.Activation;
-
+using Newtonsoft.Json;
 
 namespace Process_Export_Import
 {
@@ -164,16 +164,20 @@ namespace Process_Export_Import
 			{
 				try
 				{
-						#region process
-						//-----------PROCESS-------------------------------------------------------
-						//-------------------------------------------------------------------------
 
-						FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+                    FkManager general = new FkManager("T_PROCESS", "Process_ID");
+                    general.changeProcessName(connectionManager);
+                    general.changeProcessDesignName(connectionManager);
+                    general.updateProcessDesignDrawCreationDateToToday(connectionManager);
+                    general.setImportPersonToProcessOwner(connectionManager, personId);
+
+                    #region process
+                        //-----------PROCESS-------------------------------------------------------
+                        //-------------------------------------------------------------------------
+
+                        FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 						processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						processId.changeProcessName(connectionManager);
-						processId.changeProcessDesignName(connectionManager);
-						processId.updateProcessDesignDrawCreationDateToToday(connectionManager);
 
 						FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
 						processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -509,11 +513,18 @@ namespace Process_Export_Import
 
 						 }
 
-					deleteNotificationAddresses(connectionManager);
 
+
+                    
+                    string json = o.ToString();
+
+
+                    string json = JsonConvert.SerializeObject("alma");
+
+                    insertResultInfo.Add("email_address : " + false.ToString());    
 				}
 
-				catch (Exception ex)
+                catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
 				}
@@ -669,11 +680,9 @@ namespace Process_Export_Import
 
 		}
 
-		public void deleteNotificationAddresses(ConnectionManagerST obj)
-		{
-			string commandText = "UPDATE T_NOTIFICATION_ADDRESS SET Address_Email = ' '  where 1 = 1";
-			obj.executeQueriesInDbFile(commandText);
-		}
+		
+
+
 	public enum ProcessReasonType
 	{
 		MainProcess,
