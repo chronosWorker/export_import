@@ -2586,7 +2586,7 @@ namespace Process_Export_Import
 			try
 			{
 					strSQLServer = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + CWPTableName + "'";
-					var reader = obj.sqlServerDataReader(strSQLServer);
+					var reader = obj.sqlServerDataReaderOld(strSQLServer);
 					ret = "CREATE TABLE " + CWPTableName + "(";
 					while (reader.Read())
 					{
@@ -2742,7 +2742,7 @@ namespace Process_Export_Import
 			{
 
 				CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tablenames[i] + "'";
-				var readerMsSql = obj.sqlServerDataReader(CommandText);
+				var readerMsSql = obj.sqlServerDataReaderOld(CommandText);
 				columnTypes = getColumnTypesDictionary_v2(tablenames[i], obj);
 				ServiceCallResult resGen;
 				while (readerMsSql.Read())
@@ -2793,5 +2793,24 @@ namespace Process_Export_Import
 
 			return res;
 		}
+
+        public List<int> checkIfSubProcessExist(ConnectionManagerST obj , int mainProcessId)
+        {
+            List<int> subProcessIds = new List<int>();
+            string checkForSubProcessQuery = "Select Process_ID from T_PROCESS where Parent_Process_ID = " + mainProcessId.ToString();
+            var reader = obj.sqlServerDataReaderOld(checkForSubProcessQuery);
+            try { 
+                while (reader.Read())
+                {
+                    subProcessIds.Add(Convert.ToInt32(reader["Process_ID"]));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return subProcessIds;
+        }
 	}
 }

@@ -55,6 +55,7 @@ namespace Process_Export_Import
 			connSqlite = new SQLiteConnection();
 
 		}
+
 		[DataContract]
 		public class ServiceCallResult
 		{
@@ -77,7 +78,6 @@ namespace Process_Export_Import
 			}
 		}
 		
-
 		[OperationContract]
 		public ServiceCallResult Export_Process(int processId)
 		{
@@ -94,14 +94,12 @@ namespace Process_Export_Import
 		//	connectionManager.setPasswordOnDbFile();
 			ExportManager.addTablesAndInfos(connectionManager);
 			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId , connectionManager);
-			
 			if (res.Code != 0)
 			{
 				return res;
 			}
 			try
 			{
-
 				ExportManager.processes_v2 = new List<ProcessListItem>();
 				ExportManager.FillProcesses_v2(processId, connectionManager);
 				ExportManager.fieldsForProcess_v2 = new List<long>();
@@ -120,29 +118,36 @@ namespace Process_Export_Import
 					res.Description = "notification ID: " + ExportManager.notification_id.Count.ToString() ;
 
 				}
+			
+				string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+				if (File.Exists(fileName))
+				{
+					GC.Collect();
+					GC.WaitForPendingFinalizers();
+				}
+				//
+				List<int> subporcessIds = ExportManager.checkIfSubProcessExist(connectionManager, processId);
+				if (subporcessIds.Count >= 1)
+				{
+					foreach (int subProcessId in subporcessIds)
+					{
+						Export_Process_For_SubProcesses(subProcessId , connectionManager);
+					}
+				}
 
 			}
 			catch (Exception e)
 			{
-					res = ExportManager.FillServiceCallResult_v2(e);
+				res = ExportManager.FillServiceCallResult_v2(e);
 
 			}
-
-
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 			connectionManager.closeOldSqlServerConnection();
-			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
-			if (File.Exists(fileName))
-			{
-				GC.Collect();
-				GC.WaitForPendingFinalizers();
-			}
-
-			return res;
-				
-
+			return res;	
 		}
+
+
 
 		[OperationContract]
 		public List<string> Check_Import(string fileName , int personId)
@@ -459,8 +464,8 @@ namespace Process_Export_Import
 					response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
 					if (general.detectNotificationEmailAddress(connectionManager))
 					{
-                        response.EmailAddressFound = true;
-                        response.NotificationAddresses = general.detectNotificationAddresses(connectionManager);
+						response.EmailAddressFound = true;
+						response.NotificationAddresses = general.detectNotificationAddresses(connectionManager);
 						general.deleteNotificationAddresses(connectionManager);
 					}
 						
@@ -468,7 +473,6 @@ namespace Process_Export_Import
 					insertResultInfo.Add(result);
 					#endregion
 				}
-
 				catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
@@ -684,7 +688,58 @@ namespace Process_Export_Import
 			return fields;
 
 		}
+		public ServiceCallResult Export_Process_For_SubProcesses(int processId , ConnectionManagerST connectionManager) { 
 
+			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
+			var ExportManager = new Export();
+		   
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
+			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
+			connectionManager.openSqLiteConnection(sqliteSource);
+		//	connectionManager.setPasswordOnDbFile();
+			ExportManager.addTablesAndInfos(connectionManager);
+			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId, connectionManager);
+			if (res.Code != 0)
+			{
+				return res;
+			}
+			try
+			{
+				ExportManager.processes_v2 = new List<ProcessListItem>();
+				ExportManager.FillProcesses_v2(processId, connectionManager);
+				ExportManager.fieldsForProcess_v2 = new List<long>();
+
+				if (ExportManager.processes_v2.Count > 0)
+				{
+					for (int i = 0; i<ExportManager.processes_v2.Count; i++)
+					{
+						res = ExportManager.TransferProcess_v2(ExportManager.processes_v2[i].ProcessId , connectionManager);
+					}
+				}
+
+				if (processIdExistInLocalDb)
+				{
+					
+					res.Description = "notification ID: " + ExportManager.notification_id.Count.ToString() ;
+
+				}
+			}
+			catch (Exception e)
+			{
+					res = ExportManager.FillServiceCallResult_v2(e);
+
+			}
+			
+			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+			if (File.Exists(fileName))
+			{
+				GC.Collect();
+				GC.WaitForPendingFinalizers();
+			}
+
+			return res;	
+	}
 	public enum ProcessReasonType
 	{
 		MainProcess,
