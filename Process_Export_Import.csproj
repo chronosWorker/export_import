@@ -103,6 +103,7 @@
     <Compile Include="Export.cs" />
     <Compile Include="FkManager.cs" />
     <Compile Include="KnownFolders.cs" />
+    <Compile Include="ResponseJson.cs" />
     <Compile Include="TableManager.cs" />
     <Compile Include="Process_Export_Import.svc.cs">
       <DependentUpon>Process_Export_Import.svc</DependentUpon>

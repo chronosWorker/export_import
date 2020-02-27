@@ -69,6 +69,8 @@ namespace Process_Export_Import
 			[DataMember]
 			public string InnerExceptionContent { get; set; }
 
+			private string result;
+
 			public static implicit operator ServiceCallResult(string v)
 			{
 				throw new NotImplementedException();
@@ -143,7 +145,7 @@ namespace Process_Export_Import
 		}
 
 		[OperationContract]
-		public List<string> Import_Process(string fileName , int personId)
+		public List<string> Check_Import(string fileName , int personId)
 		{
 
 			List<string> insertResultInfo = new List<string>();
@@ -152,87 +154,84 @@ namespace Process_Export_Import
 			TableManager tableInfo = new TableManager();
 			List<string> listOfTablesWhereIdentityInsertNeeded = tableInfo.listOfTablesWhereIdentityInsertNeeded();
 			List<string> secondRoundInsertTablesWithoutIdentityProprty = tableInfo.secondRoundInsertTablesWithoutIdentityProprty();
-			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
+			ResponseJson response = new ResponseJson();
 			//string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;Password=!#zSnP+n%m!8k@(/;";
-			insertResultInfo.Add("sqliteSource:");
-			insertResultInfo.Add(sqliteSource);
+			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
 			connectionManager.openSqLiteConnection(sqliteSource);
 			connectionManager.openSqlServerConnection();
-
 			//bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
 			if (true)
 			{
 				try
 				{
+					#region general
+					FkManager general = new FkManager("T_PROCESS", "Process_ID");
+					general.changeProcessName(connectionManager);
+					general.changeProcessDesignName(connectionManager);
+					general.updateProcessDesignDrawCreationDateToToday(connectionManager);
+					general.setImportPersonToProcessOwner(connectionManager, personId);
+					#endregion
+					#region process
+					//-----------PROCESS-------------------------------------------------------
+					//-------------------------------------------------------------------------
 
-                    FkManager general = new FkManager("T_PROCESS", "Process_ID");
-                    general.changeProcessName(connectionManager);
-                    general.changeProcessDesignName(connectionManager);
-                    general.updateProcessDesignDrawCreationDateToToday(connectionManager);
-                    general.setImportPersonToProcessOwner(connectionManager, personId);
+					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    #region process
-                        //-----------PROCESS-------------------------------------------------------
-                        //-------------------------------------------------------------------------
+					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
+					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                        FkManager processId = new FkManager("T_PROCESS", "Process_ID");
-						processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
+					automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
+					FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
+					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					#endregion
+					#region routing
+					//-----------ROUTING-------------------------------------------------------
+					//-------------------------------------------------------------------------
+					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
+					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
-						processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
+					routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
-						automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
+					routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
-						processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-						#endregion
-						#region routing
-						//-----------ROUTING-------------------------------------------------------
-						//-------------------------------------------------------------------------
-						FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
-						routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
+					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
-						routingConditionGroupId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityDesigndId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
+					activityDesigndId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager routingId = new FkManager("T_ROUTING", "Routing_ID");
-						routingId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					// FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
+					//	routingDesignFromActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager routingDesignId = new FkManager("T_ROUTING_DESIGN", "Routing_Design_ID");
-						routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					//FkManager routingDesignToActivityId = new FkManager("T_ROUTING_DESIGN", "To_Activity_Design_ID");
+					//routingDesignToActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					#endregion
+					#region activityk
+					//-----------ACTIVITY------------------------------------------------------
+					//-------------------------------------------------------------------------
 
-						FkManager activityDesigndId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
-						activityDesigndId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityBeforeFinishCheckQueryTypeIdId = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Activity_Before_Finish_Check_Query_Type_ID");
+					activityBeforeFinishCheckQueryTypeIdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						// FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
-						//	routingDesignFromActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+			//		FkManager activityFinishStepModedId = new FkManager("T_ACTIVITY_FINISH_STEP_MODE", "Activity_Finish_Step_Mode_ID");
+			//		activityFinishStepModedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						//FkManager routingDesignToActivityId = new FkManager("T_ROUTING_DESIGN", "To_Activity_Design_ID");
-						//routingDesignToActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-						#endregion
-						#region activityk
-						//-----------ACTIVITY------------------------------------------------------
-						//-------------------------------------------------------------------------
+					FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
+					activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager activityBeforeFinishCheckQueryTypeIdId = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Activity_Before_Finish_Check_Query_Type_ID");
-						activityBeforeFinishCheckQueryTypeIdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityOwnerByConditionId = new FkManager("T_ACTIVITY_OWNER_BY_CONDITION", "Activity_Owner_By_Condition_ID");
+					activityOwnerByConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager activityFinishStepModedId = new FkManager("T_ACTIVITY_FINISH_STEP_MODE", "Activity_Finish_Step_Mode_ID");
-						activityFinishStepModedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityParticipantTypeId = new FkManager("T_ACTIVITY_PARTICIPANT_TYPE", "Activity_Participant_Type_ID");
+					activityParticipantTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
-						activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
-						FkManager activityOwnerByConditionId = new FkManager("T_ACTIVITY_OWNER_BY_CONDITION", "Activity_Owner_By_Condition_ID");
-						activityOwnerByConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
-						FkManager activityParticipantTypeId = new FkManager("T_ACTIVITY_PARTICIPANT_TYPE", "Activity_Participant_Type_ID");
-						activityParticipantTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
-						FkManager activityFieldUIParametersId = new FkManager("T_ACTIVITY_FIELDS_UI_PARAMETERS", "Activity_Fields_UI_Paramaters_ID");
-						activityFieldUIParametersId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityFieldUIParametersId = new FkManager("T_ACTIVITY_FIELDS_UI_PARAMETERS", "Activity_Fields_UI_Paramaters_ID");
+					activityFieldUIParametersId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					#endregion
 					#region fields
 					//-----------FIELD---------------------------------------------------------
@@ -321,7 +320,7 @@ namespace Process_Export_Import
 					activityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------REPORTOK------------------------------------------------------
 					//-------------------------------------------------------------------------
-					FkManager reportId = new FkManager("T_REPORT", "Report_ID");
+							FkManager reportId = new FkManager("T_REPORT", "Report_ID");
 						   reportId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 						   FkManager reportFieldCondGroupId = new FkManager("T_REPORT_2_FIELD_COND_GROUP", "Report_2_Field_Cond_Group_ID");
@@ -351,180 +350,126 @@ namespace Process_Export_Import
 						   FkManager reportTypenId = new FkManager("T_REPORT_TYPE", "Report_Type_ID");
 						   reportTypenId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 		   #endregion
-						   #region rajz
-						   //-----------DRAW--------------------------------------------------------------
-						   //-----------------------------------------------------------------------------
-						   FkManager procDesignDrawId = new FkManager("T_PROC_DESIGN_DRAW", "Proc_Design_Draw_ID");
-						   procDesignDrawId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					#region rajz
+					//-----------DRAW--------------------------------------------------------------
+					//-----------------------------------------------------------------------------
+					FkManager procDesignDrawId = new FkManager("T_PROC_DESIGN_DRAW", "Proc_Design_Draw_ID");
+					procDesignDrawId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager procDesignDrawPartId = new FkManager("T_PROC_DESIGN_DRAW_PART", "Proc_Design_Draw_Part_ID");
-						   procDesignDrawPartId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager procDesignDrawPartId = new FkManager("T_PROC_DESIGN_DRAW_PART", "Proc_Design_Draw_Part_ID");
+					procDesignDrawPartId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager procDesignDrawPartDetailId = new FkManager("T_PROC_DESIGN_DRAW_PART_DETAIL", "Proc_Design_Draw_Part_Detail_ID");
-						   procDesignDrawPartDetailId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager procDesignDrawPartDetailId = new FkManager("T_PROC_DESIGN_DRAW_PART_DETAIL", "Proc_Design_Draw_Part_Detail_ID");
+					procDesignDrawPartDetailId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					//	   FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
-					//	   procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+			//	   FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
+			//	   procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
-						   procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-			   #endregion
-							   #region TypeTables
-						   //-----------TYPE TABLES--------------------------------------------------------
-						   //-----------------------------------------------------------------------------
+					FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
+					procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+		#endregion
+					#region TypeTables
+					//-----------TYPE TABLES--------------------------------------------------------
+					//-----------------------------------------------------------------------------
 				
-						   FkManager categoryType = new FkManager("T_CATEGORY", "NAME");
-						   categoryType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager categoryType = new FkManager("T_CATEGORY", "NAME");
+					categoryType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-							FkManager notificationType = new FkManager("T_NOTIFICATION_TYPE", "NOTIFICATION_TYPE");
-							notificationType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager notificationType = new FkManager("T_NOTIFICATION_TYPE", "NOTIFICATION_TYPE");
+					notificationType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-							FkManager notificationRecipientType = new FkManager(" T_NOTIFICATION_RECIPIENT_TYPE", "Name");
-							notificationRecipientType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager notificationRecipientType = new FkManager(" T_NOTIFICATION_RECIPIENT_TYPE", "Name");
+					notificationRecipientType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-							FkManager reportType = new FkManager("T_REPORT_TYPE", "Name");
-							reportType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager reportType = new FkManager("T_REPORT_TYPE", "Name");
+					reportType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager activityBeforeFinishCheckQueryType = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Name");
-						   activityBeforeFinishCheckQueryType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager activityBeforeFinishCheckQueryType = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Name");
+					activityBeforeFinishCheckQueryType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager activityParticipantType = new FkManager("T_ACTIVITY_PARTICIPANT_TYPE", "Name");
-						   activityParticipantType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager activityParticipantType = new FkManager("T_ACTIVITY_PARTICIPANT_TYPE", "Name");
+					activityParticipantType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager calcFieldConstantType = new FkManager("T_CALCULATED_FIELD_CONSTANT_TYPE", "Name");
-						   calcFieldConstantType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager calcFieldConstantType = new FkManager("T_CALCULATED_FIELD_CONSTANT_TYPE", "Name");
+					calcFieldConstantType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager calcFieldResultType = new FkManager("T_CALCULATED_FIELD_RESULT_TYPE_ID", "Name");
-						   calcFieldResultType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager calcFieldResultType = new FkManager("T_CALCULATED_FIELD_RESULT_TYPE_ID", "Name");
+					calcFieldResultType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager chartFieldType = new FkManager("T_CHART_FIELD_TYPE", "Name");
-						   chartFieldType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager chartFieldType = new FkManager("T_CHART_FIELD_TYPE", "Name");
+					chartFieldType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager chartType = new FkManager("T_CHART_TYPE", "Name");
-						   chartType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager chartType = new FkManager("T_CHART_TYPE", "Name");
+					chartType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager compareType = new FkManager("T_COMPARE_OPERATION", "Name");
-						   compareType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager compareType = new FkManager("T_COMPARE_OPERATION", "Name");
+					compareType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager fieldDateType = new FkManager("T_FIELD_DATE_TYPE", "Date_Field_Type_ID");
-						   fieldDateType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager fieldDateType = new FkManager("T_FIELD_DATE_TYPE", "Date_Field_Type_ID");
+					fieldDateType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager fieldDocReferenceImportType = new FkManager("T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", "Name");
-						   fieldDocReferenceImportType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager fieldDocReferenceImportType = new FkManager("T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", "Name");
+					fieldDocReferenceImportType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager fieldGroupToFieldGroupDepType = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", "Field_Group_To_Field_Group_Dependency_Type_Name");
-						   fieldGroupToFieldGroupDepType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager fieldGroupToFieldGroupDepType = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", "Field_Group_To_Field_Group_Dependency_Type_Name");
+					fieldGroupToFieldGroupDepType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager fileFieldType = new FkManager("T_FILE_FIELD_TYPE", "Name");
-						   fileFieldType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager fileFieldType = new FkManager("T_FILE_FIELD_TYPE", "Name");
+					fileFieldType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-						   FkManager procDesignDrawPartType = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Name");
-						   procDesignDrawPartType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
-						   #endregion
-							   #region egyébTáblák
-							   //-----------ALL OTHER---------------------------------------------------------
-							   //-----------------------------------------------------------------------------
+					FkManager procDesignDrawPartType = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Name");
+					procDesignDrawPartType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					#endregion
+					#region egyébTáblák
+						//-----------ALL OTHER---------------------------------------------------------
+						//-----------------------------------------------------------------------------
 
-						   FkManager roleId = new FkManager("T_ROLE", "Role_ID");
-						   roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager roleId = new FkManager("T_ROLE", "Role_ID");
+					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
-						   userDefinedTableId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
+					userDefinedTableId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager chartTypeId = new FkManager("T_CHART_TYPE", "Chart_Type_ID");
-						   chartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager chartTypeId = new FkManager("T_CHART_TYPE", "Chart_Type_ID");
+					chartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager chartTypeFiekldId = new FkManager("T_CHART_FIELD_TYPE", "Chart_Type_Field_ID");
-						   chartTypeFiekldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager chartTypeFiekldId = new FkManager("T_CHART_FIELD_TYPE", "Chart_Type_Field_ID");
+					chartTypeFiekldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   //FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
-						   //compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					//FkManager compareOperationId = new FkManager("T_COMPARE_OPERATION", "Compare_Operation_ID");
+					//compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager notificationId = new FkManager("T_NOTIFICATION", "Notification_ID");
-						   notificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager notificationId = new FkManager("T_NOTIFICATION", "Notification_ID");
+					notificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager formulaStepId = new FkManager("T_FORMULA_STEPS", "FORMULA_STEPS_ID");
-						   formulaStepId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager formulaStepId = new FkManager("T_FORMULA_STEPS", "FORMULA_STEPS_ID");
+					formulaStepId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						   FkManager operandId = new FkManager("T_OPERAND", "OPERAND_ID");
-						   operandId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager operandId = new FkManager("T_OPERAND", "OPERAND_ID");
+					operandId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						  FkManager notificationTriggerId = new FkManager("T_NOTIFICATION_TRIGGER", "Notification_Trigger_ID");
-						  notificationTriggerId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager notificationTriggerId = new FkManager("T_NOTIFICATION_TRIGGER", "Notification_Trigger_ID");
+					notificationTriggerId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-						  FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
-						  fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-
-
+					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
+					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					#endregion
-					//  #region Insert
-					//-----------START INSERT------------------------------------------------------
-					//-----------------------------------------------------------------------------
-					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
-						 {
-
-							 if (tableName != "T_DB_CONNECTION" && tableName != "T_CATEGORY")
-							 {
-
-								 if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
-								 {
-
-									 if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
-									 {
-									
-										insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
-									 }
-									 else
-									 {
-
-										insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
-
-									 }
-
-								 }
-							 }
-
-						 };
-
-
-						 foreach (string tableName in tableInfo.getSecondRoundInsertTables())
-						 {
-
-							 if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT"  && tableName != "T_LANGUAGE" && tableName !=  "T_CATEGORY"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION")
-							 {
-
-								 if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
-								 {
-									 if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
-									 {
-									
-										insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
-
-									 }
-									 else
-									 {
-										
-										 insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
-									 }
-
-								 }
-							 }
-
-						 }
-
-
-
-                    
-                    string json = o.ToString();
-
-
-                    string json = JsonConvert.SerializeObject("alma");
-
-                    insertResultInfo.Add("email_address : " + false.ToString());    
+					#region generateResponseObject
+					response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
+					if (general.detectNotificationEmailAddress(connectionManager))
+					{
+                        response.EmailAddressFound = true;
+                        response.NotificationAddresses = general.detectNotificationAddresses(connectionManager);
+						general.deleteNotificationAddresses(connectionManager);
+					}
+						
+					var result = JsonConvert.SerializeObject(response);
+					insertResultInfo.Add(result);
+					#endregion
 				}
 
-                catch (Exception ex)
+				catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
 				}
@@ -537,6 +482,79 @@ namespace Process_Export_Import
 		}
 
 		[OperationContract]
+		public List<string> ImportData(string fileName , string emailAddress, List<KeyValuePair<string, int>> activityParticipants )
+		{
+			var connectionManager = new ConnectionManagerST();
+			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
+			connectionManager.openSqLiteConnection(sqliteSource);
+			connectionManager.openSqlServerConnection();
+			TableManager tableInfo = new TableManager();
+			List<string> listOfTablesWhereIdentityInsertNeeded = tableInfo.listOfTablesWhereIdentityInsertNeeded();
+			List<string> secondRoundInsertTablesWithoutIdentityProprty = tableInfo.secondRoundInsertTablesWithoutIdentityProprty();
+			List<string> insertresultInfo = new List<string>();
+			try
+			{
+			
+				foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+				{
+
+					if (tableName != "T_DB_CONNECTION" && tableName != "T_CATEGORY")
+					{
+
+						if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+						{
+
+							if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
+							{
+
+								insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+							}
+							else
+							{
+
+								insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
+							}
+
+						}
+					}
+
+				}
+
+				foreach (string tableName in tableInfo.getSecondRoundInsertTables())
+				{
+
+					if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION")
+					{
+
+						if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+						{
+							if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
+							{
+
+								insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
+							}
+							else
+							{
+
+								insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+							}
+
+						}
+					}
+
+				}
+			}
+			catch (Exception ex)
+			{
+				insertresultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			}
+
+			return insertresultInfo;
+
+		}
+
 		public List<string> insertValuesFromDbFileToSqlServer(string tableName, bool needToSetIdentityInsertOn, ConnectionManagerST obj)
 		{
 			List<string> insertresultInfo = new List<string>();
@@ -651,22 +669,9 @@ namespace Process_Export_Import
 			}
 			return insertresultInfo;
 		}
-		#region rajzal_kapcsolatos_dolgok
-
-		public List<string> allTableRelatedToDraws = new List<string> { "T_PROCESS", "T_PROCESS_DESIGN", "T_PROC_DESIGN_DRAW", "T_PROC_DESIGN_DRAW_PART", "T_ROUTING_DESIGN", "T_ACTIVITY_DESIGN", "T_PROC_DESIGN_DRAW_PART_DETAIL", "T_PROC_DESIGN_DRAW_PART_TYPE" };
-		//51 T_PROC_DESIGN_DRAW
-		/*
-		52 T_PROC_DESIGN_DRAW_PART
-		53 T_PROC_DESIGN_DRAW_PART_DETAIL
-		54 T_PROC_DESIGN_DRAW_PART_TYPE
-		55 T_PROCESS
-		56 T_PROCESS_DESIGN  
-		*/
 	
-
-		#endregion
 		#region table_infos_+_smaller_help_functions
-	
+
 		private Dictionary<string, string> getColumnTypesDictionary_v3(string CWPTableName, ConnectionManagerST obj)
 		{
 			Dictionary<string, string> fields = new Dictionary<string, string>();
@@ -679,9 +684,6 @@ namespace Process_Export_Import
 			return fields;
 
 		}
-
-		
-
 
 	public enum ProcessReasonType
 	{
@@ -751,82 +753,8 @@ namespace Process_Export_Import
 
 	}
 
+
 /*
- T_PROCESS
- T_PROCESS_DESIGN
- T_PROC_DESIGN_DRAW
- T_PROC_DESIGN_DRAW_PART
- T_PROC_DESIGN_DRAW_PART_DETAIL
-
- T_ROUTING
- T_ROUTING_CONDITION
- T_ROUTING_CONDITION_GROUP
- T_ROUTING_DESIGN
- T_FIELD 
- T_FIELD_CONDITION_GROUP
-
- T_FIELD_CONDITION
- T_FIELD_DATE_CONSTRAINT
- T_FIELD_DATE_TYPE
- T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE
- T_FIELD_EXTENSION_NUMBER
- T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY
- T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE
- T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE
- T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS
- T_FIELD_LABEL_TRANSLATION
- T_FIELD_TEXT_FORMAT_TYPE
- T_FIELD_TYPE
- T_FIELD_VALUE
- T_FILE_FIELD_TYPE
-
- T_ACTIVITY
- T_ACTIVITY_DESIGN
- T_ACTIVITY_FIELDS
- T_ACTIVITY_FIELDS_FOR_ESIGNING
- T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION
- T_ACTIVITY_DEPENDENT_COMPONENT
- T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION
- T_ACTIVITY_FIELDS_UI_PARAMETERS
- T_DYNAMIC ROUTING 
-
- T_PERSON
- T_DEPARTMENT
- T_DEPARTMENT_MEMBERS
- T_CALCFIELD
- T_CALCFIELD_FORMULA_STEPS
- T_CALCFIELD_OPERAND
- T_CALCULATED_FIELD_RESULT_TYPE_ID
- T_CATEGORY
- T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
-
- T_USER_DEFINED_TABLE
- T_FORMULA_STEPS 
- T_OPERAND
- T_PROCESS_OWNER
- T_PROCESS_READER
-
- T_PROCFIELD_PARTICIPANT
- T_PROCFIELD_WORD_MERGE
- T_PROCFIELD_WORD_MERGE_FIELD
- T_REPORT_FIELD
- T_REPORT
- T_REPORT_2_FIELD_COND_GROUP
- T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE
- T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE
-
- T_REPORT_EDIT_OWNER
- T_REPORT_FIELD_UDT_COLUMNS
- T_REPORT_FILTER
- T_REPORT_GROUP
-
- T_REPORT_GROUP_ADMINISTRATOR
- T_REPORT_OWNERS
- T_REPORT_REFERENCED_FIELD_LOCATION
- T_ROLE
- T_ROLE_MEMBERS
-
-
   T_SUBPROCESS
   T_ACTIVITY_OWNER_BY_COND_PARTICIPANT
   T_ACTIVITY_OWNER_BY_CONDITION
@@ -834,10 +762,7 @@ namespace Process_Export_Import
   T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP
   T_ACTIVITY_PARTICIPANT
   T_ACTIVITY_UI_COMPONENT
-
-  
- * *  
-*  */
+*/
 
 /*  EZEK KIMARADTAK, KELLENEK !!!!
 *  
@@ -849,70 +774,7 @@ namespace Process_Export_Import
   T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS
   T_FIELD_VALUE_TRANSLATION
 */
-//private  ServiceCallResult CreateDatabase( int process_id) {
-//  string fileName        = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + "/" ;
-//  if (!Directory.Exists(ConfigurationManager.AppSettings.Get("sqlite_databases_root")))   {
-//      Directory.CreateDirectory(ConfigurationManager.AppSettings.Get("sqlite_databases_root"));
-//  }
 
-//  ServiceCallResult res = new ServiceCallResult {Code=0,Description="OK" };
-//  // get process name
-//  string connStr = ConfigurationManager.AppSettings.Get("connstr");
-//  string strSQL  = "SELECT Name FROM T_PROCESS WHERE Process_Id = @processId";
-//  string processName = "";
-//  using (SqlConnection connection = new SqlConnection(connStr)) {
-//      SqlCommand command = new SqlCommand(strSQL, connection);
-//      command.Parameters.AddWithValue("@processId", process_id);
-//      try
-//      {
-//        connection.Open();
-//        SqlDataReader reader;
-//        reader = command.ExecuteReader();
-//        reader.Read();
-//        processName = reader["Name"].ToString();
-//        reader.Close();
-//      }
-//      catch (Exception ex)
-//      {
-//        res = FillServiceCallResult(ex);
-//      }
-//      processName = processName.Replace(" ","_");
-//      if( processName == "") {
-//        processName = "John_Doe";
-//      } 
-//      fileName = fileName + processName + ".db";
-//      try {
-//        if( File.Exists(fileName)) {
-//            GC.Collect();
-//            GC.WaitForPendingFinalizers();
-//            File.Delete(fileName);
-//         }
-//        SQLiteConnection.CreateFile(fileName);
-//        string connSqlite = String.Format("Data Source={0} ;Version=3;",fileName);
-
-//        SQLiteConnection connSQLite = new SQLiteConnection(connSqlite);
-//        string strSql = "create table table_information(";
-//        strSql += "TABLE_NAME VARCHAR(100),COLUMN_NAME VARCHAR(100), COLUMN_DEFAULT VARCHAR(10) NULL,";
-//        strSql += "IS_NULLABLE  VARCHAR(10) ,DATA_TYPE VARCHAR(30),";
-//        strSql += "CHARACTER_MAXIMUM_LENGTH INTEGER NULL, NUMERIC_PRECISION INT NULL";
-//        strSql+= ")";
-//        connSQLite.Open();
-//       //conn.SetPassword("password");
-//        SQLiteCommand sqliteCommand = new SQLiteCommand(strSql, connSQLite);
-//        sqliteCommand.ExecuteNonQuery();
-//        sqliteCommand = null;         
-//        connSQLite.Close();
-
-//      }
-//      catch(Exception ex) {
-//        res = FillServiceCallResult(ex);
-//        return res;
-//      }
-
-//  }
-
-//  return res;
-//}
 
 #endregion
 

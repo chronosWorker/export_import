@@ -630,6 +630,47 @@ namespace Process_Export_Import
             obj.executeQueriesInDbFile(commandText);
         }
 
+        public List<KeyValuePair<string, int>> detectActivityParticipants(ConnectionManagerST obj)
+        {
+            var ActivityParticipants = new List<KeyValuePair<string, int>>();
+            string commandText = "Select distinct actP.Participant_ID , act.Name, actP.Participant_type from T_ACTIVITY_PARTICIPANT actP left join t_ACTIVITY act on actP.Activity_Id = act.Activity_Id";
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    if (Convert.ToInt32(reader["participant_type"]) == 1)
+                    {
+                        ActivityParticipants.Add(new KeyValuePair<string, int>(reader["Name"].ToString(), Convert.ToInt32(reader["Participant_ID"])));
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return ActivityParticipants;
+        }
+
+        public List<KeyValuePair<string, string>> detectNotificationAddresses(ConnectionManagerST obj)
+        {
+            var NotificationAddresses = new List<KeyValuePair<string, string>>();
+            string commandText = "select distinct  noA.address_email ,  noti.Notification_Name  from T_NOTIFICATION_ADDRESS noA left join T_NOTIFICATION noti on noti.Notification_ID = noA.Notification_ID;";
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    NotificationAddresses.Add(new KeyValuePair<string, string>(reader["Notification_Name"].ToString(), reader["address_email"].ToString()));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return NotificationAddresses;
+        }
+
         /*  public string checkNotificaionEmailAddressIfFoundSendBackData(ConnectionManagerST obj)
           {
               if(detectNotificationEmailAddress(obj))
