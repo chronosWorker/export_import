@@ -72,10 +72,8 @@ namespace Process_Export_Import
 			List<long> ret = new List<long>();
 			string strSQLServer;
 
-
-
 			//strSQLServer = "SELECT * FROM T_FIELD WHERE PROCESS_ID =" + pid.ToString();
-			strSQLServer = "SELECT T_ACTIVITY.Process_ID, T_ACTIVITY_FIELDS.Field_ID FROM T_ACTIVITY_FIELDS INNER JOIN " +
+			strSQLServer = "SELECT distinct T_ACTIVITY.Process_ID, T_ACTIVITY_FIELDS.Field_ID FROM T_ACTIVITY_FIELDS INNER JOIN " +
 						 " T_ACTIVITY ON T_ACTIVITY_FIELDS.Activity_ID = T_ACTIVITY.Activity_ID WHERE PROCESS_ID=" + pid.ToString();
 
 
@@ -157,7 +155,10 @@ namespace Process_Export_Import
 		{
 
 			ServiceCallResult res = new ServiceCallResult();
-			res = getSqlitePath_v2(processId, obj);
+			if(!recurs)
+			{
+				res = getSqlitePath_v2(processId, obj);
+			}
 
 			Int64 processDesignId = getProcessDesignIdFromProcess_v2(processId, obj);
 			Int64 procDesignDrawId = getProcessDesignDrawId_v2(processDesignId, obj);
@@ -400,7 +401,7 @@ namespace Process_Export_Import
 					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
 					while (readerNotificationAddress.Read())
 					{
-					    // activityOwnerByCondition_v2.Add(Convert.ToInt64(readerNotificationTriggers["Activity_Owner_By_Condition_Id"].ToString()));
+						// activityOwnerByCondition_v2.Add(Convert.ToInt64(readerNotificationTriggers["Activity_Owner_By_Condition_Id"].ToString()));
 						strSQLiteValues = "";
 						for (int j = 0; j < readerNotificationAddress.FieldCount; j++)
 						{
@@ -2420,7 +2421,7 @@ namespace Process_Export_Import
 			string strMSSqlChild;
 			processes_v2.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
 			// -----  ProcessReasonType.SubProcess
-
+            /*
 			string cmdTxt = "SELECT * FROM T_ACTIVITY_FIELDS";
 			var reader = obj.sqlServerDataReaderOld(cmdTxt);
 			while (reader.Read())
@@ -2454,7 +2455,7 @@ namespace Process_Export_Import
 					}
 				}
 			}
-
+            */
 			// -----  ProcessReasonType.Report ----------------------------------------
 
 			string cmdTxt2 = "SELECT * FROM T_REPORT_FIELD";
@@ -2794,23 +2795,23 @@ namespace Process_Export_Import
 			return res;
 		}
 
-        public List<int> checkIfSubProcessExist(ConnectionManagerST obj , int mainProcessId)
-        {
-            List<int> subProcessIds = new List<int>();
-            string checkForSubProcessQuery = "Select Process_ID from T_PROCESS where Parent_Process_ID = " + mainProcessId.ToString();
-            var reader = obj.sqlServerDataReaderOld(checkForSubProcessQuery);
-            try { 
-                while (reader.Read())
-                {
-                    subProcessIds.Add(Convert.ToInt32(reader["Process_ID"]));
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+		public List<int> checkIfSubProcessExist(ConnectionManagerST obj , int mainProcessId)
+		{
+			List<int> subProcessIds = new List<int>();
+			string checkForSubProcessQuery = "Select Process_ID from T_PROCESS where Parent_Process_ID = " + mainProcessId.ToString();
+			var reader = obj.sqlServerDataReaderOld(checkForSubProcessQuery);
+			try { 
+				while (reader.Read())
+				{
+					subProcessIds.Add(Convert.ToInt32(reader["Process_ID"]));
+				}
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
 
-            return subProcessIds;
-        }
+			return subProcessIds;
+		}
 	}
 }

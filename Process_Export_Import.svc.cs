@@ -70,6 +70,9 @@ namespace Process_Export_Import
 			[DataMember]
 			public string InnerExceptionContent { get; set; }
 
+			[DataMember]
+			public List<string> subProcessIds { get; set; }
+
 			private string result;
 
 			public static implicit operator ServiceCallResult(string v)
@@ -79,10 +82,10 @@ namespace Process_Export_Import
 		}
 		
 		[OperationContract]
-		public ServiceCallResult Export_Process(int processId)
+        public List<string> Export_Process(int processId)
 		{
-
-			var connectionManager = new ConnectionManagerST();
+            List<string> exportInfo = new List<string>();
+           var connectionManager = new ConnectionManagerST();
 			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
 			connectionManager.openSqlServerConnection();
 			connectionManager.openOldSqlServerConnection();
@@ -93,10 +96,9 @@ namespace Process_Export_Import
 			connectionManager.openSqLiteConnection(sqliteSource);
 		//	connectionManager.setPasswordOnDbFile();
 			ExportManager.addTablesAndInfos(connectionManager);
-			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId , connectionManager);
 			if (res.Code != 0)
 			{
-				return res;
+				return exportInfo;
 			}
 			try
 			{
@@ -104,21 +106,13 @@ namespace Process_Export_Import
 				ExportManager.FillProcesses_v2(processId, connectionManager);
 				ExportManager.fieldsForProcess_v2 = new List<long>();
 
-				if (ExportManager.processes_v2.Count > 0)
-				{
-					for (int i = 0; i < ExportManager.processes_v2.Count; i++)
-					{
-						res = ExportManager.TransferProcess_v2(ExportManager.processes_v2[i].ProcessId , connectionManager);
-					}
-				}
-
-				if (processIdExistInLocalDb)
-				{
-					
-					res.Description = "notification ID: " + ExportManager.notification_id.Count.ToString() ;
-
-				}
-			
+			//	if (ExportManager.processes_v2.Count > 0)
+			//	{
+			//		for (int i = 0; i < ExportManager.processes_v2.Count; i++)
+			//		{
+						res = ExportManager.TransferProcess_v2(processId, connectionManager);
+			//		}
+			//	}
 				string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
 				if (File.Exists(fileName))
 				{
@@ -126,13 +120,21 @@ namespace Process_Export_Import
 					GC.WaitForPendingFinalizers();
 				}
 				//
+
 				List<int> subporcessIds = ExportManager.checkIfSubProcessExist(connectionManager, processId);
-				if (subporcessIds.Count >= 1)
+                exportInfo.Add("Sub:");
+                exportInfo.Add("Sub Count :" + subporcessIds.Count.ToString());
+                exportInfo.Add("processes_v2:");
+                exportInfo.Add(ExportManager.processes_v2.Count.ToString());
+                exportInfo.Add("fieldsForProcess_v2:");
+                exportInfo.Add(ExportManager.fieldsForProcess_v2.Count.ToString());
+                if (subporcessIds.Count >= 1)
 				{
 					foreach (int subProcessId in subporcessIds)
 					{
-						Export_Process_For_SubProcesses(subProcessId , connectionManager);
-					}
+                        res =  ExportManager.TransferProcess_v2(subProcessId, connectionManager, true);
+                        //Export_Process_For_SubProcesses(subProcessId , connectionManager);
+                    }
 				}
 
 			}
@@ -144,10 +146,8 @@ namespace Process_Export_Import
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 			connectionManager.closeOldSqlServerConnection();
-			return res;	
+			return exportInfo;	
 		}
-
-
 
 		[OperationContract]
 		public List<string> Check_Import(string fileName , int personId)
@@ -471,8 +471,61 @@ namespace Process_Export_Import
 						
 					var result = JsonConvert.SerializeObject(response);
 					insertResultInfo.Add(result);
-					#endregion
-				}
+                    #endregion
+                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+                    {
+
+                        if (tableName != "T_DB_CONNECTION" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT")
+                        {
+
+                            if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+                            {
+
+                                if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
+                                {
+
+                                    insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+                                }
+                                else
+                                {
+
+                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
+                                }
+
+                            }
+                        }
+
+                    }
+
+                    foreach (string tableName in tableInfo.getSecondRoundInsertTables())
+                    {
+
+                        if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" &&  tableName !=  "T_ACTIVITY_UI_COMPONENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION")
+                        {
+
+                            if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
+                            {
+                                if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
+                                {
+
+                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
+                                }
+                                else
+                                {
+
+                                    insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+                                }
+
+                            }
+                        }
+
+                    }
+
+
+
+                }
 				catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
@@ -688,56 +741,41 @@ namespace Process_Export_Import
 			return fields;
 
 		}
-		public ServiceCallResult Export_Process_For_SubProcesses(int processId , ConnectionManagerST connectionManager) { 
+		public ServiceCallResult Export_Process_For_SubProcesses(int subProcessId , ConnectionManagerST connectionManager) { 
 
-			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
-			var ExportManager = new Export();
-		   
+		//	string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
+			var ExportManager = new Export(); 
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
-			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
-			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
-			connectionManager.openSqLiteConnection(sqliteSource);
+		//	res = ExportManager.getSqlitePath_v2(processId, connectionManager);
+		//	res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
+		//	connectionManager.openSqLiteConnection(sqliteSource);
 		//	connectionManager.setPasswordOnDbFile();
-			ExportManager.addTablesAndInfos(connectionManager);
-			bool processIdExistInLocalDb = ExportManager.CheckIfProcessExistInDatabase_v2(processId, connectionManager);
-			if (res.Code != 0)
-			{
-				return res;
-			}
+		//	ExportManager.addTablesAndInfos(connectionManager);
 			try
 			{
 				ExportManager.processes_v2 = new List<ProcessListItem>();
-				ExportManager.FillProcesses_v2(processId, connectionManager);
+				//ExportManager.FillProcesses_v2(subProcessId, connectionManager);
 				ExportManager.fieldsForProcess_v2 = new List<long>();
-
-				if (ExportManager.processes_v2.Count > 0)
-				{
-					for (int i = 0; i<ExportManager.processes_v2.Count; i++)
-					{
-						res = ExportManager.TransferProcess_v2(ExportManager.processes_v2[i].ProcessId , connectionManager);
-					}
-				}
-
-				if (processIdExistInLocalDb)
-				{
-					
-					res.Description = "notification ID: " + ExportManager.notification_id.Count.ToString() ;
-
-				}
+			//	if (ExportManager.processes_v2.Count > 0)
+				//{
+				//	for (int i = 0; i < ExportManager.processes_v2.Count; i++)
+			//		{
+						res = ExportManager.TransferProcess_v2(subProcessId, connectionManager , true);
+		//			}
+			//	}
 			}
 			catch (Exception e)
 			{
 					res = ExportManager.FillServiceCallResult_v2(e);
 
 			}
-			
-			string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+		/*	string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
 			if (File.Exists(fileName))
 			{
 				GC.Collect();
 				GC.WaitForPendingFinalizers();
 			}
-
+			*/
 			return res;	
 	}
 	public enum ProcessReasonType
