@@ -199,7 +199,8 @@ namespace Process_Export_Import
                 "T_PROC_DESIGN_DRAW",
                 "T_PROC_DESIGN_DRAW_PART",
                 "T_PROC_DESIGN_DRAW_PART_DETAIL",
-                "T_REPORT_GROUP"
+                "T_REPORT_GROUP",
+                "T_FIELD_EXTENSION_NUMBER"
                 };
             return listOfTablesWhereIdentityInsertNeeded;
         }   

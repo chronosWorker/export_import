@@ -340,26 +340,36 @@ namespace Process_Export_Import
         public List<string> changeProcessName(ConnectionManagerST obj)
         {
             List<string> newNameList = new List<string>();
-            string processName = "";
+            List<string> processNameList = new List<string>();
+            int processImportedQuantity = 0;
             var reader = obj.sqLiteDataReader("Select Name from T_PROCESS");
             while (reader.Read())
             {
-                processName = reader["Name"].ToString();
+                processNameList.Add(reader["Name"].ToString());
             }
-            int processImportedQuantity = selectCountImportedProcesses(obj, processName);
+            foreach (string processName in processNameList)
+            {       
+                processImportedQuantity += selectCountImportedProcesses(obj, processName);
+            }
             if (processImportedQuantity == 0)
             {
-                string newProcessName = processName + " (IMPORTED)";
-                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED";
-                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
-                obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+                foreach (string processName in processNameList)
+                {
+                    string newProcessName = processName + " (IMPORTED)";
+                    string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED";
+                    string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
+                    obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+                }
             }
             else
             {
-                string newProcessName = processName + " (IMPORTED_" + processImportedQuantity.ToString() + ")";
-                string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString();
-                string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
-                obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+                foreach (string processName in processNameList)
+                {
+                    string newProcessName = processName + " (IMPORTED_" + processImportedQuantity.ToString() + ")";
+                    string newProcessTechnicalName = processName.Replace(" ", "_") + "_IMPORTED_" + processImportedQuantity.ToString();
+                    string newProcessNameUpdateQuery = " UPDATE T_PROCESS SET NAME = '" + newProcessName + "' WHERE NAME =  '" + processName + "'";
+                    obj.executeQueriesInDbFile(newProcessNameUpdateQuery);
+                }
             }
             return newNameList;
 
@@ -639,9 +649,12 @@ namespace Process_Export_Import
             {
                 while (reader.Read())
                 {
-                    if (Convert.ToInt32(reader["participant_type"]) == 1)
+                    if (reader["participant_type"] != "")
                     {
-                        ActivityParticipants.Add(new KeyValuePair<string, int>(reader["Name"].ToString(), Convert.ToInt32(reader["Participant_ID"])));
+                        if (Convert.ToInt32(reader["participant_type"]) == 1)
+                        {
+                            ActivityParticipants.Add(new KeyValuePair<string, int>(reader["Name"].ToString(), Convert.ToInt32(reader["Participant_ID"])));
+                        }
                     }
                 }
             }
@@ -670,9 +683,62 @@ namespace Process_Export_Import
             }
             return NotificationAddresses;
         }
+        //
+        public List<KeyValuePair<string, string>> getNullableTableAndColumnName(ConnectionManagerST obj)
+        {
+            List <KeyValuePair<string, string>> nullaAbleTableAndColumns = new List<KeyValuePair<string, string>>();
+            string detectcommandText = "Select table_name , column_name from table_information where is_nullable = 'YES'";
+            var reader = obj.sqLiteDataReader(detectcommandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    nullaAbleTableAndColumns.Add(new KeyValuePair<string, string>(reader["table_name"].ToString(), reader["column_name"].ToString()));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return nullaAbleTableAndColumns;
+        }
+
+        public bool isNullableColumnValueEmpty(ConnectionManagerST obj, string tableName, string columnName)
+        {
+            bool recordIsEmpty = false;
+            string commandText = "Select " + columnName + " from " + tableName ;
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    if (reader[columnName].ToString() == "")
+                    {
+                        recordIsEmpty = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return recordIsEmpty;
+        }
+
+        public void updateNullableEmptyFieldsToNull(ConnectionManagerST obj, List<KeyValuePair<string, string>> nullableTableAndColumnNameList)
+        {
+            foreach (KeyValuePair<string, string> tableColumnNamePair in nullableTableAndColumnNameList)
+            {
+                if (isNullableColumnValueEmpty(obj, tableColumnNamePair.Key, tableColumnNamePair.Value))
+                {
+              //      string updateNullCommandText =   +
 
 
-
+                }
+            }
+        }
 
         /*  public string checkNotificaionEmailAddressIfFoundSendBackData(ConnectionManagerST obj)
           {
