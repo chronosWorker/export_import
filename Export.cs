@@ -376,14 +376,25 @@ namespace Process_Export_Import
 					var fieldConditionGroupReader = obj.sqlServerDataReaderOld(strMsSQL);
 					while (fieldConditionGroupReader.Read())
 					{
+						int field_condition_group_id_value = Convert.ToInt32(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString());
+
 						field_condition_group_id.Add(Convert.ToInt64(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString()));
+
+						if (gen_inf.distinct_field_condition_group_id.IndexOf(field_condition_group_id_value) == -1)
+						{
+							gen_inf.distinct_field_condition_group_id.Add(field_condition_group_id_value);
+						}
+						else
+						{
+							gen_inf.distinct_field_condition_group_id.RemoveAll(item => item == field_condition_group_id_value);
+						}
 					}
 				}
-              
-                columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION_GROUP", obj);
-				for (var i = 0; i < field_condition_group_id.Count; i++)
+			  
+				columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION_GROUP", obj);
+				for (var i = 0; i < gen_inf.distinct_field_condition_group_id.Count; i++)
 				{
-					strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION_GROUP WHERE Field_Condition_Group_Id = " + field_condition_group_id[i].ToString();
+					strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION_GROUP WHERE Field_Condition_Group_Id = " + gen_inf.distinct_field_condition_group_id[i].ToString();
 					var readerFieldGroupCondition = obj.sqlServerDataReaderOld(strMsSQLDataChild);
 					strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION_GROUP " + " ( ";
 					currType = "";
@@ -1045,65 +1056,65 @@ namespace Process_Export_Import
 						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 					}
 				}
-                #endregion
+				#endregion
 
-                #region T_ROUTING_DESIGN
-                bool design_exits_to_this_process = gen_inf.subProcess_id_with_existing_desgn.IndexOf(Convert.ToInt32(processId)) != -1;
-                if (!design_exits_to_this_process)
-                {
-                    columnTypes = getColumnTypesDictionary_v3("T_ROUTING_DESIGN", obj);
-				    string reader11CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-				    var reader11 = obj.sqlServerDataReaderOld(reader11CmdTxt);
-				    while (reader11.Read())
-				    {
-					    strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + reader11["ROUTING_DESIGN_ID"].ToString();
-					    var reader11Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
-					    strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
-					    currType = "";
+				#region T_ROUTING_DESIGN
+				bool design_exits_to_this_process = gen_inf.subProcess_id_with_existing_desgn.IndexOf(Convert.ToInt32(processId)) != -1;
+				if (!design_exits_to_this_process)
+				{
+					columnTypes = getColumnTypesDictionary_v3("T_ROUTING_DESIGN", obj);
+					string reader11CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
+					var reader11 = obj.sqlServerDataReaderOld(reader11CmdTxt);
+					while (reader11.Read())
+					{
+						strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + reader11["ROUTING_DESIGN_ID"].ToString();
+						var reader11Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+						strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
+						currType = "";
 
-					    foreach (KeyValuePair<string, string> entry in columnTypes)
-					    {
-						    switch (entry.Value)
-						    {
-							    case "binary":
-							    case "varbinary":
-							    case "image":
-								    break;
-							    default:
-								    {
-									    strSqLiteSQL += entry.Key + ",";
-									    break;
-								    }
-						    }
-					    }
-					    strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-					    while (reader11Child.Read())
-					    {
-						    strSQLiteValues = "";
-						    for (int j = 0; j < reader11Child.FieldCount; j++)
-						    {
-							    columnTypes.TryGetValue(reader11Child.GetName(j), out currType);
-							    switch (currType)
-							    {
-								    case "binary":
-								    case "varbinary":
-								    case "image":
-									    break;
-								    default:
-									    {
-										    strSQLiteValues += "'" + reader11Child[j].ToString().Replace("'", "''") + "',";
-										    break;
-									    }
-							    }
-						    }
-						    strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						    obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
-					    }
-				    }
-                }
-                #endregion
-                #region T_FIELD_CONDITION
-                columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION", obj);
+						foreach (KeyValuePair<string, string> entry in columnTypes)
+						{
+							switch (entry.Value)
+							{
+								case "binary":
+								case "varbinary":
+								case "image":
+									break;
+								default:
+									{
+										strSqLiteSQL += entry.Key + ",";
+										break;
+									}
+							}
+						}
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (reader11Child.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < reader11Child.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(reader11Child.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + reader11Child[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+						}
+					}
+				}
+				#endregion
+				#region T_FIELD_CONDITION
+				columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION", obj);
 				string reader12CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
 				var reader12 = obj.sqlServerDataReaderOld(reader12CmdTxt);
 				while (reader12.Read())
@@ -3029,23 +3040,6 @@ namespace Process_Export_Import
 			return subProcessIds;
 		}
 
-		public void updateMainProcessIdForSubprocesses(ConnectionManagerST obj, int mainProcessId , List<int> subProcessIds)
-		{
-
-			try
-			{
-				foreach(int subProcessId in subProcessIds)
-				{
-					string commandText = "Update T_PROCESS set Parent_Process_ID = " + mainProcessId.ToString() + " where Process_Id = " + subProcessId.ToString();
-					obj.executeQueriesInDbFile(commandText);
-				}
-			   
-			}
-			catch (Exception ex)
-			{
-				throw ex;
-			}
-
-		}
+		
 	}
 }

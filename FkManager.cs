@@ -721,5 +721,41 @@ namespace Process_Export_Import
               }
 
           }*/
+
+        //
+        public int getMainProcessId(ConnectionManagerST obj)
+        {
+            int mainProcessId = 0;
+            string commandText = "Select Process_Id from T_PROCESS where Parent_Process_ID  is null;";
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    mainProcessId = Convert.ToInt32(reader["Process_Id"]);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return mainProcessId;
+
+        }
+
+        public void updateMainProcessIdForSubprocesses(ConnectionManagerST obj, int mainProcessId)
+        {
+            try
+            { 
+                string commandText = "Update T_PROCESS set Parent_Process_ID = " + mainProcessId.ToString() + " where Parent_Process_ID is not null;";
+                obj.executeQueriesInDbFile(commandText);    
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+        }
+
     }
 }

@@ -85,14 +85,14 @@ namespace Process_Export_Import
 		public List<string> Export_Process(int processId)
 		{
 			List<string> exportInfo = new List<string>();
-		   var connectionManager = new ConnectionManagerST();
+		    var connectionManager = new ConnectionManagerST();
+			var ExportManager = new Export();
+			var General_Info = new General_Info();
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + processId.ToString() + ".db; Version=3;";
 			connectionManager.openSqlServerConnection();
 			connectionManager.openOldSqlServerConnection();
-			var ExportManager = new Export();
-			var General_Info = new General_Info();
 
-			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
 			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
 			connectionManager.openSqLiteConnection(sqliteSource);
@@ -122,7 +122,7 @@ namespace Process_Export_Import
 				
 				if (subporcessIds.Count >= 1)
 				{
-					ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
+				//	ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
 					foreach (int subProcessId in subporcessIds)
 					{
 						Export_Process_For_SubProcesses(subProcessId , connectionManager , General_Info);
@@ -170,16 +170,17 @@ namespace Process_Export_Import
 					general.updateProcessDesignDrawCreationDateToToday(connectionManager);
 					general.setImportPersonToProcessOwner(connectionManager, personId);
                     general.updateNullableEmptyFieldsToNull(connectionManager);
+                  
 
                     #endregion
-                        #region process
-                        //-----------PROCESS-------------------------------------------------------
-                        //-------------------------------------------------------------------------
+                    #region process
+                    //-----------PROCESS-------------------------------------------------------
+                    //-------------------------------------------------------------------------
 
-                        FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
+                    FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
 					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
@@ -443,7 +444,7 @@ namespace Process_Export_Import
 					//-----------ALL OTHER---------------------------------------------------------
 					//-----------------------------------------------------------------------------
 
-					FkManager roleId = new FkManager("T_ROLE", "Role_ID");
+					FkManager roleId = new FkManager("T_ROLE", "Role_ID"); 
 					roleId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager userDefinedTableId = new FkManager("T_USER_DEFINED_TABLE", "USER_DEFINED_TABLE_ID");
@@ -473,9 +474,12 @@ namespace Process_Export_Import
 					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
 					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					#endregion
-					#region generateResponseObject
-					response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
+                    #endregion
+                    #region generateResponseObject
+                    int mainProcessId = general.getMainProcessId(connectionManager);
+                    insertResultInfo.Add("Main ID  " + mainProcessId.ToString());
+                    general.updateMainProcessIdForSubprocesses(connectionManager, mainProcessId);
+                    response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
 					if (general.detectNotificationEmailAddress(connectionManager))
 					{
 						response.EmailAddressFound = true;
@@ -522,7 +526,7 @@ namespace Process_Export_Import
 							{
 								if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
 								{
-                                   insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 								}
 								else
 								{
