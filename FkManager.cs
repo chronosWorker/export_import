@@ -704,39 +704,12 @@ namespace Process_Export_Import
             return nullaAbleTableAndColumns;
         }
 
-        public bool isNullableColumnValueEmpty(ConnectionManagerST obj, string tableName, string columnName)
+        public void updateNullableEmptyFieldsToNull(ConnectionManagerST obj)
         {
-            bool recordIsEmpty = false;
-            string commandText = "Select " + columnName + " from " + tableName ;
-            var reader = obj.sqLiteDataReader(commandText);
-            try
-            {
-                while (reader.Read())
-                {
-                    if (reader[columnName].ToString() == "")
-                    {
-                        recordIsEmpty = true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-
-            return recordIsEmpty;
-        }
-
-        public void updateNullableEmptyFieldsToNull(ConnectionManagerST obj, List<KeyValuePair<string, string>> nullableTableAndColumnNameList)
-        {
-            foreach (KeyValuePair<string, string> tableColumnNamePair in nullableTableAndColumnNameList)
-            {
-                if (isNullableColumnValueEmpty(obj, tableColumnNamePair.Key, tableColumnNamePair.Value))
-                {
-              //      string updateNullCommandText =   +
-
-
-                }
+            foreach (KeyValuePair<string, string> tableColumnNamePair in getNullableTableAndColumnName(obj))   
+            {       
+                string updateNullCommandText = "Update " + tableColumnNamePair.Key + " SET " + tableColumnNamePair.Value + " = NULL  where " + tableColumnNamePair.Value + " = '' ;";
+                obj.executeQueriesInDbFile(updateNullCommandText);
             }
         }
 

@@ -102,6 +102,7 @@
     <Compile Include="ConnectionManagerST.cs" />
     <Compile Include="Export.cs" />
     <Compile Include="FkManager.cs" />
+    <Compile Include="General_Info.cs" />
     <Compile Include="KnownFolders.cs" />
     <Compile Include="ResponseJson.cs" />
     <Compile Include="TableManager.cs" />

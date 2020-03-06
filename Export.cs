@@ -40,6 +40,9 @@ namespace Process_Export_Import
 
 		public List<long> field_condition_group_id = new List<long>();
 
+		public List<long> process_design_id = new List<long>();
+	   
+
 		public Export()
 		{
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
@@ -67,7 +70,7 @@ namespace Process_Export_Import
 			{
 				if (reader["Name"].ToString() != "")
 				{
-                    designIdExits = true;
+					designIdExits = true;
 				}
 			}
 			return designIdExits;
@@ -172,7 +175,7 @@ namespace Process_Export_Import
 			return ret;
 		}
 
-		public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj, bool recurs = false , bool isSubprocess = false)
+		public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj,  General_Info gen_inf , bool recurs = false , bool isSubprocess = false  )
 		{
 
 			ServiceCallResult res = new ServiceCallResult();
@@ -182,15 +185,28 @@ namespace Process_Export_Import
 			}
 
 			Int64 processDesignId = getProcessDesignIdFromProcess_v2(processId, obj);
-            if(isSubprocess)
-            {
-                if (checkIfDesignIdIsAlreadyInDbFile(obj, processDesignId))
-                {
-                    processDesignId = 0;
-                }
-            }
-
 			Int64 procDesignDrawId = getProcessDesignDrawId_v2(processDesignId, obj);
+
+			bool proc_design_already_exits = false;
+			if (isSubprocess)
+			{
+				foreach (Int64 proc_design_id in gen_inf.process_design_ids)
+				{
+					if (proc_design_id == processDesignId)
+					{
+						proc_design_already_exits = true;
+					}
+				}
+			}
+			if (proc_design_already_exits)
+			{
+				processDesignId = 0;
+				procDesignDrawId = 0;
+				gen_inf.subProcess_id_with_existing_desgn.Add(Convert.ToInt32(processId));
+
+			}
+
+			gen_inf.process_design_ids.Add(processDesignId);
 			fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
 			#region tablesAdd
 
@@ -249,11 +265,7 @@ namespace Process_Export_Import
 			((T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID = 0
 			or 
 			( exists ( Select a.Activity_ID from T_ACTIVITY a where a.Process_ID =" + processId.ToString() + " and a.Activity_ID = T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID ) ) ) )" });
-
 			#endregion
-
-
-
 			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
 
 			#region tables that can be transfer in simple way
@@ -367,8 +379,8 @@ namespace Process_Export_Import
 						field_condition_group_id.Add(Convert.ToInt64(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString()));
 					}
 				}
-
-				columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION_GROUP", obj);
+              
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION_GROUP", obj);
 				for (var i = 0; i < field_condition_group_id.Count; i++)
 				{
 					strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION_GROUP WHERE Field_Condition_Group_Id = " + field_condition_group_id[i].ToString();
@@ -1033,61 +1045,65 @@ namespace Process_Export_Import
 						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 					}
 				}
-				#endregion
-				#region T_ROUTING_DESIGN
-				columnTypes = getColumnTypesDictionary_v3("T_ROUTING_DESIGN", obj);
-				string reader11CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
-				var reader11 = obj.sqlServerDataReaderOld(reader11CmdTxt);
-				while (reader11.Read())
-				{
-					strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + reader11["ROUTING_DESIGN_ID"].ToString();
-					var reader11Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
-					strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
-					currType = "";
+                #endregion
 
-					foreach (KeyValuePair<string, string> entry in columnTypes)
-					{
-						switch (entry.Value)
-						{
-							case "binary":
-							case "varbinary":
-							case "image":
-								break;
-							default:
-								{
-									strSqLiteSQL += entry.Key + ",";
-									break;
-								}
-						}
-					}
-					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-					while (reader11Child.Read())
-					{
-						strSQLiteValues = "";
-						for (int j = 0; j < reader11Child.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(reader11Child.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
-								case "image":
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + reader11Child[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
-					}
-				}
+                #region T_ROUTING_DESIGN
+                bool design_exits_to_this_process = gen_inf.subProcess_id_with_existing_desgn.IndexOf(Convert.ToInt32(processId)) != -1;
+                if (!design_exits_to_this_process)
+                {
+                    columnTypes = getColumnTypesDictionary_v3("T_ROUTING_DESIGN", obj);
+				    string reader11CmdTxt = "SELECT * FROM T_ROUTING WHERE PROCESS_ID=" + processId;
+				    var reader11 = obj.sqlServerDataReaderOld(reader11CmdTxt);
+				    while (reader11.Read())
+				    {
+					    strMsSQLDataChild = "SELECT * FROM T_ROUTING_DESIGN WHERE ROUTING_DESIGN_ID = " + reader11["ROUTING_DESIGN_ID"].ToString();
+					    var reader11Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+					    strSqLiteSQL = "INSERT INTO T_ROUTING_DESIGN " + " ( ";
+					    currType = "";
 
-				#endregion
-				#region T_FIELD_CONDITION
-				columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION", obj);
+					    foreach (KeyValuePair<string, string> entry in columnTypes)
+					    {
+						    switch (entry.Value)
+						    {
+							    case "binary":
+							    case "varbinary":
+							    case "image":
+								    break;
+							    default:
+								    {
+									    strSqLiteSQL += entry.Key + ",";
+									    break;
+								    }
+						    }
+					    }
+					    strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+					    while (reader11Child.Read())
+					    {
+						    strSQLiteValues = "";
+						    for (int j = 0; j < reader11Child.FieldCount; j++)
+						    {
+							    columnTypes.TryGetValue(reader11Child.GetName(j), out currType);
+							    switch (currType)
+							    {
+								    case "binary":
+								    case "varbinary":
+								    case "image":
+									    break;
+								    default:
+									    {
+										    strSQLiteValues += "'" + reader11Child[j].ToString().Replace("'", "''") + "',";
+										    break;
+									    }
+							    }
+						    }
+						    strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+						    obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+					    }
+				    }
+                }
+                #endregion
+                #region T_FIELD_CONDITION
+                columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION", obj);
 				string reader12CmdTxt = "SELECT * FROM T_FIELD WHERE PROCESS_ID=" + processId;
 				var reader12 = obj.sqlServerDataReaderOld(reader12CmdTxt);
 				while (reader12.Read())
@@ -1405,41 +1421,26 @@ namespace Process_Export_Import
 
 
 				#endregion
+
 				#region T_ACTIVITY_DESIGN
-				columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_DESIGN", obj);
-				string reader18CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
-				var reader18 = obj.sqlServerDataReaderOld(reader18CmdTxt);
-				while (reader18.Read())
+   
+
+				if (!design_exits_to_this_process)
 				{
-
-					strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DESIGN WHERE ACTIVITY_DESIGN_ID = " + reader18["ACTIVITY_DESIGN_ID"].ToString();
-					var reader18Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
-					strSqLiteSQL = "INSERT INTO T_ACTIVITY_DESIGN " + " ( ";
-					currType = "";
-
-					foreach (KeyValuePair<string, string> entry in columnTypes)
+					columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_DESIGN", obj);
+					string reader18CmdTxt = "SELECT * FROM T_ACTIVITY WHERE PROCESS_ID=" + processId;
+					var reader18 = obj.sqlServerDataReaderOld(reader18CmdTxt);
+					while (reader18.Read())
 					{
-						switch (entry.Value)
+
+						strMsSQLDataChild = "SELECT * FROM T_ACTIVITY_DESIGN WHERE ACTIVITY_DESIGN_ID = " + reader18["ACTIVITY_DESIGN_ID"].ToString();
+						var reader18Child = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+						strSqLiteSQL = "INSERT INTO T_ACTIVITY_DESIGN " + " ( ";
+						currType = "";
+
+						foreach (KeyValuePair<string, string> entry in columnTypes)
 						{
-							case "binary":
-							case "varbinary":
-							case "image":
-								break;
-							default:
-								{
-									strSqLiteSQL += entry.Key + ",";
-									break;
-								}
-						}
-					}
-					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-					while (reader18Child.Read())
-					{
-						strSQLiteValues = "";
-						for (int j = 0; j < reader18Child.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(reader18Child.GetName(j), out currType);
-							switch (currType)
+							switch (entry.Value)
 							{
 								case "binary":
 								case "varbinary":
@@ -1447,16 +1448,36 @@ namespace Process_Export_Import
 									break;
 								default:
 									{
-										strSQLiteValues += "'" + reader18Child[j].ToString().Replace("'", "''") + "',";
+										strSqLiteSQL += entry.Key + ",";
 										break;
 									}
 							}
 						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						while (reader18Child.Read())
+						{
+							strSQLiteValues = "";
+							for (int j = 0; j < reader18Child.FieldCount; j++)
+							{
+								columnTypes.TryGetValue(reader18Child.GetName(j), out currType);
+								switch (currType)
+								{
+									case "binary":
+									case "varbinary":
+									case "image":
+										break;
+									default:
+										{
+											strSQLiteValues += "'" + reader18Child[j].ToString().Replace("'", "''") + "',";
+											break;
+										}
+								}
+							}
+							strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+							obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+						}
 					}
 				}
-
 				#endregion
 				#region T_ACTIVITY_FIELDS
 				columnTypes = getColumnTypesDictionary_v3("T_ACTIVITY_FIELDS", obj);
