@@ -136,7 +136,14 @@ namespace Process_Export_Import
 
 			}
 
-			connectionManager.closeSqLiteConnection();
+            exportInfo.Add("field_for_processes_uniq_list  : ");
+            foreach (int field in General_Info.field_for_processes_uniq_list)
+            {
+                exportInfo.Add(field.ToString());
+            }
+
+
+            connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 			connectionManager.closeOldSqlServerConnection();
 
@@ -188,11 +195,14 @@ namespace Process_Export_Import
 
 					FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
 					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-					#endregion
-					#region routing
-					//-----------ROUTING-------------------------------------------------------
-					//-------------------------------------------------------------------------
-					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
+
+                    FkManager subProcessId = new FkManager("T_SUBPROCESS", "Subprocess_ID");
+                    subProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    #endregion
+                    #region routing
+                    //-----------ROUTING-------------------------------------------------------
+                    //-------------------------------------------------------------------------
+                    FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
 					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
@@ -234,6 +244,12 @@ namespace Process_Export_Import
 
 					FkManager activityFieldUIParametersId = new FkManager("T_ACTIVITY_FIELDS_UI_PARAMETERS", "Activity_Fields_UI_Paramaters_ID");
 					activityFieldUIParametersId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityOwnerByCondParticipantId = new FkManager("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT", "Act_Owner_By_Cond_Participant_ID");
+                    activityOwnerByCondParticipantId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager activityBeforeEscalationNotificationId = new FkManager("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION", "Activity_Before_Escalation_Notification_ID");
+                    activityBeforeEscalationNotificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					#endregion
 					#region fields
 					//-----------FIELD---------------------------------------------------------
@@ -433,8 +449,8 @@ namespace Process_Export_Import
 					FkManager fieldToFieldDependencyType = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY_TYPE", "Field_To_Field_Dependency_Name");
 					fieldToFieldDependencyType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-                    FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
-                    fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+                 //   FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
+                 //   fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
 
 					FkManager roleType = new FkManager("T_ROLE", "Name");
@@ -491,7 +507,7 @@ namespace Process_Export_Import
 					insertResultInfo.Add(result);
 					#endregion
 				  
-
+           
 
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
@@ -764,7 +780,6 @@ namespace Process_Export_Import
 				ExportManager.processes_v2 = new List<ProcessListItem>();
 				ExportManager.fieldsForProcess_v2 = new List<long>();
 				res = ExportManager.TransferProcess_v2(subProcessId, connectionManager , gen_inf, true, true);
-			
 			}
 			catch (Exception e)
 			{

@@ -208,3 +208,7 @@ D:\Chronos\git_repos\exp_imp\export_import\obj\Debug\Process_Export_Import.cspro
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\bin\Newtonsoft.Json.dll
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\bin\Newtonsoft.Json.xml
 C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\obj\Debug\Process_Export_Import.csprojAssemblyReference.cache
+D:\Chronos\git_repos\exp_imp\export_import\bin\Newtonsoft.Json.dll
+D:\Chronos\git_repos\exp_imp\export_import\bin\Newtonsoft.Json.xml
+D:\Chronos\git_repos\exp_imp\export_import\bin\System.ValueTuple.dll
+D:\Chronos\git_repos\exp_imp\export_import\bin\System.ValueTuple.xml

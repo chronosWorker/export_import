@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using static Process_Export_Import.Process_Export_Import;
 using System.Data.SQLite;
 
+
 namespace Process_Export_Import
 {
 	public class Export
@@ -109,8 +110,26 @@ namespace Process_Export_Import
 			return ret;
 		}
 
+        private List<Int64> getSystemInterfaceIdList(Int64 pid, ConnectionManagerST obj)
+        {
+            List<long> ret = new List<long>();
+            string strSQLServer;
 
-		private bool IsProcessInList(Int64 processId)
+            //strSQLServer = "SELECT * FROM T_FIELD WHERE PROCESS_ID =" + pid.ToString();
+            strSQLServer = "SELECT distinct T_ACTIVITY.Process_ID, T_ACTIVITY_FIELDS.Field_ID FROM T_ACTIVITY_FIELDS INNER JOIN " +
+                         " T_ACTIVITY ON T_ACTIVITY_FIELDS.Activity_ID = T_ACTIVITY.Activity_ID WHERE PROCESS_ID=" + pid.ToString();
+
+
+            var reader = obj.sqlServerDataReader(strSQLServer);
+            while (reader.Read())
+            {
+                ret.Add(Convert.ToInt64(reader["FIELD_ID"]));
+            }
+
+            return ret;
+        }
+
+        private bool IsProcessInList(Int64 processId)
 		{
 			bool boolFound = false;
 			for (int i = 0; i < processes_v2.Count; i++)
@@ -207,57 +226,32 @@ namespace Process_Export_Import
 			}
 
 			gen_inf.process_design_ids.Add(processDesignId);
-			fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
-			#region tablesAdd
-
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS", Condition = " WHERE PROCESS_ID = " + processId.ToString() });
+            
+            gen_inf.field_for_processes_uniq_list = getProcessFields_v2(processId, obj);
+            gen_inf.field_for_processes_uniq_list = gen_inf.field_for_processes_uniq_list.Distinct().ToList();
+            fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
+            #region tablesAdd
+            tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS", Condition = " WHERE PROCESS_ID = " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS_DESIGN", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART", Condition = " WHERE PROC_DESIGN_DRAW_ID = " + procDesignDrawId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART_TYPE", Condition = " WHERE 1=1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ROUTING", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_DATE_TYPE", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR", Condition = " WHERE 1=1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", Condition = " WHERE 1=1  " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TEXT_FORMAT_TYPE", Condition = " WHERE 1=1  " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TYPE", Condition = " WHERE 1=1  " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FILE_FIELD_TYPE", Condition = " WHERE 1=1  " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FIELDS_UI_PARAMETERS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT_MEMBERS", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_RESULT_TYPE_ID", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_CATEGORY", Condition = " WHERE 1=1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS_OWNER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS_READER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_ROLE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_ROLE_MEMBERS", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_GROUP_ADMINISTRATOR", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_OWNERS", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SUBPROCESS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_VALUE_TRANSLATION", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_LANGUAGE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_RECIPIENT_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FINISH_STEP_MODE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_PARTICIPANT_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_CONSTANT_TYPE", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
+            tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+            tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
 			(( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID =  " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.dependent_Field_ID ) )
 			or
 			( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID = " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.independent_Field_ID ) ))		
@@ -266,6 +260,38 @@ namespace Process_Export_Import
 			or 
 			( exists ( Select a.Activity_ID from T_ACTIVITY a where a.Process_ID =" + processId.ToString() + " and a.Activity_ID = T_FIELD_TO_FIELD_DEPENDENCY.Dependency_Activation_Activity_ID ) ) ) )" });
 			#endregion
+            if (!isSubprocess)
+            {
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_OWNERS", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS_OWNER", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
+     
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_CATEGORY", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_LANGUAGE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_VALUE_TRANSLATION", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION_RECIPIENT_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_REPORT_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_CONSTANT_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_PARTICIPANT_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_COMPARE_OPERATION", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_ROLE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_ROLE_MEMBERS", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TYPE", Condition = " WHERE 1=1  " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_DEPARTMENT_MEMBERS", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY_TYPE", Condition = " WHERE 1=1  " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_CALCULATED_FIELD_RESULT_TYPE_ID", Condition = " WHERE 1=1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_CHART_FIELD_TYPE", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_DB_CONNECTION", Condition = " WHERE 1 = 1 " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FILE_FIELD_TYPE", Condition = " WHERE 1=1  " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TEXT_FORMAT_TYPE", Condition = " WHERE 1=1  " });
+			    tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_DATE_TYPE", Condition = " WHERE 1=1 " });
+            }
 			string connStrSQLServer = ConfigurationManager.AppSettings.Get("connstr");
 
 			#region tables that can be transfer in simple way
@@ -376,67 +402,76 @@ namespace Process_Export_Import
 					var fieldConditionGroupReader = obj.sqlServerDataReaderOld(strMsSQL);
 					while (fieldConditionGroupReader.Read())
 					{
-						int field_condition_group_id_value = Convert.ToInt32(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString());
+                        
 
-						field_condition_group_id.Add(Convert.ToInt64(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString()));
+                        field_condition_group_id.Add(Convert.ToInt64(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString()));
+
+						int field_condition_group_id_value = Convert.ToInt32(fieldConditionGroupReader["Field_Condition_Group_Id"].ToString());
 
 						if (gen_inf.distinct_field_condition_group_id.IndexOf(field_condition_group_id_value) == -1)
 						{
 							gen_inf.distinct_field_condition_group_id.Add(field_condition_group_id_value);
-						}
+
+                            gen_inf.field_condition_group_id_list.Add(new KeyValuePair<int, bool>(field_condition_group_id_value, false));
+
+                        }
 						else
 						{
-							gen_inf.distinct_field_condition_group_id.RemoveAll(item => item == field_condition_group_id_value);
+							gen_inf.field_condition_group_id_list.Remove(new KeyValuePair<int, bool>(field_condition_group_id_value, false));
+                            gen_inf.field_condition_group_id_list.Add(new KeyValuePair<int, bool>(field_condition_group_id_value, true));
 						}
 					}
 				}
 			  
 				columnTypes = getColumnTypesDictionary_v3("T_FIELD_CONDITION_GROUP", obj);
-				for (var i = 0; i < gen_inf.distinct_field_condition_group_id.Count; i++)
+				for (var i = 0; i < gen_inf.field_condition_group_id_list.Count; i++)
 				{
-					strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION_GROUP WHERE Field_Condition_Group_Id = " + gen_inf.distinct_field_condition_group_id[i].ToString();
-					var readerFieldGroupCondition = obj.sqlServerDataReaderOld(strMsSQLDataChild);
-					strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION_GROUP " + " ( ";
-					currType = "";
+                    if (gen_inf.field_condition_group_id_list[i].Value == false)
+                    {
+                        strMsSQLDataChild = "SELECT * FROM T_FIELD_CONDITION_GROUP WHERE Field_Condition_Group_Id = " + gen_inf.field_condition_group_id_list[i].Key.ToString();
+					    var readerFieldGroupCondition = obj.sqlServerDataReaderOld(strMsSQLDataChild);
+					    strSqLiteSQL = "INSERT INTO T_FIELD_CONDITION_GROUP " + " ( ";
+					    currType = "";
 
-					foreach (KeyValuePair<string, string> entry in columnTypes)
-					{
-						switch (entry.Value)
-						{
-							case "binary":
-							case "varbinary":
-							case "image":
-								break;
-							default:
-								{
-									strSqLiteSQL += entry.Key + ",";
-									break;
-								}
-						}
-					}
-					strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-					while (readerFieldGroupCondition.Read())
-					{
+					    foreach (KeyValuePair<string, string> entry in columnTypes)
+					    {
+						    switch (entry.Value)
+						    {
+							    case "binary":
+							    case "varbinary":
+							    case "image":
+							        break;
+							    default:
+								    {
+									    strSqLiteSQL += entry.Key + ",";
+									    break;
+								    }
+						    }
+					    }
+					    strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+					    while (readerFieldGroupCondition.Read())
+					    {
 					
-						strSQLiteValues = "";
-						for (int j = 0; j < readerFieldGroupCondition.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(readerFieldGroupCondition.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
-								case "image":
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + readerFieldGroupCondition[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+						    strSQLiteValues = "";
+						    for (int j = 0; j < readerFieldGroupCondition.FieldCount; j++)
+						    {
+							    columnTypes.TryGetValue(readerFieldGroupCondition.GetName(j), out currType);
+							    switch (currType)
+							    {
+								    case "binary":
+								    case "varbinary":
+								    case "image":
+									    break;
+								    default:
+									    {
+										    strSQLiteValues += "'" + readerFieldGroupCondition[j].ToString().Replace("'", "''") + "',";
+										    break;
+									    }
+							    }
+						    }
+						    strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+						    obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                        }
 
 					}
 				}
@@ -2048,49 +2083,55 @@ namespace Process_Export_Import
 
 				while (reader28.Read())
 				{
-					if (fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader28["FIELD_ID"].ToString())) > 0)
+					if (gen_inf.field_for_processes_uniq_list.FindIndex(a => a == Convert.ToInt64(reader28["FIELD_ID"].ToString())) > 0)
 					{
-						udts_v2.Add(Convert.ToInt64(reader28["USER_DEFINED_TABLE_ID"]));
-						strSQLiteValues = "";
-						strSqLiteSQL = "INSERT INTO T_USER_DEFINED_TABLE " + " ( ";
-						currType = "";
-						foreach (KeyValuePair<string, string> entry in columnTypes)
-						{
-							switch (entry.Value)
-							{
-								case "binary":
-								case "varbinary":
-								case "image":
+                        if(!gen_inf.used_field_for_user_defined_table.Contains(Convert.ToInt64(reader28["FIELD_ID"].ToString())))
+                        {
 
-									break;
-								default:
-									{
-										strSqLiteSQL += entry.Key + ",";
-										break;
-									}
-							}
-						}
-						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-						strSQLiteValues = "";
-						for (int j = 0; j < reader28.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(reader28.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
-								case "image":
+                            gen_inf.used_field_for_user_defined_table.Add(Convert.ToInt64(reader28["FIELD_ID"].ToString()));
 
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + reader28[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                            udts_v2.Add(Convert.ToInt64(reader28["USER_DEFINED_TABLE_ID"]));
+						    strSQLiteValues = "";
+						    strSqLiteSQL = "INSERT INTO T_USER_DEFINED_TABLE " + " ( ";
+						    currType = "";
+						    foreach (KeyValuePair<string, string> entry in columnTypes)
+						    {
+							    switch (entry.Value)
+							    {
+								    case "binary":
+								    case "varbinary":
+								    case "image":
+
+									    break;
+								    default:
+									    {
+										    strSqLiteSQL += entry.Key + ",";
+										    break;
+									    }
+							    }
+						    }
+						    strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+						    strSQLiteValues = "";
+						    for (int j = 0; j < reader28.FieldCount; j++)
+						    {
+							    columnTypes.TryGetValue(reader28.GetName(j), out currType);
+							    switch (currType)
+							    {
+								    case "binary":
+								    case "varbinary":
+								    case "image":
+
+									    break;
+								    default:
+									    {
+										    strSQLiteValues += "'" + reader28[j].ToString().Replace("'", "''") + "',";
+										    break;
+									    }
+							    }
+						    }
+						    strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+						    obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                        }
 					}
 				}
 				#endregion
@@ -2261,53 +2302,63 @@ namespace Process_Export_Import
 
 				while (reader32.Read())
 				{
-					if (fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader32["FIELD_ID"].ToString())) > 0)
-					{
 
-						strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE " + " ( ";
-						currType = "";
-						strSQLiteValues = "";
-						foreach (KeyValuePair<string, string> entry in columnTypes)
-						{
-							switch (entry.Value)
-							{
-								case "binary":
-								case "varbinary":
-									strSqLiteSQL += entry.Key + ",";
-									break;
-								case "image":
-									break;
-								default:
-									{
-										strSqLiteSQL += entry.Key + ",";
-										break;
-									}
-							}
-						}
-						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-						strSQLiteValues = "";
-						for (int j = 0; j < reader32.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(reader32.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
-									strSQLiteValues += "'" + Convert.ToBase64String(((byte[])reader32[j])) + "',";
-									break;
-								case "image":
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + reader32[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
-					}
+                    if (gen_inf.field_for_processes_uniq_list.FindIndex(a => a == Convert.ToInt64(reader32["FIELD_ID"].ToString())) > 0)
+                    {
+                        if (!gen_inf.used_field_for_procfield_word_merge.Contains(Convert.ToInt64(reader32["FIELD_ID"].ToString())))
+                        {
+
+                            gen_inf.used_field_for_procfield_word_merge.Add(Convert.ToInt64(reader32["FIELD_ID"].ToString()));
+
+
+
+                            strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE " + " ( ";
+                            currType = "";
+                            strSQLiteValues = "";
+                            foreach (KeyValuePair<string, string> entry in columnTypes)
+                            {
+                                switch (entry.Value)
+                                {
+                                    case "binary":
+                                    case "varbinary":
+                                        strSqLiteSQL += entry.Key + ",";
+                                        break;
+                                    case "image":
+                                        break;
+                                    default:
+                                        {
+                                            strSqLiteSQL += entry.Key + ",";
+                                            break;
+                                        }
+                                }
+                            }
+                            strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+                            strSQLiteValues = "";
+                            for (int j = 0; j < reader32.FieldCount; j++)
+                            {
+                                columnTypes.TryGetValue(reader32.GetName(j), out currType);
+                                switch (currType)
+                                {
+                                    case "binary":
+                                    case "varbinary":
+                                        strSQLiteValues += "'" + Convert.ToBase64String(((byte[])reader32[j])) + "',";
+                                        break;
+                                    case "image":
+                                        break;
+                                    default:
+                                        {
+                                            strSQLiteValues += "'" + reader32[j].ToString().Replace("'", "''") + "',";
+                                            break;
+                                        }
+                                }
+                            }
+                            strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+                            obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues); 
+                                
+                        }
+                    }
 				}
+			
 				#endregion
 				#region T_PROCFIELD_WORD_MERGE_FIELD
 				columnTypes = getColumnTypesDictionary_v3("T_PROCFIELD_WORD_MERGE_FIELD", obj);
@@ -2316,52 +2367,57 @@ namespace Process_Export_Import
 
 				while (reader33.Read())
 				{
-					if (fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader33["FIELD_ID"].ToString())) > 0)
-					{
+					
+                    if (gen_inf.field_for_processes_uniq_list.FindIndex(a => a == Convert.ToInt64(reader33["FIELD_ID"].ToString())) > 0)
+                    {
+                        if (!gen_inf.used_field_for_word_merge.Contains(Convert.ToInt64(reader33["FIELD_ID"].ToString())))
+                        {
 
-						strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE_FIELD " + " ( ";
-						currType = "";
-						strSQLiteValues = "";
-						foreach (KeyValuePair<string, string> entry in columnTypes)
-						{
-							switch (entry.Value)
-							{
-								case "binary":
-								case "varbinary":
+                            gen_inf.used_field_for_word_merge.Add(Convert.ToInt64(reader33["FIELD_ID"].ToString()));
 
-									break;
-								case "image":
-									break;
-								default:
-									{
-										strSqLiteSQL += entry.Key + ",";
-										break;
-									}
-							}
-						}
-						strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
-						strSQLiteValues = "";
-						for (int j = 0; j < reader33.FieldCount; j++)
-						{
-							columnTypes.TryGetValue(reader33.GetName(j), out currType);
-							switch (currType)
-							{
-								case "binary":
-								case "varbinary":
+                            strSqLiteSQL = "INSERT INTO T_PROCFIELD_WORD_MERGE_FIELD " + " ( ";
+                            currType = "";
+                            strSQLiteValues = "";
+                            foreach (KeyValuePair<string, string> entry in columnTypes)
+                            {
+                                switch (entry.Value)
+                                {
+                                    case "binary":
+                                    case "varbinary":
 
-									break;
-								case "image":
-									break;
-								default:
-									{
-										strSQLiteValues += "'" + reader33[j].ToString().Replace("'", "''") + "',";
-										break;
-									}
-							}
-						}
-						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                                        break;
+                                    case "image":
+                                        break;
+                                    default:
+                                        {
+                                            strSqLiteSQL += entry.Key + ",";
+                                            break;
+                                        }
+                                }
+                            }
+                            strSqLiteSQL = strSqLiteSQL.Substring(0, strSqLiteSQL.Length - 1) + ") VALUES (";
+                            strSQLiteValues = "";
+                            for (int j = 0; j < reader33.FieldCount; j++)
+                            {
+                                columnTypes.TryGetValue(reader33.GetName(j), out currType);
+                                switch (currType)
+                                {
+                                    case "binary":
+                                    case "varbinary":
 
+                                        break;
+                                    case "image":
+                                        break;
+                                    default:
+                                        {
+                                            strSQLiteValues += "'" + reader33[j].ToString().Replace("'", "''") + "',";
+                                            break;
+                                        }
+                                }
+                            }
+                            strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
+                            obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                        }
 					}
 				}
 				#endregion
@@ -2932,7 +2988,9 @@ namespace Process_Export_Import
 			"T_REPORT_FILTER",
 			"T_REPORT_REFERENCED_FIELD_LOCATION",
 			"T_SUBPROCESS",
-			"T_ACTIVITY_OWNER_BY_CONDITION",
+            "T_SYSTEM_INTERFACE",
+            "T_SYSTEM_INTERFACE_TRIGGER",
+            "T_ACTIVITY_OWNER_BY_CONDITION",
 			"T_ACTIVITY_OWNER_BY_COND_PARTICIPANT",
 			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION",
 			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP",

@@ -58,7 +58,6 @@ namespace Process_Export_Import
                 "T_PROC_DESIGN_DRAW_PART" ,
                 "T_PROC_DESIGN_DRAW_PART_TYPE" ,
                 "T_ACTIVITY_DESIGN" ,    
-               
                 "T_FIELD_CONDITION_GROUP" ,
                 "T_FIELD_DATE_TYPE" ,
                 "T_FIELD" ,
@@ -135,6 +134,7 @@ namespace Process_Export_Import
                 "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE" ,
          //       "T_ACTIVITY_FINISH_STEP_MODE" ,
                 "T_ACTIVITY_PARTICIPANT_TYPE" ,
+                "T_SYSTEM_INTERFACE",
                 "T_CALCULATED_FIELD_CONSTANT_TYPE" ,
                 "T_COMPARE_OPERATION" ,
                 "T_PROCFIELD_WORD_MERGE_FIELD" ,
