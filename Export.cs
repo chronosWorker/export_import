@@ -82,16 +82,18 @@ namespace Process_Export_Import
 		{
 			Int64 ret = 0;
 			string strSQLServer;
-			strSQLServer = "SELECT SYSTEM_INTERFACE_ID FROM T_SYSTEM_INTERFACE WHERE PROCESS_ID =" + processId.ToString();
+			strSQLServer = "SELECT SYSTEM_INTERFACE_ID FROM T_SYSTEM_INTERFACE WHERE PROCESS_ID = " + processId.ToString();
 			var reader = obj.sqlServerDataReaderOld(strSQLServer);
-			reader.Read();
-			ret = Convert.ToInt64(reader["SYSTEM_INTERFACE_ID"]);
-
-
+			if (reader.HasRows && reader.Read())
+			{
+				ret = Convert.ToInt64(reader["SYSTEM_INTERFACE_ID"]);
+			}
+		
+		   
 			return ret;
 		}
 
-        private Int64 getProcessDesignDrawId_v2(Int64 processDesignId, ConnectionManagerST obj)
+		private Int64 getProcessDesignDrawId_v2(Int64 processDesignId, ConnectionManagerST obj)
 		{
 			Int64 ret = 0;
 			string strSQLServer;
@@ -193,6 +195,7 @@ namespace Process_Export_Import
 			return fields;
 
 		}
+
 		private List<Int64> getActivities_v2(Int64 pid , ConnectionManagerST obj)
 		{
 			List<long> ret = new List<long>();
@@ -215,17 +218,22 @@ namespace Process_Export_Import
 			{
 				res = getSqlitePath_v2(processId, obj);
 			}
+			bool proc_design_already_exits = false;
+			bool systems_interface_id_exits = false;
+			bool systems_interface_id_found = false;
+
 
 			Int64 processDesignId = getProcessDesignIdFromProcess_v2(processId, obj);
 			Int64 procDesignDrawId = getProcessDesignDrawId_v2(processDesignId, obj);
-            Int64 systemsInterfaceId = getSystemInterfaceId(processId, obj);
+			Int64 systemsInterfaceId = getSystemInterfaceId(processId, obj);
+
+		 //   if (systemsInterfaceId != 0)
+		 //   {
+		 //       systems_interface_id_found = true;
+		 //   }
 
 
-
-            bool proc_design_already_exits = false;
-            bool systems_interface_id_exits = false;
-
-            if (isSubprocess)
+			if (isSubprocess)
 			{
 				foreach (Int64 proc_design_id in gen_inf.process_design_ids)
 				{
@@ -234,15 +242,19 @@ namespace Process_Export_Import
 						proc_design_already_exits = true;
 					}
 				}
-
-                foreach (Int64 systems_interface_id in gen_inf.system_interface_id_list)
-                {
-                    if (systems_interface_id == systemsInterfaceId)
-                    {
-                        systems_interface_id_exits = true;
-                    }
-                }
-            }
+				/*   if (systems_interface_id_found)
+				   {
+					 */
+			 /*   foreach (Int64 systems_interface_id in gen_inf.system_interface_id_list )
+				{
+					if (systems_interface_id == systemsInterfaceId)
+					{
+						systems_interface_id_exits = true;
+					}
+				}*/
+				
+				
+			}
 			if (proc_design_already_exits)
 			{
 				processDesignId = 0; 
@@ -250,12 +262,9 @@ namespace Process_Export_Import
 				gen_inf.subProcess_id_with_existing_desgn.Add(Convert.ToInt32(processId));
 			}
 
-            if (proc_design_already_exits)
-            {
-                systemsInterfaceId = 0;
-            }
+		 
 			gen_inf.process_design_ids.Add(processDesignId);
-            gen_inf.system_interface_id_list.Add(systemsInterfaceId);
+			gen_inf.system_interface_id_list.Add(systemsInterfaceId);
 			gen_inf.field_for_processes_uniq_list = getProcessFields_v2(processId, obj);
 			gen_inf.field_for_processes_uniq_list = gen_inf.field_for_processes_uniq_list.Distinct().ToList();
 			fieldsForProcess_v2 = getProcessFields_v2(processId, obj);
@@ -264,11 +273,11 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROCESS_DESIGN", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW", Condition = " WHERE PROCESS_DESIGN_ID = " + processDesignId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART", Condition = " WHERE PROC_DESIGN_DRAW_ID = " + procDesignDrawId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART_TYPE", Condition = " WHERE 1=1 " });
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_PROC_DESIGN_DRAW_PART_TYPE", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ROUTING", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
-			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", Condition = " WHERE 1=1  " });
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", Condition = " WHERE 1 = 1  " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_FIELDS_UI_PARAMETERS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_NOTIFICATION", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
@@ -278,7 +287,8 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SUBPROCESS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
-            tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE_TRIGGER", Condition = "System_Inerface_Id = "  + systemsInterfaceId.ToString() });
+
+			tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE_TRIGGER", Condition = " WHERE System_Interface_Id = "  + systemsInterfaceId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
 			(( exists ( Select f.Field_ID from T_FIELD f where f.Process_ID =  " + processId.ToString() + @" and f.Field_ID = T_FIELD_TO_FIELD_DEPENDENCY.dependent_Field_ID ) )
@@ -3020,8 +3030,8 @@ namespace Process_Export_Import
 			"T_SUBPROCESS",
 			"T_SYSTEM_INTERFACE",
 			"T_SYSTEM_INTERFACE_TRIGGER",
-            "T_SYSTEM_INTERFACE_TYPE",
-            "T_ACTIVITY_OWNER_BY_CONDITION",
+			"T_SYSTEM_INTERFACE_TYPE",
+			"T_ACTIVITY_OWNER_BY_CONDITION",
 			"T_ACTIVITY_OWNER_BY_COND_PARTICIPANT",
 			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION",
 			"T_ACTIVITY_OWNER_BY_CONDITION_CONDITION_GROUP",

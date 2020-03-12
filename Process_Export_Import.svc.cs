@@ -82,7 +82,7 @@ namespace Process_Export_Import
 		}
 		
 		[OperationContract]
-		public List<string> Export_Process(int processId)
+		public ServiceCallResult Export_Process(int processId)
 		{
 			List<string> exportInfo = new List<string>();
 			var connectionManager = new ConnectionManagerST();
@@ -100,7 +100,7 @@ namespace Process_Export_Import
 			ExportManager.addTablesAndInfos(connectionManager);
 			if (res.Code != 0)
 			{
-				return exportInfo;
+				return res;
 			}
 			try
 			{
@@ -122,30 +122,34 @@ namespace Process_Export_Import
 				
 				if (subporcessIds.Count >= 1)
 				{
-                exportInfo.Add("sub ids  : ");
-				//	ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
+					//	ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
+				   
 					foreach (int subProcessId in subporcessIds)
 					{
-                exportInfo.Add(subProcessId.ToString());
-						Export_Process_For_SubProcesses(subProcessId , connectionManager , General_Info);
+						res = Export_Process_For_SubProcesses(subProcessId , connectionManager , General_Info);
+						if (res.Code != 0)
+						{
+							throw new Exception();
+						}
+
 					}
 				}
 
-            }
+			}
 			catch (Exception e)
 			{
-				res = ExportManager.FillServiceCallResult_v2(e);
-                exportInfo.Add(e.ToString());
+				//res = ExportManager.FillServiceCallResult_v2(e);
+				exportInfo.Add(e.ToString());
 
 
-            }
+			}
 
 
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 			connectionManager.closeOldSqlServerConnection();
 
-			return exportInfo;	
+			return res;	
 		}
 
 		[OperationContract]
@@ -447,7 +451,7 @@ namespace Process_Export_Import
 					FkManager fieldToFieldDependencyType = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY_TYPE", "Field_To_Field_Dependency_Name");
 					fieldToFieldDependencyType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-					FkManager systemInterfaceType = new FkManager("T_SYSTEM_INTERFACE_TYPE", "Name");
+					FkManager systemInterfaceType = new FkManager("T_SYSTEM_INTERFACE_TYPE", "Description");
 					systemInterfaceType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
 				 //   FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
@@ -487,6 +491,12 @@ namespace Process_Export_Import
 
 					FkManager notificationTriggerId = new FkManager("T_NOTIFICATION_TRIGGER", "Notification_Trigger_ID");
 					notificationTriggerId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager systemInterfaceId = new FkManager("T_SYSTEM_INTERFACE", "System_Interface_ID");
+					systemInterfaceId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager systemInterfaceTriggerId = new FkManager("T_SYSTEM_INTERFACE_TRIGGER", "System_Interface_Trigger_ID");
+					systemInterfaceTriggerId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
 					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -752,9 +762,9 @@ namespace Process_Export_Import
 					obj.executeQueriesInSqlServer(commandText);
 				}
 			}
-			catch (Exception ex)
+			catch (Exception e)
 			{
-				throw ex;
+				throw new Exception();
 			}
 			return insertresultInfo;
 		}
@@ -772,7 +782,6 @@ namespace Process_Export_Import
 			return fields;
 
 		}
-
 		public ServiceCallResult Export_Process_For_SubProcesses(int subProcessId , ConnectionManagerST connectionManager , General_Info gen_inf) { 
 
 			var ExportManager = new Export(); 

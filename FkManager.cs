@@ -279,9 +279,17 @@ namespace Process_Export_Import
                         {
                             string updateDependencyActivationId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependency_Activation_Activity_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependency_Activation_Activity_ID = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateDependencyActivationId);
+
                             string updateNotificationTriggerFromActivatyId = " Update T_NOTIFICATION_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateNotificationTriggerFromActivatyId);
+
                             string updateNotificationTriggerToActivatyId = " Update T_NOTIFICATION_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
+
+                            string updateSystemInterfaceTriggerToActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
+
+                            string updateSystemInterfaceTriggerFromActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
                         }
                     }
@@ -435,7 +443,6 @@ namespace Process_Export_Import
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
 
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
-                changingIdsInfoList.Add(" ID in db file");
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
                 if (idsInDbFile.Count == 0)
                 {
