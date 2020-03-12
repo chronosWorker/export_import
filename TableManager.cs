@@ -132,11 +132,12 @@ namespace Process_Export_Import
                 "T_LANGUAGE" ,
                 "T_REPORT_TYPE" ,
                 "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE" ,
-         //       "T_ACTIVITY_FINISH_STEP_MODE" ,
+                "T_ACTIVITY_FINISH_STEP_MODE" ,
                 "T_ACTIVITY_PARTICIPANT_TYPE" ,
                 "T_SYSTEM_INTERFACE",
                 "T_CALCULATED_FIELD_CONSTANT_TYPE" ,
                 "T_COMPARE_OPERATION" ,
+                "T_SYSTEM_INTERFACE_TYPE",
                 "T_PROCFIELD_WORD_MERGE_FIELD" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
                  };

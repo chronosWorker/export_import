@@ -85,7 +85,7 @@ namespace Process_Export_Import
 		public List<string> Export_Process(int processId)
 		{
 			List<string> exportInfo = new List<string>();
-		    var connectionManager = new ConnectionManagerST();
+			var connectionManager = new ConnectionManagerST();
 			var ExportManager = new Export();
 			var General_Info = new General_Info();
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
@@ -122,28 +122,26 @@ namespace Process_Export_Import
 				
 				if (subporcessIds.Count >= 1)
 				{
+                exportInfo.Add("sub ids  : ");
 				//	ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
 					foreach (int subProcessId in subporcessIds)
 					{
+                exportInfo.Add(subProcessId.ToString());
 						Export_Process_For_SubProcesses(subProcessId , connectionManager , General_Info);
 					}
 				}
 
-			}
+            }
 			catch (Exception e)
 			{
 				res = ExportManager.FillServiceCallResult_v2(e);
+                exportInfo.Add(e.ToString());
 
-			}
 
-            exportInfo.Add("field_for_processes_uniq_list  : ");
-            foreach (int field in General_Info.field_for_processes_uniq_list)
-            {
-                exportInfo.Add(field.ToString());
             }
 
 
-            connectionManager.closeSqLiteConnection();
+			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 			connectionManager.closeOldSqlServerConnection();
 
@@ -176,18 +174,18 @@ namespace Process_Export_Import
 					general.changeProcessDesignName(connectionManager);
 					general.updateProcessDesignDrawCreationDateToToday(connectionManager);
 					general.setImportPersonToProcessOwner(connectionManager, personId);
-                    general.updateNullableEmptyFieldsToNull(connectionManager);
-                  
+					general.updateNullableEmptyFieldsToNull(connectionManager);
+				  
 
-                    #endregion
-                    #region process
-                    //-----------PROCESS-------------------------------------------------------
-                    //-------------------------------------------------------------------------
+					#endregion
+					#region process
+					//-----------PROCESS-------------------------------------------------------
+					//-------------------------------------------------------------------------
 
-                    FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
+					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
 					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
@@ -196,13 +194,13 @@ namespace Process_Export_Import
 					FkManager processDesignId = new FkManager("T_PROCESS_DESIGN", "Process_Design_ID");
 					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    FkManager subProcessId = new FkManager("T_SUBPROCESS", "Subprocess_ID");
-                    subProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                    #endregion
-                    #region routing
-                    //-----------ROUTING-------------------------------------------------------
-                    //-------------------------------------------------------------------------
-                    FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
+					FkManager subProcessId = new FkManager("T_SUBPROCESS", "Subprocess_ID");
+					subProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					#endregion
+					#region routing
+					//-----------ROUTING-------------------------------------------------------
+					//-------------------------------------------------------------------------
+					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
 					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
@@ -245,11 +243,11 @@ namespace Process_Export_Import
 					FkManager activityFieldUIParametersId = new FkManager("T_ACTIVITY_FIELDS_UI_PARAMETERS", "Activity_Fields_UI_Paramaters_ID");
 					activityFieldUIParametersId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    FkManager activityOwnerByCondParticipantId = new FkManager("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT", "Act_Owner_By_Cond_Participant_ID");
-                    activityOwnerByCondParticipantId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityOwnerByCondParticipantId = new FkManager("T_ACTIVITY_OWNER_BY_COND_PARTICIPANT", "Act_Owner_By_Cond_Participant_ID");
+					activityOwnerByCondParticipantId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    FkManager activityBeforeEscalationNotificationId = new FkManager("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION", "Activity_Before_Escalation_Notification_ID");
-                    activityBeforeEscalationNotificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityBeforeEscalationNotificationId = new FkManager("T_ACTIVITY_BEFORE_ESCALATION_NOTIFICATION", "Activity_Before_Escalation_Notification_ID");
+					activityBeforeEscalationNotificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					#endregion
 					#region fields
 					//-----------FIELD---------------------------------------------------------
@@ -332,8 +330,8 @@ namespace Process_Export_Import
 
 					FkManager fieldDocumentReferenceImportTypeId = new FkManager("T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", "Field_Document_Reference_Import_Ttype_ID");
 					fieldDocumentReferenceImportTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-				    #endregion
-				    #region reports
+					#endregion
+					#region reports
 					FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
 					activityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------REPORTOK------------------------------------------------------
@@ -449,8 +447,11 @@ namespace Process_Export_Import
 					FkManager fieldToFieldDependencyType = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY_TYPE", "Field_To_Field_Dependency_Name");
 					fieldToFieldDependencyType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-                 //   FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
-                 //   fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+					FkManager systemInterfaceType = new FkManager("T_SYSTEM_INTERFACE_TYPE", "Name");
+					systemInterfaceType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+
+				 //   FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
+				 //   fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
 
 					FkManager roleType = new FkManager("T_ROLE", "Name");
@@ -490,12 +491,12 @@ namespace Process_Export_Import
 					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
 					fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-                    #endregion
-                    #region generateResponseObject
-                    int mainProcessId = general.getMainProcessId(connectionManager);
-                    insertResultInfo.Add("Main ID  " + mainProcessId.ToString());
-                    general.updateMainProcessIdForSubprocesses(connectionManager, mainProcessId);
-                    response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
+					#endregion
+					#region generateResponseObject
+					int mainProcessId = general.getMainProcessId(connectionManager);
+					insertResultInfo.Add("Main ID  " + mainProcessId.ToString());
+					general.updateMainProcessIdForSubprocesses(connectionManager, mainProcessId);
+					response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
 					if (general.detectNotificationEmailAddress(connectionManager))
 					{
 						response.EmailAddressFound = true;
@@ -507,7 +508,7 @@ namespace Process_Export_Import
 					insertResultInfo.Add(result);
 					#endregion
 				  
-           
+		   
 
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
@@ -520,11 +521,11 @@ namespace Process_Export_Import
 
 								if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
 								{
-                                    insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 								}
 								else
 								{
-                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 								}
 
 							}
@@ -542,11 +543,11 @@ namespace Process_Export_Import
 							{
 								if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
 								{
-                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 								}
 								else
 								{
-                                    insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 								}
 
 							}
@@ -771,6 +772,7 @@ namespace Process_Export_Import
 			return fields;
 
 		}
+
 		public ServiceCallResult Export_Process_For_SubProcesses(int subProcessId , ConnectionManagerST connectionManager , General_Info gen_inf) { 
 
 			var ExportManager = new Export(); 

@@ -212,3 +212,5 @@ D:\Chronos\git_repos\exp_imp\export_import\bin\Newtonsoft.Json.dll
 D:\Chronos\git_repos\exp_imp\export_import\bin\Newtonsoft.Json.xml
 D:\Chronos\git_repos\exp_imp\export_import\bin\System.ValueTuple.dll
 D:\Chronos\git_repos\exp_imp\export_import\bin\System.ValueTuple.xml
+C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\bin\System.ValueTuple.dll
+C:\Users\Devnotebook\Documents\bálintstaff\git_folder\exp_imp\export_import\bin\System.ValueTuple.xml
