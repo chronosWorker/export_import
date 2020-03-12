@@ -94,7 +94,11 @@ namespace Process_Export_Import
 			connectionManager.openOldSqlServerConnection();
 
 			res = ExportManager.getSqlitePath_v2(processId, connectionManager);
-			res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
+            if (res.Code != 0)
+            {
+                return res;
+            }
+            res = ExportManager.createDatabaseAndTables_v2(processId, connectionManager);
 			connectionManager.openSqLiteConnection(sqliteSource);
 		//	connectionManager.setPasswordOnDbFile();
 			ExportManager.addTablesAndInfos(connectionManager);
@@ -106,11 +110,15 @@ namespace Process_Export_Import
 			{
 				ExportManager.processes_v2 = new List<ProcessListItem>();
 				ExportManager.FillProcesses_v2(processId, connectionManager);
-				ExportManager.fieldsForProcess_v2 = new List<long>();
+                
+                ExportManager.fieldsForProcess_v2 = new List<long>();
 
 				res = ExportManager.TransferProcess_v2(processId, connectionManager , General_Info);
-
-				string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
+                if (res.Code != 0)
+                {
+                    return res;
+                }
+                string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
 
 				if (File.Exists(fileName))
 				{
@@ -546,7 +554,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 					{
 
-						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName !=  "T_ACTIVITY_UI_COMPONENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName !=  "T_ACTIVITY_UI_COMPONENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T_OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -564,8 +572,6 @@ namespace Process_Export_Import
 						}
 
 					}
-
-
 
 				}
 				catch (Exception ex)
@@ -764,8 +770,10 @@ namespace Process_Export_Import
 			}
 			catch (Exception e)
 			{
-				throw new Exception();
-			}
+                insertresultInfo.Add(e.ToString());
+				//throw new Exception();
+
+            }
 			return insertresultInfo;
 		}
 	

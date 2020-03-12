@@ -287,7 +287,6 @@ namespace Process_Export_Import
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SUBPROCESS", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_ACTIVITY_UI_COMPONENT", Condition = " WHERE 1 = 1 " });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS", Condition = " WHERE 1 = 1 " });
-
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE_TRIGGER", Condition = " WHERE System_Interface_Id = "  + systemsInterfaceId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_SYSTEM_INTERFACE", Condition = " WHERE PROCESS_ID =  " + processId.ToString() });
 			tables_v2.Add(new TableNameAndCondition { TableName = "T_FIELD_TO_FIELD_DEPENDENCY", Condition = @" WHERE
@@ -1829,7 +1828,9 @@ namespace Process_Export_Import
 							}
 						}
 						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-						obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+                        res.Description += strSQLiteValues;
+
+                     //   obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 					}
 				}
 
@@ -1849,7 +1850,7 @@ namespace Process_Export_Import
 					while (reader23Child.Read())
 					{
 						//strMsSQLDataGrandChild = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + reader23Child["Activity_Dependent_UI_Components_ID"].ToString();
-						string reader23GrandChildCmdTxt = "SELECT *  T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + reader23Child["Activity_Dependent_UI_Components_ID"].ToString();
+						string reader23GrandChildCmdTxt = "SELECT * FROM T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION  WHERE Activity_Dependent_UI_Components_ID = " + reader23Child["Activity_Dependent_UI_Components_ID"].ToString();
 						var reader23GrandChild = obj.sqlServerDataReaderOld(reader23GrandChildCmdTxt);
 
 

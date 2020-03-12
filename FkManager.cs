@@ -287,9 +287,11 @@ namespace Process_Export_Import
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
                             string updateSystemInterfaceTriggerToActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            updateInfo.Add(updateSystemInterfaceTriggerToActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
                             string updateSystemInterfaceTriggerFromActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            updateInfo.Add(updateSystemInterfaceTriggerFromActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
                         }
                     }
@@ -451,7 +453,6 @@ namespace Process_Export_Import
                 else
                 {
                     idDifferenceList = getIdDifferencesList(idsInDbFile);
-
                     newIdList = getNewIdValueList(maxIdInSqlServer, idDifferenceList);
                     changingIdsInfoList.AddRange(changeIdsInDBFileToTempValues(idsInDbFile, newIdList, TableName, connectionManager));
 
