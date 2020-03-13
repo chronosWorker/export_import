@@ -114,6 +114,7 @@ namespace Process_Export_Import
                 {
                     tablesWhereIdOccurs.Add(reader["table_name"].ToString());
                 }
+
                 return tablesWhereIdOccurs;
             }
             catch (Exception ex)
@@ -248,58 +249,74 @@ namespace Process_Export_Import
                 {
                     string commandText = "Select Count(*) from " + table + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
                     var reader = obj.sqLiteDataReader(commandText);
-                    updateInfo.Add(commandText);
+                   // updateInfo.Add(commandText);
                     reader.Read();
                     if (reader[0].ToString() != "0")
                     {
-                        updateInfo.Add("Table where old Id Found : " + table);
+                //        updateInfo.Add("Table where old Id Found : " + table);
                         string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
                         obj.executeQueriesInDbFile(updateCommandText);
-                        updateInfo.Add(updateCommandText);
+                   
                         //ha találok olyan értéket ami routing_design activity_des_id-ban ami benne van ACTIVITY_DESIGn-ban  from vagy to act_design id-ként akkor azokat ugyanarra updatelem
                         if (IdName == "Activity_Design_ID")
                         {
-                            string updateFromActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set From_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where From_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateFromActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set From_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where From_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateFromActivityDesignCommandText);
-                            string updateToActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set To_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where To_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateToActivityDesignCommandText = " Update T_ROUTING_DESIGN  Set To_Activity_Design_ID = " + newIdList[oldIddListIndex].ToString() + " where To_Activity_Design_ID = " + oldIdList[oldIddListIndex].ToString()   + " ;";
                             obj.executeQueriesInDbFile(updateToActivityDesignCommandText);
-                            //       updateInfo.Add(updateFromActivityDesignCommandText);
-                            //       updateInfo.Add(updateToActivityDesignCommandText);
                         }
                         if (IdName == "Field_ID" && TableName == "T_FIELD")
                         {
-                            string updateDependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateDependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateDependentFieldId);
-                            string updateIndependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString();
+                            updateInfo.Add(updateDependentFieldId);
+                            string updateIndependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateIndependentFieldId);
-                            //         updateInfo.Add(updateDependentFieldId);
-                            //         updateInfo.Add(updateIndependentFieldId);
+                            updateInfo.Add(updateIndependentFieldId);
                         }
                         if (IdName == "Activity_ID")
                         {
-                            string updateDependencyActivationId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependency_Activation_Activity_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependency_Activation_Activity_ID = " + oldIdList[oldIddListIndex].ToString();
+                            string updateDependencyActivationId = "Update T_FIELD_TO_FIELD_DEPENDENCY Set Dependency_Activation_Activity_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependency_Activation_Activity_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateDependencyActivationId);
 
-                            string updateNotificationTriggerFromActivatyId = " Update T_NOTIFICATION_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            string updateNotificationTriggerFromActivatyId = "Update T_NOTIFICATION_TRIGGER Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateNotificationTriggerFromActivatyId);
 
-                            string updateNotificationTriggerToActivatyId = " Update T_NOTIFICATION_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            string updateNotificationTriggerToActivatyId = "Update T_NOTIFICATION_TRIGGER Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
-                            string updateSystemInterfaceTriggerToActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            string updateSystemInterfaceTriggerToActivatyId = "Update T_SYSTEM_INTERFACE_TRIGGER Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             updateInfo.Add(updateSystemInterfaceTriggerToActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
-                            string updateSystemInterfaceTriggerFromActivatyId = " Update T_SYSTEM_INTERFACE_TRIGGER  Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString();
+                            string updateSystemInterfaceTriggerFromActivatyId = "Update T_SYSTEM_INTERFACE_TRIGGER Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             updateInfo.Add(updateSystemInterfaceTriggerFromActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
                         }
+
                     }
 
                 }
             }
-            //Ha megtalálja a oldIdlistet akkor cserélje az ujra
-            return updateInfo;
+            //kell egy lista amiben betárazza melyik értékekre kell updatelni és csak azokat most tul sokszor futkosik le
+
+         /*   if (IdName == "Activity_Id")
+            { 
+                List<string> fromToActivityIdTableList = new List<string>() { "T_SYSTEM_INTERFACE_TRIGGER", "T_NOTIFICATION_TRIGGER" };
+                foreach (string tableName in fromToActivityIdTableList)
+                {
+                    for (int oldIddListIndex = 0; oldIddListIndex < oldIdList.Count; oldIddListIndex++)
+                    {
+                            string commandText = "Select Count(*) from " + tableName + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
+
+
+
+                    }
+                }
+
+            }*/
+                //Ha megtalálja a oldIdlistet akkor cserélje az ujra
+                return updateInfo;
         }
 
         public List<string> changeProcess(ConnectionManagerST obj)
@@ -389,10 +406,16 @@ namespace Process_Export_Import
         {
             List<string> newDesignNameList = new List<string>();
             string designName = "";
+            int designId = 0;
             var reader = obj.sqLiteDataReader("Select Name from T_PROC_DESIGN_DRAW");
-            while (reader.Read())
+            while (reader.HasRows && reader.Read())
             {
                 designName = reader["Name"].ToString();
+            }
+            var reader2 = obj.sqLiteDataReader("Select Process_Design_ID from T_PROC_DESIGN_DRAW");
+            while (reader2.HasRows && reader2.Read())
+            {
+                designId = Convert.ToInt32(reader2["Process_Design_ID"]);
             }
             newDesignNameList.Add("oiginal processName : ");
             newDesignNameList.Add(designName);
@@ -401,16 +424,16 @@ namespace Process_Export_Import
             if (processImportedDesignQuantity == 0)
             {
                 string newdesignName = designName + " (IMPORTED)";
-                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
-                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE Process_Design_ID = + '" + designId.ToString() + "'";
+                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE Process_Design_ID = + '" + designId.ToString() + "'";
                 obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
                 obj.executeQueriesInDbFile(newProcDesignNameUpdateQuery);
             }
             else
             {
                 string newdesignName = designName + " (IMPORTED_" + processImportedDesignQuantity.ToString() + ")";
-                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
-                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE NAME = + '" + designName + "'";
+                string newDesignNameUpdateQuery = " UPDATE T_PROC_DESIGN_DRAW SET NAME = '" + newdesignName + "' WHERE Process_Design_ID = + '" + designId.ToString() + "'";
+                string newProcDesignNameUpdateQuery = " UPDATE T_PROCESS_DESIGN SET NAME = '" + newdesignName + "' WHERE Process_Design_ID = + '" + designId.ToString() + "'";
                 obj.executeQueriesInDbFile(newDesignNameUpdateQuery);
                 obj.executeQueriesInDbFile(newProcDesignNameUpdateQuery);
             }
@@ -460,13 +483,14 @@ namespace Process_Export_Import
                     //az összes táblában ahol megtalálja ezeket ott cserélje idsInDbFile --> newIdList
                     //fgv neveket átírni mert most félrevezet
 
-                    changingIdsInfoList.Add("Max ID");
+                //  changingIdsInfoList.Add("Max ID");
                     changingIdsInfoList.Add(maxIdInSqlServer.ToString());
-                    changingIdsInfoList.Add("idDifferenceList");
+                //  changingIdsInfoList.Add("idDifferenceList");
                     changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
-                    changingIdsInfoList.Add("newIdList");
+                //  changingIdsInfoList.Add("newIdList");
                     changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
                     changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
+
                     changingIdsInfoList.AddRange(idUpdateInfo);
                 }
 

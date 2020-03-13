@@ -50,6 +50,28 @@ namespace Process_Export_Import
 
 		}
 
+		private ServiceCallResult getIdFromTable(ConnectionManagerST reader, Int64 paramIdValue, string columnName ,  string resultId , string tableName )
+		{
+
+			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+			string strSQLServer;
+			strSQLServer = "SELECT " + resultId + " from " + tableName + " where " + columnName + " = @param ;";
+			var executeReader = reader.sqlOldServerDataReaderWithSingleParameter(strSQLServer , paramIdValue.ToString());
+			try
+			{
+				if (executeReader.HasRows && executeReader.Read())
+				{
+					res.ResultInt = Convert.ToInt32(executeReader[resultId]);
+				}
+			}
+			catch (Exception ex)
+			{
+				res = FillServiceCallResult_v2(ex);
+
+			}
+			return res;
+		}
+
 		private Int64 getProcessDesignIdFromProcess_v2(Int64 processId, ConnectionManagerST obj)
 		{
 			Int64 ret = 0;
@@ -210,17 +232,32 @@ namespace Process_Export_Import
 			return ret;
 		}
 
-		public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj,  General_Info gen_inf , bool recurs = false , bool isSubprocess = false  )
-		{
+        public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj, General_Info gen_inf, bool recurs = false, bool isSubprocess = false)
+        {
 
-			ServiceCallResult res = new ServiceCallResult();
-			if(!recurs)
-			{
-				res = getSqlitePath_v2(processId, obj);
-			}
-			bool proc_design_already_exits = false;
-			bool systems_interface_id_exits = false;
-			bool systems_interface_id_found = false;
+            ServiceCallResult res = new ServiceCallResult();
+            if (!recurs)
+            {
+                res = getSqlitePath_v2(processId, obj);
+            }
+            bool proc_design_already_exits = false;
+            bool systems_interface_id_exits = false;
+            bool systems_interface_id_found = false;
+            int processDesignIdv2;
+
+            ServiceCallResult getIdFromTableResult = getIdFromTable(obj, processId, "PROCESS_ID", "PROCESS_DESIGN_ID", "T_PROCESS");
+            if (getIdFromTableResult.Code != 0)
+            {
+                return getIdFromTableResult;
+
+            }
+            else
+            {
+                processDesignIdv2 = getIdFromTableResult.ResultInt;
+
+            }
+            
+
 
 
 			Int64 processDesignId = getProcessDesignIdFromProcess_v2(processId, obj);
@@ -1828,9 +1865,9 @@ namespace Process_Export_Import
 							}
 						}
 						strSQLiteValues = strSQLiteValues.Substring(0, strSQLiteValues.Length - 1) + ")";
-                        res.Description += strSQLiteValues;
+						res.Description += strSQLiteValues;
 
-                     //   obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
+					 //   obj.executeQueriesInDbFile(strSqLiteSQL + strSQLiteValues);
 					}
 				}
 
