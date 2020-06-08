@@ -79,8 +79,6 @@ namespace Process_Export_Import
 			[DataMember]
 			public List<string> subProcessIds { get; set; }
 
-			
-
 			public static implicit operator ServiceCallResult(string v)
 			{
 				throw new NotImplementedException();
@@ -114,12 +112,7 @@ namespace Process_Export_Import
 			}
 			try
 			{
-				ExportManager.processes_v2 = new List<ProcessListItem>();
-				ExportManager.FillProcesses_v2(processId, connectionManager);
-				
-				ExportManager.fieldsForProcess_v2 = new List<long>();
-
-				res = ExportManager.TransferProcess_v2(processId, connectionManager , General_Info);
+			
 				if (res.Code != 0)
 				{
 					return res;
@@ -132,32 +125,20 @@ namespace Process_Export_Import
 					GC.WaitForPendingFinalizers();
 				}
 
-				List<int> subporcessIds = ExportManager.checkIfSubProcessExist(connectionManager, processId);
-				
-				if (subporcessIds.Count >= 1)
-				{
-					//	ExportManager.updateMainProcessIdForSubprocesses(connectionManager, processId, subporcessIds);
-				   
-					foreach (int subProcessId in subporcessIds)
-					{
-						res = Export_Process_For_SubProcesses(subProcessId , connectionManager , General_Info);
-						if (res.Code != 0)
-						{
-							throw new Exception();
-						}
+                res = ExportSubProcesses(connectionManager, processId);
 
-					}
-				}
-
-			}
+                if (res.Code != 0)
+                {
+                    return res;
+                }
+            }
 			catch (Exception e)
 			{
-				//res = ExportManager.FillServiceCallResult_v2(e);
+				res = ExportManager.FillServiceCallResult_v2(e);
 				exportInfo.Add(e.ToString());
 
 
 			}
-
 
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
@@ -165,6 +146,36 @@ namespace Process_Export_Import
 
 			return res;	
 		}
+        public ServiceCallResult ExportSubProcesses(ConnectionManagerST connectionManager, int processId )
+        {
+            ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+            res.Description += processId.ToString();
+            Export export = new Export();
+            List<int> subporcessIds = export.checkIfSubProcessExist(connectionManager, processId);
+            export.processes_v2 = new List<ProcessListItem>();
+            export.FillProcesses_v2(processId, connectionManager);
+            export.fieldsForProcess_v2 = new List<long>();
+            res = export.TransferProcess_v2(processId, connectionManager);
+            if (subporcessIds.Count == 0 || res.Code != 0 )
+            {
+                return res;
+            }
+            else
+            {
+                res = export.updateMainProcessIdForSubprocesses(connectionManager, subporcessIds, processId);
+                foreach (int subProcessId in subporcessIds)
+                {
+                    res = ExportSubProcesses(connectionManager, subProcessId);
+                    if (res.Code != 0)
+                    {
+                        throw new Exception();
+                    }
+
+                }
+            }
+
+            return res;
+        }
 
 		[OperationContract]
 		public List<string> Check_Import(string fileName , int personId)
@@ -184,6 +195,7 @@ namespace Process_Export_Import
 			//bool isTheDBStructuresAreTheSame = verifyThatDBStructuresAreTheSame(checkingDBStructureDifferences(connectionManager));
 			if (true)
 			{
+
 				try
 				{
 					#region general
@@ -193,14 +205,52 @@ namespace Process_Export_Import
 					general.updateProcessDesignDrawCreationDateToToday(connectionManager);
 					general.setImportPersonToProcessOwner(connectionManager, personId);
 					general.updateNullableEmptyFieldsToNull(connectionManager);
-				  
+                    List<KeyValuePair<int, int>> idValueRowIDValuePairs = new List<KeyValuePair<int, int>> ();
+                    idValueRowIDValuePairs = general.selectIdRowIdFromTable(connectionManager, "T_PROCESS", "Process_ID");
+                    List<int> sortedArray = new List<int>();
+                    sortedArray =  general.idValues(general.selectIdRowIdFromTable(connectionManager, "T_PROCESS", "Process_ID"));
+                    sortedArray.Sort();
+                    foreach (int entry in sortedArray)
+                    {
+                   //     insertResultInfo.Add("IdValue " + entry.ToString());
+                    }
+                    insertResultInfo.Add("areThereDuplicates");
+                    var testArr1 = new List<KeyValuePair<int, int>>()
+                    {
+                                    new KeyValuePair<int, int>(1, 6),
+                                    new KeyValuePair<int, int>(3, 4),
+                                    new KeyValuePair<int, int>(1, 2),
+                                    new KeyValuePair<int, int>(3, 2),
+                                    new KeyValuePair<int, int>(3, 1),
+                                    new KeyValuePair<int, int>(8, 1),
+                                    new KeyValuePair<int, int>(6, 4),
+                                    new KeyValuePair<int, int>(8, 0),
+                                    new KeyValuePair<int, int>(6, 2),
+                                    new KeyValuePair<int, int>(7, 1),
 
-					#endregion
-					#region process
+                    };
+                    //[{1,2},{3,1},{6,2},{8,0}]
+                    var testArr2 = new List<int>() { 3, 8, 6, 1 };
+                    var resArr = new List<KeyValuePair<int, int>>();
+                    resArr = general.selectLowestRowIdFromTableToIds(testArr1, testArr2);
+                    foreach (KeyValuePair<int, int> entry in resArr)
+                    {
+                        insertResultInfo.Add("Key :"+ entry.Key.ToString());
+                        insertResultInfo.Add("Value :"+ entry.Value.ToString());
+                    }
+                        //selectLowestRowIdFromTableToIds
+                    /*   foreach (var entry in general.areThereDuplicates(general.idValues(general.selectIdRowIdFromTable(connectionManager, "T_PROCESS", "Process_ID"))))
+                       {
+                           insertResultInfo.Add(entry.ToString());
+                       }*/
+
+                    #endregion
+                    #region process
+                    /*
 					//-----------PROCESS-------------------------------------------------------
 					//-------------------------------------------------------------------------
 
-		/*			FkManager processId = new FkManager("T_PROCESS", "Process_ID");
+					FkManager processId = new FkManager("T_PROCESS", "Process_ID");
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
@@ -213,12 +263,12 @@ namespace Process_Export_Import
 					processDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager subProcessId = new FkManager("T_SUBPROCESS", "Subprocess_ID");
-					subProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);*/
+					subProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					#endregion
 					#region routing
 					//-----------ROUTING-------------------------------------------------------
 					//-------------------------------------------------------------------------
-				/*	FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
+					FkManager routingConditionId = new FkManager("T_ROUTING_CONDITION", "Routing_Condition_ID");
 					routingConditionId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager routingConditionGroupId = new FkManager("T_ROUTING_CONDITION_GROUP", "Routing_Condition_Group_ID");
@@ -231,7 +281,7 @@ namespace Process_Export_Import
 					routingDesignId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager activityDesigndId = new FkManager("T_ACTIVITY_DESIGN", "Activity_Design_ID");
-					activityDesigndId.changeAllIdInDbFileToFitSqlServer(connectionManager);*/
+					activityDesigndId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					// FkManager routingDesignFromActivityId = new FkManager("T_ROUTING_DESIGN", "From_Activity_Design_ID");
 					//	routingDesignFromActivityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -243,13 +293,13 @@ namespace Process_Export_Import
 					//-----------ACTIVITY------------------------------------------------------
 					//-------------------------------------------------------------------------
 
-			//		FkManager activityBeforeFinishCheckQueryTypeIdId = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Activity_Before_Finish_Check_Query_Type_ID");
-			//		activityBeforeFinishCheckQueryTypeIdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityBeforeFinishCheckQueryTypeIdId = new FkManager("T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE", "Activity_Before_Finish_Check_Query_Type_ID");
+					activityBeforeFinishCheckQueryTypeIdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-			//		FkManager activityFinishStepModedId = new FkManager("T_ACTIVITY_FINISH_STEP_MODE", "Activity_Finish_Step_Mode_ID");
-			//		activityFinishStepModedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager activityFinishStepModedId = new FkManager("T_ACTIVITY_FINISH_STEP_MODE", "Activity_Finish_Step_Mode_ID");
+					activityFinishStepModedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-				/*	FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
+					FkManager activityUiComponentdId = new FkManager("T_ACTIVITY_UI_COMPONENT", "Activity_UI_Component_ID");
 					activityUiComponentdId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager activityOwnerByConditionId = new FkManager("T_ACTIVITY_OWNER_BY_CONDITION", "Activity_Owner_By_Condition_ID");
@@ -310,8 +360,8 @@ namespace Process_Export_Import
 					FkManager fieldDateConstraitId = new FkManager("T_FIELD_DATE_CONSTRAINT", "Field_Date_Constraint_ID");
 					fieldDateConstraitId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					//FkManager fieldDateTypeId = new FkManager("T_FIELD_DATE_TYPE", "Date_Field_Type_ID");
-					//fieldDateTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+				//	FkManager fieldDateTypeId = new FkManager("T_FIELD_DATE_TYPE", "Date_Field_Type_ID");
+				//	fieldDateTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager calcFieldConstantTypeId = new FkManager("T_CALCULATED_FIELD_CONSTANT_TYPE", "Calculated_Field_Constant_Type_ID");
 					calcFieldConstantTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -325,8 +375,8 @@ namespace Process_Export_Import
 					FkManager fieldToFieldDependecyId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Field_To_Field_Dependency_ID");
 					fieldToFieldDependecyId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-			//	   FkManager dependentFieldId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Dependent_Field_ID");
-			//	   dependentFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+				    FkManager dependentFieldId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Dependent_Field_ID");
+				    dependentFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager compareOperationId = new FkManager("T_FIELD_TO_FIELD_DEPENDENCY", "Compare_Operation_Id");
 					compareOperationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -347,14 +397,15 @@ namespace Process_Export_Import
 					fieldLabelTranslationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager fieldDocumentReferenceImportTypeId = new FkManager("T_FIELD_DOCUMENT_REFERENCE_IMPORT_TYPE", "Field_Document_Reference_Import_Ttype_ID");
-					fieldDocumentReferenceImportTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);*/
+					fieldDocumentReferenceImportTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					#endregion
 					#region reports
+
 					FkManager activityId = new FkManager("T_ACTIVITY", "Activity_ID");
-                    insertResultInfo.AddRange(activityId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                    activityId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 					//-----------REPORTOK------------------------------------------------------
 					//-------------------------------------------------------------------------
-				/*	FkManager reportId = new FkManager("T_REPORT", "Report_ID");
+					FkManager reportId = new FkManager("T_REPORT", "Report_ID");
 					reportId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager reportFieldCondGroupId = new FkManager("T_REPORT_2_FIELD_COND_GROUP", "Report_2_Field_Cond_Group_ID");
@@ -396,8 +447,8 @@ namespace Process_Export_Import
 					FkManager procDesignDrawPartDetailId = new FkManager("T_PROC_DESIGN_DRAW_PART_DETAIL", "Proc_Design_Draw_Part_Detail_ID");
 					procDesignDrawPartDetailId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-			//	   FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
-			//	   procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+				    FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
+				    procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
 					procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -468,8 +519,8 @@ namespace Process_Export_Import
 					FkManager systemInterfaceType = new FkManager("T_SYSTEM_INTERFACE_TYPE", "Description");
 					systemInterfaceType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-				 //   FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
-				 //   fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
+				    FkManager fieldConditionGroupType = new FkManager("T_FIELD_CONDITION_GROUP", "Name");
+				    fieldConditionGroupType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
 
 					FkManager roleType = new FkManager("T_ROLE", "Name");
@@ -497,6 +548,7 @@ namespace Process_Export_Import
 					FkManager notificationId = new FkManager("T_NOTIFICATION", "Notification_ID");
 					notificationId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
+
 					FkManager formulaStepId = new FkManager("T_FORMULA_STEPS", "FORMULA_STEPS_ID");
 					formulaStepId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
@@ -511,9 +563,9 @@ namespace Process_Export_Import
 
 					FkManager systemInterfaceTriggerId = new FkManager("T_SYSTEM_INTERFACE_TRIGGER", "System_Interface_Trigger_ID");
 					systemInterfaceTriggerId.changeAllIdInDbFileToFitSqlServer(connectionManager);
-                    */
+                    
 					FkManager fieldId = new FkManager("T_FIELD", "Field_ID");
-                    insertResultInfo.AddRange(fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+                   fieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					#endregion
 					#region generateResponseObject
@@ -530,10 +582,10 @@ namespace Process_Export_Import
 						
 					var result = JsonConvert.SerializeObject(response);
 					insertResultInfo.Add(result);*/
-					#endregion
-				  /*
-		   
+                    #endregion
 
+
+                    /*
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
@@ -567,11 +619,28 @@ namespace Process_Export_Import
 							{
 								if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
 								{
-									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+                                    if (tableName == "T_FIELD")
+                                    {
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+                                    }
+                                    else
+                                    {
+									       insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+
+                                    }
 								}
 								else
 								{
-									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+                                    if (tableName == "T_FIELD")
+                                    {
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                    }
+                                    else
+                                    {
+                                        insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+
+                                    }
+                                    
 								}
 
 							}
@@ -579,11 +648,11 @@ namespace Process_Export_Import
 
 					}*/
 
-				}
-				catch (Exception ex)
-				{
-					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-				}
+                }
+			catch (Exception ex)
+			    {
+				    insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+			    }
 			}
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
@@ -777,7 +846,7 @@ namespace Process_Export_Import
 			catch (Exception e)
 			{
 				insertresultInfo.Add(e.ToString());
-				//throw new Exception();
+				throw new Exception();
 
 			}
 			return insertresultInfo;
@@ -804,17 +873,17 @@ namespace Process_Export_Import
 			{
 				ExportManager.processes_v2 = new List<ProcessListItem>();
 				ExportManager.fieldsForProcess_v2 = new List<long>();
-				res = ExportManager.TransferProcess_v2(subProcessId, connectionManager , gen_inf, true, true);
+				res = ExportManager.TransferProcess_v2(subProcessId, connectionManager, true, true);
 			}
 			catch (Exception e)
 			{
 					res = ExportManager.FillServiceCallResult_v2(e);
-
 			}
 
 			return res;	
 	}
-	public enum ProcessReasonType
+
+    public enum ProcessReasonType
 	{
 		MainProcess,
 		DocRef,

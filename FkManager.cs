@@ -249,14 +249,15 @@ namespace Process_Export_Import
                 {
                     string commandText = "Select Count(*) from " + table + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
                     var reader = obj.sqLiteDataReader(commandText);
-                   // updateInfo.Add(commandText);
+                    updateInfo.Add(commandText);
                     reader.Read();
                     if (reader[0].ToString() != "0")
                     {
                 //        updateInfo.Add("Table where old Id Found : " + table);
                         string updateCommandText = " Update " + table + " Set " + IdName + " = " + newIdList[oldIddListIndex].ToString() + " where " + IdName + " = " + oldIdList[oldIddListIndex].ToString();
                         obj.executeQueriesInDbFile(updateCommandText);
-                   
+                        updateInfo.Add(updateCommandText);
+
                         //ha találok olyan értéket ami routing_design activity_des_id-ban ami benne van ACTIVITY_DESIGn-ban  from vagy to act_design id-ként akkor azokat ugyanarra updatelem
                         if (IdName == "Activity_Design_ID")
                         {
@@ -269,10 +270,10 @@ namespace Process_Export_Import
                         {
                             string updateDependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Dependent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Dependent_Field_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateDependentFieldId);
-                            updateInfo.Add(updateDependentFieldId);
+                            //updateInfo.Add(updateDependentFieldId);
                             string updateIndependentFieldId = " Update T_FIELD_TO_FIELD_DEPENDENCY  Set Independent_Field_ID = " + newIdList[oldIddListIndex].ToString() + " where Independent_Field_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
                             obj.executeQueriesInDbFile(updateIndependentFieldId);
-                            updateInfo.Add(updateIndependentFieldId);
+                            //updateInfo.Add(updateIndependentFieldId);
                         }
                         if (IdName == "Activity_ID")
                         {
@@ -286,12 +287,17 @@ namespace Process_Export_Import
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
                             string updateSystemInterfaceTriggerToActivatyId = "Update T_SYSTEM_INTERFACE_TRIGGER Set To_Activity = " + newIdList[oldIddListIndex].ToString() + " where To_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
-                            updateInfo.Add(updateSystemInterfaceTriggerToActivatyId);
+                           // updateInfo.Add(updateSystemInterfaceTriggerToActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
 
                             string updateSystemInterfaceTriggerFromActivatyId = "Update T_SYSTEM_INTERFACE_TRIGGER Set From_Activity = " + newIdList[oldIddListIndex].ToString() + " where From_Activity = " + oldIdList[oldIddListIndex].ToString() + " ;";
-                            updateInfo.Add(updateSystemInterfaceTriggerFromActivatyId);
+                           // updateInfo.Add(updateSystemInterfaceTriggerFromActivatyId);
                             obj.executeQueriesInDbFile(updateNotificationTriggerToActivatyId);
+                        }
+                        if (IdName == "Process_ID")
+                        {
+                            string updateParentProcessIdTxt = "Update T_PROCESS SET Parent_Process_ID  = " + newIdList[oldIddListIndex].ToString() + " where Parent_Process_ID = " + oldIdList[oldIddListIndex].ToString() + " ;";
+                            obj.executeQueriesInDbFile(updateParentProcessIdTxt);
                         }
 
                     }
@@ -464,9 +470,12 @@ namespace Process_Export_Import
                 List<int> idDifferenceList = new List<int>();
                 List<string> idUpdateInfo = new List<string>();
                 List<int> newIdList = new List<int>();
+                //Ide jön  az újítás
+
+
+
 
                 int maxIdInSqlServer = getMaxIdFromSQLServer(connectionManager);
-
                 idsInDbFile = getIdsInOrderFromDBFile(connectionManager);
                 changingIdsInfoList.AddRange(convertIntListToStringList(idsInDbFile));
                 if (idsInDbFile.Count == 0)
@@ -789,5 +798,102 @@ namespace Process_Export_Import
 
         }
 
+        public List<KeyValuePair<int, int>> selectIdRowIdFromTable(ConnectionManagerST obj, string tableName, string idName)
+        {
+            List<KeyValuePair<int, int>> idValueRowIDValuePairs = new List<KeyValuePair<int, int>>();
+            string selectTxt = "select " + idName + " , ROWID from " + tableName;
+            var reader = obj.sqLiteDataReader(selectTxt);
+            try
+            {
+                while (reader.Read())
+                {
+                    idValueRowIDValuePairs.Add(new KeyValuePair<int, int>(Convert.ToInt32(reader[idName]), Convert.ToInt32(reader["ROWID"])));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return idValueRowIDValuePairs;
+        }
+        public List<int> idValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+        {
+            List<int> idValues = new List<int>();
+            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+            {
+                idValues.Add(entry.Key);
+            }
+            return idValues;
+        }
+
+        public List<int> rowIdValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+        {
+            List<int> RowIdValues = new List<int>();
+            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+            {
+                RowIdValues.Add(entry.Value);
+            }
+            return RowIdValues;
+        }
+        public List<int> areThereDuplicates(List<int> inputIntList)
+        {
+            List<int> sortedInputList = new List<int>();
+            List<int> resultList = new List<int>();
+            sortedInputList = inputIntList;
+            sortedInputList.Sort();
+            IEnumerable<int> duplicates = sortedInputList.GroupBy(x => x)
+                                         .Where(g => g.Count() > 1)
+                                         .Select(x => x.Key);
+
+            foreach (int valami in duplicates)
+            {
+                resultList.Add(valami);
+            }
+
+            return resultList;
+        }
+        static int Compare1(KeyValuePair<string, int> a, KeyValuePair<string, int> b)
+        {
+            return a.Key.CompareTo(b.Key);
+        }
+
+
+        public List<KeyValuePair<int, int>> selectLowestRowIdFromTableToIds(List<KeyValuePair<int, int>> rowAndIdValueList, List<int> multipleRecordList)
+        {
+            List<KeyValuePair<int, int>> lowestRowIAndValueForMultipleRecordList = new List<KeyValuePair<int, int>>();
+            List<KeyValuePair<int, int>> sortedRowAndIdValueList = new List<KeyValuePair<int, int>>();
+            sortedRowAndIdValueList = rowAndIdValueList.OrderBy(kvp => kvp.Key).ToList();
+            var sortedMultipleRecordList =   new List<int> ();
+             multipleRecordList.Sort((a, b) => a.CompareTo(b));
+            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[0]);
+
+            foreach (int record in multipleRecordList)
+            {
+                for (var i = 0; i < sortedRowAndIdValueList.Count; i++)
+                {
+                    if (record == sortedRowAndIdValueList[i].Key)
+                    {
+                        if ((sortedRowAndIdValueList[i].Key == sortedRowAndIdValueList[i + 1].Key) && (sortedRowAndIdValueList[i + 1].Value < sortedRowAndIdValueList[i].Value))    
+                        {
+                            lowestRowIAndValueForMultipleRecordList.RemoveAt(lowestRowIAndValueForMultipleRecordList.Count-1);
+                            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[i + 1]);
+                        }
+                         if (sortedRowAndIdValueList[i].Key != sortedRowAndIdValueList[i + 1].Key)
+                        {
+                            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[i + 1]);
+                        }
+                    }
+                    i++;
+                }
+            }
+
+            return lowestRowIAndValueForMultipleRecordList;
+        }
+
+        public void deleteSameRecord(ConnectionManagerST obj, List<string> allTableList)
+        {
+
+        }
     }
 }

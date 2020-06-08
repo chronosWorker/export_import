@@ -232,9 +232,9 @@ namespace Process_Export_Import
 			return ret;
 		}
 
-        public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj, General_Info gen_inf, bool recurs = false, bool isSubprocess = false)
+        public ServiceCallResult TransferProcess_v2(Int64 processId, ConnectionManagerST obj,  bool recurs = false, bool isSubprocess = false) 
         {
-
+            General_Info gen_inf = new General_Info();
             ServiceCallResult res = new ServiceCallResult();
             if (!recurs)
             {
@@ -2002,13 +2002,13 @@ namespace Process_Export_Import
 
 				while (reader25.Read())
 				{
-					if (fieldsForProcess_v2.FindIndex(a => a == Convert.ToInt64(reader25["FIELD_REF"].ToString())) > 0)
+					if (fieldsForProcess_v2.FindIndex(a => (a == Convert.ToInt64(reader25["FIELD_REF"].ToString()))) > 0)
 					{
-						if (operands_v2.FindIndex(a => a == Convert.ToInt64(reader25["CALCFIELD_OPERAND1_REF"])) == -1)
+						if (operands_v2.FindIndex(a => (a == Convert.ToInt64(reader25["CALCFIELD_OPERAND1_REF"]))) == -1)
 						{
 							operands_v2.Add(Convert.ToInt64(reader25["CALCFIELD_OPERAND1_REF"]));
 						}
-						if (operands_v2.FindIndex(a => a == Convert.ToInt64(reader25["CALCFIELD_OPERAND2_REF"])) == -1)
+						if (operands_v2.FindIndex(a => (a == Convert.ToInt64(reader25["CALCFIELD_OPERAND2_REF"]))) == -1)
 						{
 							operands_v2.Add(Convert.ToInt64(reader25["CALCFIELD_OPERAND2_REF"]));
 						}
@@ -2054,7 +2054,8 @@ namespace Process_Export_Import
 				}
 
 				string reader26CmdTxt = "SELECT * FROM T_CALCFIELD_OPERAND";
-				var reader26 = obj.sqlServerDataReaderOld(reader26CmdTxt);
+                columnTypes = getColumnTypesDictionary_v3("T_CALCFIELD_OPERAND", obj);
+                var reader26 = obj.sqlServerDataReaderOld(reader26CmdTxt);
 
 				while (reader26.Read())
 				{
@@ -2781,7 +2782,7 @@ namespace Process_Export_Import
 			string strMSSqlChild;
 			processes_v2.Add(new ProcessListItem { ProcessId = processId, Processed = false, ReasonType = ProcessReasonType.MainProcess });
 			// -----  ProcessReasonType.SubProcess
-			/*
+			
 			string cmdTxt = "SELECT * FROM T_ACTIVITY_FIELDS";
 			var reader = obj.sqlServerDataReaderOld(cmdTxt);
 			while (reader.Read())
@@ -2815,7 +2816,7 @@ namespace Process_Export_Import
 					}
 				}
 			}
-			*/
+			
 			// -----  ProcessReasonType.Report ----------------------------------------
 
 			string cmdTxt2 = "SELECT * FROM T_REPORT_FIELD";
@@ -3052,7 +3053,8 @@ namespace Process_Export_Import
 			"T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS",
 			"T_USER_DEFINED_TABLE",
 			"T_FORMULA_STEPS",
-			"T_OPERAND",
+            "T_CALCFIELD_OPERAND",
+            "T_OPERAND",
 			"T_PROCFIELD_PARTICIPANT",
 			"T_PROCFIELD_WORD_MERGE",
 			"T_PROCFIELD_WORD_MERGE_FIELD",
@@ -3163,7 +3165,8 @@ namespace Process_Export_Import
 			List<int> subProcessIds = new List<int>();
 			string checkForSubProcessQuery = "Select Process_ID from T_PROCESS where Parent_Process_ID = " + mainProcessId.ToString();
 			var reader = obj.sqlServerDataReaderOld(checkForSubProcessQuery);
-			try { 
+			try
+            { 
 				while (reader.Read())
 				{
 					subProcessIds.Add(Convert.ToInt32(reader["Process_ID"]));
@@ -3177,6 +3180,24 @@ namespace Process_Export_Import
 			return subProcessIds;
 		}
 
-		
-	}
+        public ServiceCallResult updateMainProcessIdForSubprocesses(ConnectionManagerST obj, List<int> subProcessIds, int mainProcessId)
+        {
+            ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
+            try
+            {
+                foreach (int subProcessId in subProcessIds)
+                {
+                    string updateQueryTxt = "UPDATE T_PROCESS SET Parent_Process_ID = " + mainProcessId.ToString() + " where Process_ID = " + subProcessId.ToString();
+                    obj.executeQueriesInDbFile(updateQueryTxt);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                res = FillServiceCallResult_v2(ex);
+            }
+
+            return res;
+        }
+    }
 }
