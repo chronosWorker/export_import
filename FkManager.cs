@@ -818,6 +818,27 @@ namespace Process_Export_Import
             return idValueRowIDValuePairs;
         }
 
+        public List<KeyValuePair<int, int>> selectIdRowIdFromTable2(ConnectionManagerST obj)
+        {
+            List<KeyValuePair<int, int>> idValueRowIDValuePairs = new List<KeyValuePair<int, int>>();
+            string selectTxt = "select " + IdName + " , ROWID from " + TableName;
+            var reader = obj.sqLiteDataReader(selectTxt);
+            try
+            {
+                while (reader.Read())
+                {
+                    idValueRowIDValuePairs.Add(new KeyValuePair<int, int>(Convert.ToInt32(reader[IdName]), Convert.ToInt32(reader["ROWID"])));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return idValueRowIDValuePairs;
+        }
+
+
         public List<int> selectMultipleOccurenceValueList(List<KeyValuePair<int, int>> rowAndIdList)
         {
             var IdList = new List<int>();
@@ -832,49 +853,62 @@ namespace Process_Export_Import
         }
 
 
-        public void deleteMultipleOccurenceIdValueFromTable(ConnectionManagerST connectionManager)
+        public void deleteMultipleOccurenceIdValueFromTable(ConnectionManagerST connectionManager , TableManager TM)
         {
-            var idAndRowIdValueList = selectIdRowIdFromTable(connectionManager, TableName, IdName);
-            var duplicatedIdValuesList = areThereDuplicates(idValues(idAndRowIdValueList));
-            var LoiwestRowIdForDuplicatedIdValues = selectLowestRowIdFromTableToIds(idAndRowIdValueList, duplicatedIdValuesList);
-            deleteSameRecord(connectionManager, LoiwestRowIdForDuplicatedIdValues);
-        }
-        
-    public List<int> idValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
-    {
-        List<int> idValues = new List<int>();
-        foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
-        {
-            idValues.Add(entry.Key);
-        }
-        return idValues;
-    }
+            List<KeyValuePair<string, string>> tableNameWitkFkIdNameList = TM.getTableNameWitkFkIdNameList();
+
+            foreach (KeyValuePair<string, string> tableAndIdNamePair in tableNameWitkFkIdNameList)
+            {
+                var idAndRowIdValueList = new List<KeyValuePair<int, int>>();
+                var duplicatedIdValuesList = new List<int>();
+                var lowestRowIdForDuplicatedIdValues = new List<KeyValuePair<int, int>>();
+                idAndRowIdValueList = selectIdRowIdFromTable(connectionManager, tableAndIdNamePair.Key, tableAndIdNamePair.Value);
+                duplicatedIdValuesList = areThereDuplicates(idValues(idAndRowIdValueList));
+                lowestRowIdForDuplicatedIdValues = selectLowestRowIdFromTableToIds(idAndRowIdValueList, duplicatedIdValuesList);
+                deleteSameRecord(connectionManager, lowestRowIdForDuplicatedIdValues, tableAndIdNamePair.Key, tableAndIdNamePair.Value);
+            }
 
 
-    public List<int> rowIdValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
-    {
-        List<int> RowIdValues = new List<int>();
-        foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
-        {
-            RowIdValues.Add(entry.Value);
-        }
-        return RowIdValues;
-    }
-    public List<int> areThereDuplicates(List<int> inputIntList)
-    {
-        List<int> sortedInputList = new List<int>();
-        List<int> resultList = new List<int>();
-        sortedInputList = inputIntList;
-        sortedInputList.Sort();
-        IEnumerable<int> duplicates = sortedInputList.GroupBy(x => x).Where(g => g.Count() > 1).Select(x => x.Key);
-
-        foreach (int valami in duplicates)
-        {
-            resultList.Add(valami);
+         
         }
 
-        return resultList;
-    }
+      /*  public void deleteMultipleOccurenceIdValueFromTable2(ConnectionManagerST connectionManager)
+        {
+            
+                var idAndRowIdValueList = selectIdRowIdFromTable2(connectionManager);
+                var duplicatedIdValuesList = areThereDuplicates(idValues(idAndRowIdValueList));
+                var LoiwestRowIdForDuplicatedIdValues = selectLowestRowIdFromTableToIds(idAndRowIdValueList, duplicatedIdValuesList);
+                deleteSameRecord(connectionManager, LoiwestRowIdForDuplicatedIdValues);
+           
+        }*/
+
+
+        public List<int> idValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+        {
+            List<int> idValues = new List<int>();
+            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+            {
+                idValues.Add(entry.Key);
+            }
+            return idValues;
+        }
+
+
+        public List<int> rowIdValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+        {
+            List<int> RowIdValues = new List<int>();
+            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+            {
+                RowIdValues.Add(entry.Value);
+            }
+            return RowIdValues;
+        }
+        public List<int> areThereDuplicates(List<int> inputIntList)
+        {
+            inputIntList.Sort();
+            List<int> duplicates = inputIntList.GroupBy(x => x).Where(g => g.Count() > 1).Select(y => y.Key).ToList(); 
+            return duplicates;
+        }
 
 
 
@@ -885,7 +919,7 @@ namespace Process_Export_Import
         rowAndIdValueList.Sort((a, b) => (a.Key.CompareTo(b.Key)));
         var sortedMultipleRecordList =   new List<int> ();
         rowInputList.Sort((a, b) => a.CompareTo(b));
-        lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[0]);
+
 
         foreach (int rowNum in rowInputList)
         {
@@ -899,11 +933,21 @@ namespace Process_Export_Import
         return lowestRowIAndValueForMultipleRecordList;
     }
 
-    public void deleteSameRecord(ConnectionManagerST obj, List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+ /*   public void deleteSameRecord(ConnectionManagerST obj, List<KeyValuePair<int, int>> idValueRowIDValuePairs)
     {
             foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
             {
                 string deleteText = "Delete from " + TableName + " Where " + IdName + " = " + entry.Key.ToString() + " AND ROWID != " + entry.Value.ToString();
+                obj.executeQueriesInDbFile(deleteText);
+            }
+    }
+    */
+    
+    public void deleteSameRecord(ConnectionManagerST obj, List<KeyValuePair<int, int>> idValueRowIDValuePairs, string tableName , string idName)
+    {
+            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+            {
+                string deleteText = "Delete from " + tableName + " Where " + idName + " = " + entry.Key.ToString() + " AND ROWID != " + entry.Value.ToString();
                 obj.executeQueriesInDbFile(deleteText);
             }
     }
