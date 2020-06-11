@@ -817,83 +817,96 @@ namespace Process_Export_Import
 
             return idValueRowIDValuePairs;
         }
-        public List<int> idValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+
+        public List<int> selectMultipleOccurenceValueList(List<KeyValuePair<int, int>> rowAndIdList)
         {
-            List<int> idValues = new List<int>();
+            var IdList = new List<int>();
+            foreach (var entry in rowAndIdList)
+            {
+                IdList.Add(entry.Value);
+            }
+            var MultipleOccurenceValueList  = IdList.GroupBy( x => x).Where(y => y.Count() > 1).Select( z => z.Key).ToList();
+
+            return MultipleOccurenceValueList;
+
+        }
+
+
+        public void deleteMultipleOccurenceIdValueFromTable(ConnectionManagerST connectionManager)
+        {
+            var idAndRowIdValueList = selectIdRowIdFromTable(connectionManager, TableName, IdName);
+            var duplicatedIdValuesList = areThereDuplicates(idValues(idAndRowIdValueList));
+            var LoiwestRowIdForDuplicatedIdValues = selectLowestRowIdFromTableToIds(idAndRowIdValueList, duplicatedIdValuesList);
+            deleteSameRecord(connectionManager, LoiwestRowIdForDuplicatedIdValues);
+        }
+        
+    public List<int> idValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+    {
+        List<int> idValues = new List<int>();
+        foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+        {
+            idValues.Add(entry.Key);
+        }
+        return idValues;
+    }
+
+
+    public List<int> rowIdValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+    {
+        List<int> RowIdValues = new List<int>();
+        foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
+        {
+            RowIdValues.Add(entry.Value);
+        }
+        return RowIdValues;
+    }
+    public List<int> areThereDuplicates(List<int> inputIntList)
+    {
+        List<int> sortedInputList = new List<int>();
+        List<int> resultList = new List<int>();
+        sortedInputList = inputIntList;
+        sortedInputList.Sort();
+        IEnumerable<int> duplicates = sortedInputList.GroupBy(x => x).Where(g => g.Count() > 1).Select(x => x.Key);
+
+        foreach (int valami in duplicates)
+        {
+            resultList.Add(valami);
+        }
+
+        return resultList;
+    }
+
+
+
+    public List<KeyValuePair<int, int>> selectLowestRowIdFromTableToIds(List<KeyValuePair<int, int>> rowAndIdValueList, List<int> rowInputList)
+    {
+        List<KeyValuePair<int, int>> lowestRowIAndValueForMultipleRecordList = new List<KeyValuePair<int, int>>();
+        List<KeyValuePair<int, int>> sortedRowAndIdValueList = new List<KeyValuePair<int, int>>();
+        rowAndIdValueList.Sort((a, b) => (a.Key.CompareTo(b.Key)));
+        var sortedMultipleRecordList =   new List<int> ();
+        rowInputList.Sort((a, b) => a.CompareTo(b));
+        lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[0]);
+
+        foreach (int rowNum in rowInputList)
+        {
+            var lowestValuePairForEachKey = rowAndIdValueList.Where(p => p.Key == rowNum).OrderBy(k => k.Value).FirstOrDefault();
+            if (lowestValuePairForEachKey.Key != 0)
+            {
+                lowestRowIAndValueForMultipleRecordList.Add(lowestValuePairForEachKey);
+            }
+        }
+
+        return lowestRowIAndValueForMultipleRecordList;
+    }
+
+    public void deleteSameRecord(ConnectionManagerST obj, List<KeyValuePair<int, int>> idValueRowIDValuePairs)
+    {
             foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
             {
-                idValues.Add(entry.Key);
+                string deleteText = "Delete from " + TableName + " Where " + IdName + " = " + entry.Key.ToString() + " AND ROWID != " + entry.Value.ToString();
+                obj.executeQueriesInDbFile(deleteText);
             }
-            return idValues;
-        }
-
-        public List<int> rowIdValues(List<KeyValuePair<int, int>> idValueRowIDValuePairs)
-        {
-            List<int> RowIdValues = new List<int>();
-            foreach (KeyValuePair<int, int> entry in idValueRowIDValuePairs)
-            {
-                RowIdValues.Add(entry.Value);
-            }
-            return RowIdValues;
-        }
-        public List<int> areThereDuplicates(List<int> inputIntList)
-        {
-            List<int> sortedInputList = new List<int>();
-            List<int> resultList = new List<int>();
-            sortedInputList = inputIntList;
-            sortedInputList.Sort();
-            IEnumerable<int> duplicates = sortedInputList.GroupBy(x => x)
-                                         .Where(g => g.Count() > 1)
-                                         .Select(x => x.Key);
-
-            foreach (int valami in duplicates)
-            {
-                resultList.Add(valami);
-            }
-
-            return resultList;
-        }
-        static int Compare1(KeyValuePair<string, int> a, KeyValuePair<string, int> b)
-        {
-            return a.Key.CompareTo(b.Key);
-        }
-
-
-        public List<KeyValuePair<int, int>> selectLowestRowIdFromTableToIds(List<KeyValuePair<int, int>> rowAndIdValueList, List<int> multipleRecordList)
-        {
-            List<KeyValuePair<int, int>> lowestRowIAndValueForMultipleRecordList = new List<KeyValuePair<int, int>>();
-            List<KeyValuePair<int, int>> sortedRowAndIdValueList = new List<KeyValuePair<int, int>>();
-            sortedRowAndIdValueList = rowAndIdValueList.OrderBy(kvp => kvp.Key).ToList();
-            var sortedMultipleRecordList =   new List<int> ();
-             multipleRecordList.Sort((a, b) => a.CompareTo(b));
-            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[0]);
-
-            foreach (int record in multipleRecordList)
-            {
-                for (var i = 0; i < sortedRowAndIdValueList.Count; i++)
-                {
-                    if (record == sortedRowAndIdValueList[i].Key)
-                    {
-                        if ((sortedRowAndIdValueList[i].Key == sortedRowAndIdValueList[i + 1].Key) && (sortedRowAndIdValueList[i + 1].Value < sortedRowAndIdValueList[i].Value))    
-                        {
-                            lowestRowIAndValueForMultipleRecordList.RemoveAt(lowestRowIAndValueForMultipleRecordList.Count-1);
-                            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[i + 1]);
-                        }
-                         if (sortedRowAndIdValueList[i].Key != sortedRowAndIdValueList[i + 1].Key)
-                        {
-                            lowestRowIAndValueForMultipleRecordList.Add(sortedRowAndIdValueList[i + 1]);
-                        }
-                    }
-                    i++;
-                }
-            }
-
-            return lowestRowIAndValueForMultipleRecordList;
-        }
-
-        public void deleteSameRecord(ConnectionManagerST obj, List<string> allTableList)
-        {
-
-        }
     }
 }
+}
+ 
