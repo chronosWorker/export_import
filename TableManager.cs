@@ -196,6 +196,7 @@ namespace Process_Export_Import
                 "T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENT_FIELDS",
                 "T_FIELD_TO_FIELD_DEPENDENCY",
                 "T_FIELD_VALUE",
+                "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION",
                 "T_FIELD_VALUE_TRANSLATION",
                 "T_PROC_DESIGN_DRAW",
                 "T_PROC_DESIGN_DRAW_PART",
@@ -269,7 +270,6 @@ namespace Process_Export_Import
 
             return twoDimensionaltypeTables;
         }
-
         public List<KeyValuePair<string, string>> getTableNameWitkFkIdNameList()
         {
             List<KeyValuePair<string, string>> tableNameWitkFkIdNameList = new List<KeyValuePair<string, string>>()
@@ -374,8 +374,8 @@ namespace Process_Export_Import
 
             return tableNameWitkFkIdNameList;
 
-            }
         }
+    }
 
         //  public List<string> getAllTableWhereIdExits(ConnectionManagerST obj)
         // {

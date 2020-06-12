@@ -151,11 +151,18 @@ namespace Process_Export_Import
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			res.Description += processId.ToString();
 			Export export = new Export();
-			List<int> subporcessIds = export.checkIfSubProcessExist(connectionManager, processId);
+            List<int> subporcessIds = export.checkIfSubProcessExist(connectionManager, processId);
+            bool docRefExits = export.checkIfThereIsDocRefInFieldsForProcess(connectionManager, processId);
+            if (docRefExits)
+            {
+                List<int> docRefProcessIdList = export.docRefProcessIdList(connectionManager, processId);
+                subporcessIds.AddRange(docRefProcessIdList);
+            }
 			export.processes_v2 = new List<ProcessListItem>();
 			export.FillProcesses_v2(processId, connectionManager);
 			export.fieldsForProcess_v2 = new List<long>();
-			res = export.TransferProcess_v2(processId, connectionManager);
+            subporcessIds.ForEach(e => res.ResultString += " id : " + e.ToString() + " ;");
+            res = export.TransferProcess_v2(processId, connectionManager);
 			if (subporcessIds.Count == 0 || res.Code != 0 )
 			{
 				return res;
@@ -188,7 +195,7 @@ namespace Process_Export_Import
 			List<string> listOfTablesWhereIdentityInsertNeeded = tableInfo.listOfTablesWhereIdentityInsertNeeded();
 			List<string> secondRoundInsertTablesWithoutIdentityProprty = tableInfo.secondRoundInsertTablesWithoutIdentityProprty();
 			ResponseJson response = new ResponseJson();
-			//string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;Password=!#zSnP+n%m!8k@(/;";
+		//	string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;Password=!#zSnP+n%m!8k@(/;";
 			string sqliteSource = @"Data Source=C:\inetpub\wwwroot\csf_test_site\temp\" + fileName + "; Version=3;";
 			connectionManager.openSqLiteConnection(sqliteSource);
 			connectionManager.openSqlServerConnection();
@@ -553,7 +560,7 @@ namespace Process_Export_Import
 					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
-						if (tableName != "T_DB_CONNECTION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT" && tableName != "T_FIELD_VALUE_TRANSLATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT" && tableName != "T_FIELD_VALUE_TRANSLATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -561,11 +568,11 @@ namespace Process_Export_Import
 
 								if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
 								{
-									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
 								}
 								else
 								{
-									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 								}
 
 							}
@@ -585,7 +592,7 @@ namespace Process_Export_Import
 								{
 									if (tableName == "T_FIELD")
 									{
-										insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, false, connectionManager));
+										insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 									}
 									else
 									{

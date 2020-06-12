@@ -3199,5 +3199,49 @@ namespace Process_Export_Import
 
             return res;
         }
+
+        public bool checkIfThereIsDocRefInFieldsForProcess(ConnectionManagerST obj, int processId)
+        {
+            bool docRefExits = false;
+            string selectString = "select count(*) as docRef from t_field where Process_ID = " + processId.ToString() + "  and Document_Ref_List_Type = 2; ";
+            var reader = obj.sqlServerDataReaderOld(selectString);
+            try
+            {
+                while (reader.Read())
+                {
+                    if (Convert.ToInt32(reader["docRef"]) != 0)
+                    {
+                        docRefExits = true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return docRefExits;
+        }
+
+        public List<int> docRefProcessIdList(ConnectionManagerST obj, int processId)
+        {
+            List<int> docRefProcessIdList = new List<int>();
+            string selectString = "select Process_Id from T_PROCESS where Process_Alias_Id = ( select Field_Value from T_FIELD_VALUE where Field_Value_ID = (select Default_Field_Value_ID  from t_field where Process_ID = " + processId.ToString() + " and Document_Ref_List_Type = 2))";
+            var reader = obj.sqlServerDataReaderOld(selectString);
+            try
+            {
+                while (reader.Read())
+                {
+                    docRefProcessIdList.Add(Convert.ToInt32(reader["Process_Id"]));
+                    
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+
+            return docRefProcessIdList;
+        }
     }
 }
