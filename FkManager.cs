@@ -243,14 +243,15 @@ namespace Process_Export_Import
 			List<int> fieldIdsWithProcAliasIdList = new List<int>();
 			try
 			{
-			
-				string selectText = " Select Field_Id from T_FIELD_VALUE where Field_Value_ID in ( select Default_Field_Value_ID  from t_field where Document_Ref_List_Type = 2 )  order by field_value asc ;";
-				var reader = obj.sqLiteDataReader(selectText);
-				while (reader.Read())
+				foreach (int oldId in oldIdList)
 				{
-					fieldIdsWithProcAliasIdList.Add(Convert.ToInt32(reader["Field_Id"]));
+					string selectText = " Select Field_Id from T_FIELD_VALUE where Field_Value_ID in ( select Default_Field_Value_ID  from t_field where Document_Ref_List_Type = 2 )  and Field_Value = " + oldId.ToString() + " order by field_value asc ;";
+					var reader = obj.sqLiteDataReader(selectText);
+					while (reader.Read())
+					{
+						fieldIdsWithProcAliasIdList.Add(Convert.ToInt32(reader["Field_Id"]));
+					}
 				}
-
 			}
 			catch (Exception ex)
 			{
@@ -264,11 +265,14 @@ namespace Process_Export_Import
 			List<string> updateTextList = new List<string>();
 			try
 			{
-                for (var i = 0; i < oldIdList.Count(); i++)
+                foreach (int fieldId in fieldIdsWithProcAliasIdList)
                 {
-					string updateText = " UPDATE T_FIELD_VALUE SET Field_Value = " + newIdList[i].ToString() + " where Field_Id =  " + fieldIdsWithProcAliasIdList[i].ToString() + " and Field_Value = " + oldIdList[i].ToString();
-					obj.executeQueriesInDbFile(updateText);
-					updateTextList.Add(updateText);
+                    for (var i = 0; i < oldIdList.Count(); i++)
+                    {
+					    string updateText = " UPDATE T_FIELD_VALUE SET Field_Value = " + newIdList[i].ToString() + " where Field_Id =  " + fieldId + " and Field_Value = " + oldIdList[i].ToString();
+					    obj.executeQueriesInDbFile(updateText);
+					    updateTextList.Add(updateText);
+                    }
                 }
 
 			}
