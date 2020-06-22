@@ -243,15 +243,14 @@ namespace Process_Export_Import
 			List<int> fieldIdsWithProcAliasIdList = new List<int>();
 			try
 			{
-				foreach (int oldId in oldIdList)
+			
+				string selectText = " Select Field_Id from T_FIELD_VALUE where Field_Value_ID in ( select Default_Field_Value_ID  from t_field where Document_Ref_List_Type = 2 )  order by field_value asc ;";
+				var reader = obj.sqLiteDataReader(selectText);
+				while (reader.Read())
 				{
-					string selectText = " Select Field_Id from T_FIELD_VALUE where Field_Value_ID in ( select Default_Field_Value_ID  from t_field where Document_Ref_List_Type = 2 )  and Field_Value = " + oldId.ToString();
-                    var reader = obj.sqLiteDataReader(selectText);
-                    while (reader.Read())
-                    {
-                        fieldIdsWithProcAliasIdList.Add(Convert.ToInt32(reader["Field_Id"]));
-                    }
+					fieldIdsWithProcAliasIdList.Add(Convert.ToInt32(reader["Field_Id"]));
 				}
+
 			}
 			catch (Exception ex)
 			{
@@ -260,31 +259,25 @@ namespace Process_Export_Import
 			return fieldIdsWithProcAliasIdList;
 		}
 
-        public List<string> changeFieldValuesForDocRef(List<int> fieldIdsWithProcAliasIdList ,   List<int> newIdList, ConnectionManagerST obj)
-        {
-            List<string> updateTextList = new List<string>();
-            try
-            {
-                foreach (int fieldId in fieldIdsWithProcAliasIdList)
+		public List<string> changeFieldValuesForDocRef(List<int> fieldIdsWithProcAliasIdList, List<int> oldIdList  , List<int> newIdList, ConnectionManagerST obj)
+		{
+			List<string> updateTextList = new List<string>();
+			try
+			{
+                for (var i = 0; i < oldIdList.Count(); i++)
                 {
-
-                    foreach (int newId in newIdList)
-                    {
-
-                        string updateText = " UPDATE T_FIELD_VALUE SET Field_Value = " + newId.ToString() + " where Field_Id =  " + fieldId.ToString() ;
-                        obj.executeQueriesInDbFile(updateText);
-                        updateTextList.Add(updateText);
-
-                    }
-
+					string updateText = " UPDATE T_FIELD_VALUE SET Field_Value = " + newIdList[i].ToString() + " where Field_Id =  " + fieldIdsWithProcAliasIdList[i].ToString() + " and Field_Value = " + oldIdList[i].ToString();
+					obj.executeQueriesInDbFile(updateText);
+					updateTextList.Add(updateText);
                 }
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-            return updateTextList;
-        }
+
+			}
+			catch (Exception ex)
+			{
+				throw ex;
+			}
+			return updateTextList;
+		}
 
 		public List<string> changeIdsInAllRelatedTableIfSameRecordFound(List<int> oldIdList, List<int> newIdList, ConnectionManagerST obj)
 		{
@@ -540,19 +533,19 @@ namespace Process_Export_Import
 					//az összes táblában ahol megtalálja ezeket ott cserélje idsInDbFile --> newIdList
 					//fgv neveket átírni mert most félrevezet
 
-					//  changingIdsInfoList.Add("Max ID");
-					changingIdsInfoList.Add(maxIdInSqlServer.ToString());
-					//  changingIdsInfoList.Add("idDifferenceList");
-					changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
-					//  changingIdsInfoList.Add("newIdList");
-					changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
-                    if (IdName == "Process_Alias_ID")
-                    {
-                        List<int> fieldIdsWithProcAliasIdForDocRefList = new List<int>();
-                        fieldIdsWithProcAliasIdForDocRefList = fieldIdsWithProcAliasIdForDocRef(idsInDbFile, connectionManager);
-                        changingIdsInfoList.AddRange(changeFieldValuesForDocRef(fieldIdsWithProcAliasIdForDocRefList, newIdList, connectionManager));
 
-                    }
+					changingIdsInfoList.Add(maxIdInSqlServer.ToString());
+
+					changingIdsInfoList.AddRange(convertIntListToStringList(idDifferenceList));
+
+					changingIdsInfoList.AddRange(convertIntListToStringList(newIdList));
+					if (IdName == "Process_Alias_ID")
+					{
+						List<int> fieldIdsWithProcAliasIdForDocRefList = new List<int>();
+						fieldIdsWithProcAliasIdForDocRefList = fieldIdsWithProcAliasIdForDocRef(idsInDbFile, connectionManager);
+						changingIdsInfoList.AddRange(changeFieldValuesForDocRef(fieldIdsWithProcAliasIdForDocRefList, idsInDbFile,  newIdList, connectionManager));
+
+					}
 					changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
 					changingIdsInfoList.AddRange(idUpdateInfo);
 				}
