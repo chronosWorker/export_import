@@ -225,7 +225,7 @@ namespace Process_Export_Import
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
-					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+                    insertResultInfo.AddRange(processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager));
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
 					automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -555,9 +555,13 @@ namespace Process_Export_Import
 					insertResultInfo.Add(result);
                     #endregion
 
+                    List<int> FieldIdsForDocRefList = new List<int>();
+                    List<KeyValuePair<int, int>> FieldValueAndIdList = new List<KeyValuePair<int, int>>();
+                    FieldIdsForDocRefList = general.selectdFieldIdsForDocRefList(connectionManager);
+                    FieldValueAndIdList = general.selectFieldValueAndFieldId(connectionManager, FieldIdsForDocRefList);
+                    general.updateDocRefValues(connectionManager, FieldValueAndIdList);
 
-                    
-					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
 						if (tableName != "T_DB_CONNECTION" && tableName != "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT" && tableName != "T_FIELD_VALUE_TRANSLATION")
@@ -568,7 +572,7 @@ namespace Process_Export_Import
 
 								if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
 								{
-                                    insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                   insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 								}
 								else
 								{
@@ -590,28 +594,13 @@ namespace Process_Export_Import
 							{
 								if (secondRoundInsertTablesWithoutIdentityProprty.Contains(tableName))
 								{
-									if (tableName == "T_FIELD")
-									{
-										insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
-									}
-									else
-									{
-										   insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+									
+									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 
-									}
 								}
 								else
-								{
-									if (tableName == "T_FIELD")
-									{
-										insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
-									}
-									else
-									{
-										insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
-
-									}
-									
+								{									
+									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);						
 								}
 
 							}
