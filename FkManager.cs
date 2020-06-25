@@ -547,11 +547,11 @@ namespace Process_Export_Import
 					{
 						List<int> fieldIdsWithProcAliasIdForDocRefList = new List<int>();
 						fieldIdsWithProcAliasIdForDocRefList = fieldIdsWithProcAliasIdForDocRef(idsInDbFile, connectionManager);
-						changingIdsInfoList.AddRange(changeFieldValuesForDocRef(fieldIdsWithProcAliasIdForDocRefList, idsInDbFile,  newIdList, connectionManager));
+						changeFieldValuesForDocRef(fieldIdsWithProcAliasIdForDocRefList, idsInDbFile,  newIdList, connectionManager);
 
 					}
-					changingIdsInfoList.AddRange(changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager));
-					changingIdsInfoList.AddRange(idUpdateInfo);
+					changeIdsInAllRelatedTableIfSameRecordFound(idsInDbFile, newIdList, connectionManager);
+					//changingIdsInfoList.AddRange(idUpdateInfo);
 				}
 
 			}

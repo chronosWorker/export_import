@@ -113,10 +113,6 @@ namespace Process_Export_Import
 			try
 			{
 			
-				if (res.Code != 0)
-				{
-					return res;
-				}
 				string fileName = ConfigurationManager.AppSettings.Get("sqlite_databases_root") + processId.ToString() + ".db";
 
 				if (File.Exists(fileName))
@@ -151,18 +147,18 @@ namespace Process_Export_Import
 			ServiceCallResult res = new ServiceCallResult { Code = 0, Description = "OK" };
 			res.Description += processId.ToString();
 			Export export = new Export();
-            List<int> subporcessIds = export.checkIfSubProcessExist(connectionManager, processId);
-            bool docRefExits = export.checkIfThereIsDocRefInFieldsForProcess(connectionManager, processId);
-            if (docRefExits)
-            {
-                List<int> docRefProcessIdList = export.docRefProcessIdList(connectionManager, processId);
-                subporcessIds.AddRange(docRefProcessIdList);
-            }
+			List<int> subporcessIds = export.checkIfSubProcessExist(connectionManager, processId);
+			bool docRefExits = export.checkIfThereIsDocRefInFieldsForProcess(connectionManager, processId);
+			if (docRefExits)
+			{
+				List<int> docRefProcessIdList = export.docRefProcessIdList(connectionManager, processId);
+				subporcessIds.AddRange(docRefProcessIdList);
+			}
 			export.processes_v2 = new List<ProcessListItem>();
 			export.FillProcesses_v2(processId, connectionManager);
 			export.fieldsForProcess_v2 = new List<long>();
-            subporcessIds.ForEach(e => res.ResultString += " id : " + e.ToString() + " ;");
-            res = export.TransferProcess_v2(processId, connectionManager);
+			subporcessIds.ForEach(e => res.ResultString += " id : " + e.ToString() + " ;");
+			res = export.TransferProcess_v2(processId, connectionManager);
 			if (subporcessIds.Count == 0 || res.Code != 0 )
 			{
 				return res;
@@ -212,12 +208,12 @@ namespace Process_Export_Import
 					general.updateProcessDesignDrawCreationDateToToday(connectionManager);
 					general.setImportPersonToProcessOwner(connectionManager, personId);
 					general.updateNullableEmptyFieldsToNull(connectionManager);
-                    general.deleteMultipleOccurenceIdValueFromTable(connectionManager , tableInfo);
-                    
+					general.deleteMultipleOccurenceIdValueFromTable(connectionManager , tableInfo);
+					
 
-                    #endregion
-                    #region process
-                    
+					#endregion
+					#region process
+					
 					//-----------PROCESS-------------------------------------------------------
 					//-------------------------------------------------------------------------
 
@@ -225,7 +221,7 @@ namespace Process_Export_Import
 					processId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager processAliasId = new FkManager("T_PROCESS", "Process_Alias_ID");
-                    insertResultInfo.AddRange(processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager));
+					processAliasId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager automaticProcessId = new FkManager("T_AUTOMATIC_PROCESS", "Automatic_Process_ID");
 					automaticProcessId.changeAllIdInDbFileToFitSqlServer(connectionManager);
@@ -421,8 +417,12 @@ namespace Process_Export_Import
 					FkManager procDesignDrawPartTypeId = new FkManager("T_PROC_DESIGN_DRAW_PART_TYPE", "Proc_Design_Draw_Part_Type_ID");
 					procDesignDrawPartTypeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager procWordMegeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
-					procWordMegeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+					FkManager procWordMergedId = new FkManager("T_PROCFIELD_WORD_MERGE" , "Procfield_Word_Merge_ID");
+					procWordMergedId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+					FkManager procWordMergeFieldId = new FkManager("T_PROCFIELD_WORD_MERGE_FIELD" , "Procfield_Word_Merge_Field_ID");
+					procWordMergeFieldId.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
 					#endregion
 					#region TypeTables
 					//-----------TYPE TABLES--------------------------------------------------------
@@ -553,15 +553,15 @@ namespace Process_Export_Import
 						
 					var result = JsonConvert.SerializeObject(response);
 					insertResultInfo.Add(result);
-                    #endregion
+					#endregion
 
-                    List<int> FieldIdsForDocRefList = new List<int>();
-                    List<KeyValuePair<int, int>> FieldValueAndIdList = new List<KeyValuePair<int, int>>();
-                    FieldIdsForDocRefList = general.selectdFieldIdsForDocRefList(connectionManager);
-                    FieldValueAndIdList = general.selectFieldValueAndFieldId(connectionManager, FieldIdsForDocRefList);
-                    general.updateDocRefValues(connectionManager, FieldValueAndIdList);
+					List<int> FieldIdsForDocRefList = new List<int>();
+					List<KeyValuePair<int, int>> FieldValueAndIdList = new List<KeyValuePair<int, int>>();
+					FieldIdsForDocRefList = general.selectdFieldIdsForDocRefList(connectionManager);
+					FieldValueAndIdList = general.selectFieldValueAndFieldId(connectionManager, FieldIdsForDocRefList);
+					general.updateDocRefValues(connectionManager, FieldValueAndIdList);
 
-                    foreach (string tableName in tableInfo.getFirstRoundInsertTables())
+					foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
 						if (tableName != "T_DB_CONNECTION" && tableName != "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT" && tableName != "T_FIELD_VALUE_TRANSLATION")
@@ -572,11 +572,11 @@ namespace Process_Export_Import
 
 								if (listOfTablesWhereIdentityInsertNeeded.Contains(tableName))
 								{
-                                   insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 								}
 								else
 								{
-                                    insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
+									insertValuesFromDbFileToSqlServer(tableName, false, connectionManager);
 								}
 
 							}
@@ -586,8 +586,9 @@ namespace Process_Export_Import
 
 					foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 					{
+						insertResultInfo.Add("Aktuális tábla : " + tableName + ";");
 
-						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName !=  "T_ACTIVITY_UI_COMPONENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"  && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T_OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName != "T_USER_DEFINED_TABLE" && tableName != "T_ACTIVITY_UI_COMPONENT"  && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"   && tableName != "T_OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -599,8 +600,16 @@ namespace Process_Export_Import
 
 								}
 								else
-								{									
-									insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);						
+								{
+                                    if (tableName == "T_PROCFIELD_WORD_MERGE")
+                                    {
+                                        insertResultInfo.AddRange(insertValuesFromDbFileToSqlServer(tableName, true, connectionManager));
+                                    }
+                                    else
+                                    {
+                                        insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);						
+
+                                    }
 								}
 
 							}
@@ -608,7 +617,7 @@ namespace Process_Export_Import
 
 					}
 
-                }
+				}
 			catch (Exception ex)
 				{
 					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
@@ -664,7 +673,7 @@ namespace Process_Export_Import
 				foreach (string tableName in tableInfo.getSecondRoundInsertTables())
 				{
 
-					if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_PROCFIELD_WORD_MERGE" && tableName != "T__OPERATION")
+					if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY"  && tableName != "T__OPERATION")
 					{
 
 						if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -677,7 +686,7 @@ namespace Process_Export_Import
 							}
 							else
 							{
-
+                             
 								insertValuesFromDbFileToSqlServer(tableName, true, connectionManager);
 							}
 
@@ -727,62 +736,72 @@ namespace Process_Export_Import
 				commandText += ") Values ";
 				while (reader.Read())
 				{
+
 					if (reader.GetValue(0).ToString() != "NULL" || reader.GetValue(0).ToString() != "" || reader.GetValue(0).GetType() != typeof(DBNull))
 					{
-						commandText += "( ";
+                        
+						    commandText += "( ";
 
-						for (var index = 0; index < columnTypes.Count; index++)
-						{
-							string currentRecord = reader[columnTypes.ElementAt(index).Key.ToString()].ToString();
-							string currentRecordSingleQuoteFormalized = currentRecord.Replace("'", "''");
+						    for (var index = 0; index < columnTypes.Count; index++)
+						    {
+                                if (tableName == "T_PROCFIELD_WORD_MERGE" && reader.FieldCount == 2)
+                                {
+                                  //  commandText += " CONVERT( varbinary , ";
+                                }
+                                string currentRecord = reader[columnTypes.ElementAt(index).Key.ToString()].ToString();
+							    string currentRecordSingleQuoteFormalized = currentRecord.Replace("'", "''");
 						  
-							switch (columnTypes.ElementAt(index).Value)
-							{
+							    switch (columnTypes.ElementAt(index).Value)
+							    {
 
-								case "bit":
-								case "binary":
-								case "varbinary":
-								case "image":
-								case "DateTime":
-								case "nvarchar":
-								case "varchar":
-								case "datetime":
-									if (currentRecord.Contains("'"))
-									{
+								    case "bit":
+								    case "binary":
+								    case "varbinary":
+								    case "image":
+								    case "DateTime":
+								    case "nvarchar":
+								    case "varchar":
+								    case "datetime":
+									    if (currentRecord.Contains("'"))
+									    {
 
-										commandText += "'" + currentRecordSingleQuoteFormalized + "'";
+										    commandText += "'" + currentRecordSingleQuoteFormalized + "'";
 
-									}
-									else
-									{
-										commandText += "'" + currentRecord + "'";
+									    }
+									    else
+									    {
+										    commandText += "'" + currentRecord + "'";
 
-									}
-									break;
-								default:
-									if (currentRecord.Contains("'"))
-									{
+									    }
+									    break;
+								    default:
+									    if (currentRecord.Contains("'"))
+									    {
 
-										commandText += (currentRecordSingleQuoteFormalized.GetType() == typeof(DBNull) || currentRecordSingleQuoteFormalized == "") ? "NULL" :
-										currentRecordSingleQuoteFormalized;
+										    commandText += (currentRecordSingleQuoteFormalized.GetType() == typeof(DBNull) || currentRecordSingleQuoteFormalized == "") ? "NULL" :
+										    currentRecordSingleQuoteFormalized;
 
-									}
-									else
-									{
-										commandText += (currentRecord.GetType() == typeof(DBNull) || currentRecord == "") ? "NULL" :
-										currentRecord;
+									    }
+									    else
+									    {
+										    commandText += (currentRecord.GetType() == typeof(DBNull) || currentRecord == "") ? "NULL" :
+										    currentRecord;
 
-									}
-									break;
-							}
-							if (index < columnTypes.Count - 1)
-							{
+									    }
+									    break;
+							    }
+                            if (tableName == "T_PROCFIELD_WORD_MERGE" && reader.FieldCount == 2)
+                            {
+                          //      commandText += " ) , ";
+                            }
+                            if (index < columnTypes.Count - 1)
+							    {
 
-								commandText += ",";
-							}
-						}
+								    commandText += ",";
+							    }
+						    }
 
-						commandText += ") ,";
+						    commandText += ") ,";
 
 					}
 					else
@@ -796,11 +815,11 @@ namespace Process_Export_Import
 
 				if (needToSetIdentityInsertOn)
 				{
-					obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
+				//	obj.executeQueriesInSqlServer("SET IDENTITY_INSERT " + tableName + " ON ; " + commandText + " ; SET IDENTITY_INSERT " + tableName + " OFF ;");
 				}
 				else
 				{
-					obj.executeQueriesInSqlServer(commandText);
+				//	obj.executeQueriesInSqlServer(commandText);
 				}
 			}
 			catch (Exception e)

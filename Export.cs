@@ -2955,11 +2955,13 @@ namespace Process_Export_Import
 						switch (reader["DATA_TYPE"].ToString())
 						{
 							case "binary":
-							case "varbinary":
 							case "image":
 								ret += reader["COLUMN_NAME"].ToString() + " BLOB, ";
-								break;
-							default:
+                            break;
+                        case "varbinary":
+                                ret += reader["COLUMN_NAME"].ToString() + " BLOB , ";
+                            break;
+                        default:
 								ret += reader["COLUMN_NAME"].ToString() + " NVARCHAR, ";
 								break;
 						}
@@ -3097,67 +3099,73 @@ namespace Process_Export_Import
 			"T_DB_CONNECTION",
 			"T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_CONDITION_FORMULA",
 
-		  };
+		    };
+            try
+            {
+                string strSqLiteSQL = "";
+			    string strMsSQL = "";
+			    string CommandText = "";
+			    Dictionary<string, string> columnTypes;
+			    for (int i = 0; i < tablenames.Count(); i++)
+			    {
 
+				    CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tablenames[i] + "'";
+				    var readerMsSql = obj.sqlServerDataReaderOld(CommandText);
+				    columnTypes = getColumnTypesDictionary_v2(tablenames[i], obj);
+				    ServiceCallResult resGen;
+				    while (readerMsSql.Read())
+				    {
+					    strSqLiteSQL = "INSERT INTO table_information (TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,";
+					    strSqLiteSQL += "CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION) ";
+					    strSqLiteSQL += "VALUES('%TABLE_NAME%','%COLUMN_NAME%', ";
+					    strSqLiteSQL += "'%COLUMN_DEFAULT%','%IS_NULLABLE%','%DATA_TYPE%',%CHARACTER_MAXIMUM_LENGTH%,%NUMERIC_PRECISION%)";
+					    strSqLiteSQL = strSqLiteSQL.Replace("%TABLE_NAME%", readerMsSql["TABLE_NAME"].ToString());
+					    strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_NAME%", readerMsSql["COLUMN_NAME"].ToString());
+					    strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_DEFAULT%", readerMsSql["COLUMN_DEFAULT"].ToString().Replace("'", "''"));
+					    strSqLiteSQL = strSqLiteSQL.Replace("%IS_NULLABLE%", readerMsSql["IS_NULLABLE"].ToString());
+					    strSqLiteSQL = strSqLiteSQL.Replace("%DATA_TYPE%", readerMsSql["DATA_TYPE"].ToString());
+					    switch (readerMsSql["DATA_TYPE"].ToString())
+					    {
+						    case "nvarchar":
+						    case "varchar":
+							    strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", readerMsSql["CHARACTER_MAXIMUM_LENGTH"].ToString());
+							    break;
+						    default:
+							    strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", "NULL");
+							    break;
+					    }
+					    if (readerMsSql["NUMERIC_PRECISION"].ToString() == "")
+					    {
+						    strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", "NULL");
+					    }
+					    else
+					    {
+						    strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", readerMsSql["NUMERIC_PRECISION"].ToString());
+					    }
 
-			string strSqLiteSQL = "";
-			string strMsSQL = "";
-			string CommandText = "";
-			Dictionary<string, string> columnTypes;
-			for (int i = 0; i < tablenames.Length; i++)
-			{
+					    obj.executeQueriesInDbFile(strSqLiteSQL);
+				    }
+				    // create SQLite table  
+				    resGen = GenerateSqliteTableCreationScript_v2(tablenames[i] , obj);
+				    if (resGen.Code == 0)
+				    {
+					    strSqLiteSQL = resGen.Description;
+					    obj.executeQueriesInDbFile(strSqLiteSQL);
 
-				CommandText = "SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='" + tablenames[i] + "'";
-				var readerMsSql = obj.sqlServerDataReaderOld(CommandText);
-				columnTypes = getColumnTypesDictionary_v2(tablenames[i], obj);
-				ServiceCallResult resGen;
-				while (readerMsSql.Read())
-				{
-					strSqLiteSQL = "INSERT INTO table_information (TABLE_NAME,COLUMN_NAME,COLUMN_DEFAULT,IS_NULLABLE,DATA_TYPE,";
-					strSqLiteSQL += "CHARACTER_MAXIMUM_LENGTH,NUMERIC_PRECISION) ";
-					strSqLiteSQL += "VALUES('%TABLE_NAME%','%COLUMN_NAME%', ";
-					strSqLiteSQL += "'%COLUMN_DEFAULT%','%IS_NULLABLE%','%DATA_TYPE%',%CHARACTER_MAXIMUM_LENGTH%,%NUMERIC_PRECISION%)";
-					strSqLiteSQL = strSqLiteSQL.Replace("%TABLE_NAME%", readerMsSql["TABLE_NAME"].ToString());
-					strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_NAME%", readerMsSql["COLUMN_NAME"].ToString());
-					strSqLiteSQL = strSqLiteSQL.Replace("%COLUMN_DEFAULT%", readerMsSql["COLUMN_DEFAULT"].ToString().Replace("'", "''"));
-					strSqLiteSQL = strSqLiteSQL.Replace("%IS_NULLABLE%", readerMsSql["IS_NULLABLE"].ToString());
-					strSqLiteSQL = strSqLiteSQL.Replace("%DATA_TYPE%", readerMsSql["DATA_TYPE"].ToString());
-					switch (readerMsSql["DATA_TYPE"].ToString())
-					{
-						case "nvarchar":
-						case "varchar":
-							strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", readerMsSql["CHARACTER_MAXIMUM_LENGTH"].ToString());
-							break;
-						default:
-							strSqLiteSQL = strSqLiteSQL.Replace("%CHARACTER_MAXIMUM_LENGTH%", "NULL");
-							break;
-					}
-					if (readerMsSql["NUMERIC_PRECISION"].ToString() == "")
-					{
-						strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", "NULL");
-					}
-					else
-					{
-						strSqLiteSQL = strSqLiteSQL.Replace("%NUMERIC_PRECISION%", readerMsSql["NUMERIC_PRECISION"].ToString());
-					}
+				    }
+				    else
+				    {
+					    return res;
+				    }
+			    }
+               
+            }
+            catch (Exception ex)
+            {
+                res = FillServiceCallResult_v2(ex);
+            }
 
-					obj.executeQueriesInDbFile(strSqLiteSQL);
-				}
-				// create SQLite table  
-				resGen = GenerateSqliteTableCreationScript_v2(tablenames[i] , obj);
-				if (resGen.Code == 0)
-				{
-					strSqLiteSQL = resGen.Description;
-					obj.executeQueriesInDbFile(strSqLiteSQL);
-
-				}
-				else
-				{
-					return res;
-				}
-			}
-
-			return res;
+            return res;
 		}
 
 		public List<int> checkIfSubProcessExist(ConnectionManagerST obj , int mainProcessId)

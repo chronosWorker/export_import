@@ -102,7 +102,6 @@ namespace Process_Export_Import
                 "T_DYNAMIC_ROUTING" ,
                 "T_CALCFIELD_FORMULA_STEPS" ,
                 "T_FIELD_GROUP_TO_FIELD_GROUP_T_ACTIVITY_FIELDS" ,
-                "T_USER_DEFINED_TABLE" ,
                 "T_FORMULA_STEPS" ,
                 "T_OPERAND" ,
                 "T_PROCFIELD_PARTICIPANT" ,
@@ -129,6 +128,7 @@ namespace Process_Export_Import
                 "T_FIELD_VALUE_TRANSLATION" ,
                 "T_CHART_TYPE" ,
                 "T_CHART_FIELD_TYPE" ,
+                "T_USER_DEFINED_TABLE" ,
                 "T_LANGUAGE" ,
                 "T_REPORT_TYPE" ,
                 "T_ACTIVITY_BEFORE_FINISH_CHECK_QUERY_TYPE" ,
@@ -202,6 +202,7 @@ namespace Process_Export_Import
                 "T_PROC_DESIGN_DRAW_PART",
                 "T_PROC_DESIGN_DRAW_PART_DETAIL",
                 "T_REPORT_GROUP",
+                "T_PROCFIELD_WORD_MERGE",
                 "T_FIELD_EXTENSION_NUMBER"
                 };
             return listOfTablesWhereIdentityInsertNeeded;
