@@ -744,24 +744,24 @@ namespace Process_Export_Import
 
 						    for (var index = 0; index < columnTypes.Count; index++)
 						    {
-                                if (tableName == "T_PROCFIELD_WORD_MERGE" && reader.FieldCount == 2)
-                                {
-                                  //  commandText += " CONVERT( varbinary , ";
-                                }
                                 string currentRecord = reader[columnTypes.ElementAt(index).Key.ToString()].ToString();
 							    string currentRecordSingleQuoteFormalized = currentRecord.Replace("'", "''");
+                             
 						  
 							    switch (columnTypes.ElementAt(index).Value)
 							    {
 
-								    case "bit":
-								    case "binary":
 								    case "varbinary":
+                                    case "varbinary(max)":
+                                    commandText +=  currentRecordSingleQuoteFormalized ;
+                                    break;
+                                case "bit":
+								    case "binary":
 								    case "image":
 								    case "DateTime":
 								    case "nvarchar":
 								    case "varchar":
-								    case "datetime":
+                                case "datetime":
 									    if (currentRecord.Contains("'"))
 									    {
 
@@ -790,10 +790,7 @@ namespace Process_Export_Import
 									    }
 									    break;
 							    }
-                            if (tableName == "T_PROCFIELD_WORD_MERGE" && reader.FieldCount == 2)
-                            {
-                          //      commandText += " ) , ";
-                            }
+                           
                             if (index < columnTypes.Count - 1)
 							    {
 

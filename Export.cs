@@ -2420,7 +2420,7 @@ namespace Process_Export_Import
 								{
 									case "binary":
 									case "varbinary":
-										strSQLiteValues += "'" + Convert.ToBase64String(((byte[])reader32[j])) + "',";
+										strSQLiteValues += "'0x" + BitConverter.ToString((byte[])reader32[j]).Replace("-", string.Empty) + "',";
 										break;
 									case "image":
 										break;
