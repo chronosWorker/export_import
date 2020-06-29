@@ -89,6 +89,13 @@ namespace Process_Export_Import
             SqlCommand cmdText = new SqlCommand(Query_, connectionToNewSqlServer);
             cmdText.ExecuteNonQuery();
         }
+   
+        public void executeQueriesInSqlServerWithParameters(string Query_ ,  SqlParameter[] parameters)
+        {
+            SqlCommand cmdText = new SqlCommand(Query_, connectionToNewSqlServer);
+            cmdText.Parameters.AddRange(parameters);
+            cmdText.ExecuteNonQuery();
+        }
 
         public SqlDataReader sqlServerDataReader(string Query_)
         {
