@@ -170,6 +170,7 @@ namespace Process_Export_Import
                 "T_CALCULATED_FIELD_CONSTANT_TYPE",
                 "T_COMPARE_OPERATION",
                 "T_PROCESS_READER",
+                "T_ACTIVITY_FINISH_STEP_MODE" ,
             };
             return secondRoundInsertTablesWithoutIdentityProprty;
         }

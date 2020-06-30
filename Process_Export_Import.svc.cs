@@ -568,7 +568,7 @@ namespace Process_Export_Import
                     foreach (string tableName in tableInfo.getFirstRoundInsertTables())
 					{
 
-						if (tableName != "T_DB_CONNECTION" && tableName != "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE" && tableName != "T_ACTIVITY_UI_COMPONENT" && tableName != "T_FIELD_VALUE_TRANSLATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_ACTIVITY_DEPENDENT_COMPONENT_TRANSLATION" && tableName !=  "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR" && tableName != "T_CATEGORY"  && tableName != "T_FIELD_VALUE_TRANSLATION")
 						{
 
 							if (!(tableInfo.tableInDBFileWithoutRow(connectionManager, tableName)))
@@ -592,7 +592,7 @@ namespace Process_Export_Import
 					{
 						//insertResultInfo.Add("Aktuális tábla : " + tableName + ";");
 
-						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName != "T_USER_DEFINED_TABLE" && tableName != "T_ACTIVITY_UI_COMPONENT"  && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY" && tableName != "T_ACTIVITY_FINISH_STEP_MODE"   && tableName != "T_OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
+						if (tableName != "T_DB_CONNECTION" && tableName != "T_DEPARTMENT" && tableName != "T_FIELD_GROUP_TO_FIELD_GROUP_CONDITION_OPERATOR"  &&  tableName != "T_USER_DEFINED_TABLE" && tableName != "T_ACTIVITY_UI_COMPONENT"  && tableName != "T_LANGUAGE" && tableName != "T_CATEGORY"  && tableName != "T_OPERATION" && tableName != "T_FIELD_VALUE_TRANSLATION")
 						{
                            
 

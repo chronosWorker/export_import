@@ -735,7 +735,7 @@ namespace Process_Export_Import
 		public List<KeyValuePair<string, int>> detectActivityParticipants(ConnectionManagerST obj)
 		{
 			var ActivityParticipants = new List<KeyValuePair<string, int>>();
-			string commandText = "Select distinct actP.Participant_ID , act.Name, actP.Participant_type from T_ACTIVITY_PARTICIPANT actP left join t_ACTIVITY act on actP.Activity_Id = act.Activity_Id";
+			string commandText = "Select distinct actP.Participant_ID , act.Name, act.Activity_ID , actP.Participant_type from T_ACTIVITY_PARTICIPANT actP left join t_ACTIVITY act on actP.Activity_Id = act.Activity_Id";
 			var reader = obj.sqLiteDataReader(commandText);
 			try
 			{
@@ -745,7 +745,7 @@ namespace Process_Export_Import
 					{
 						if (Convert.ToInt32(reader["participant_type"]) == 1)
 						{
-							ActivityParticipants.Add(new KeyValuePair<string, int>(reader["Name"].ToString(), Convert.ToInt32(reader["Participant_ID"])));
+							ActivityParticipants.Add(new KeyValuePair<string, int>(reader["Name"].ToString(), Convert.ToInt32(reader["Activity_ID"])));
 						}
 					}
 				}
