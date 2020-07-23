@@ -426,7 +426,6 @@ namespace Process_Export_Import
                     #endregion
                     #region TypeTables
 
-                    response.ActivityParticipants = general.detectActivityParticipants(connectionManager);
                     //-----------TYPE TABLES--------------------------------------------------------
                     //-----------------------------------------------------------------------------
                     FkManager fieldGroupToFieldGroupDepModeType = new FkManager("T_FIELD_GROUP_TO_FIELD_GROUP_DEPENDENCY_MODE", "Field_Group_To_Field_Group_Dependency_Mode_Name");
@@ -543,15 +542,15 @@ namespace Process_Export_Import
 					#endregion
 					#region generateResponseObject
 					int mainProcessId = general.getMainProcessId(connectionManager);
-					insertResultInfo.Add("Main ID  " + mainProcessId.ToString());
 				//	general.updateMainProcessIdForSubprocesses(connectionManager, mainProcessId);
+                    response.ProcessIdList = general.getProcessIdList(connectionManager);
 
 					if (general.detectNotificationEmailAddress(connectionManager))
 					{
-						response.EmailAddressFound = true;
-						response.NotificationAddresses = general.detectNotificationAddresses(connectionManager);
+					
 						general.deleteNotificationAddresses(connectionManager);
-					}
+
+                    }
 						
 					var result = JsonConvert.SerializeObject(response);
 					insertResultInfo.Add(result);

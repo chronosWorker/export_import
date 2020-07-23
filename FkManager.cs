@@ -735,7 +735,7 @@ namespace Process_Export_Import
 		public List<KeyValuePair<string, int>> detectActivityParticipants(ConnectionManagerST obj)
 		{
 			var ActivityParticipants = new List<KeyValuePair<string, int>>();
-			string commandText = "Select distinct actP.Participant_ID , act.Name, act.Activity_ID , actP.Participant_type from T_ACTIVITY_PARTICIPANT actP left join t_ACTIVITY act on actP.Activity_Id = act.Activity_Id";
+			string commandText = "Select distinct act.Name, act.Activity_ID , actP.Participant_type from T_ACTIVITY_PARTICIPANT actP left join t_ACTIVITY act on actP.Activity_Id = act.Activity_Id";
 			var reader = obj.sqLiteDataReader(commandText);
 			try
 			{
@@ -835,7 +835,28 @@ namespace Process_Export_Import
 
 		}
 
-		public void updateMainProcessIdForSubprocesses(ConnectionManagerST obj, int mainProcessId)
+        public List<int> getProcessIdList(ConnectionManagerST obj)
+        {
+            List<int> processIdList = new List<int>();
+            string commandText = "select distinct process_id from t_process;";
+            var reader = obj.sqLiteDataReader(commandText);
+            try
+            {
+                while (reader.Read())
+                {
+                    processIdList.Add(Convert.ToInt32(reader["process_id"]));
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return processIdList;
+
+        }
+
+
+        public void updateMainProcessIdForSubprocesses(ConnectionManagerST obj, int mainProcessId)
 		{
 			try
 			{

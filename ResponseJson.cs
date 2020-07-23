@@ -7,15 +7,7 @@ namespace Process_Export_Import
 {
     public class ResponseJson
     {
-        public bool EmailAddressFound;
-
-        public int PersonCounter;
-
-        public int EmailCounter;
-
-        public List<KeyValuePair<string, int>> ActivityParticipants;
-
-        public List<KeyValuePair<string, string>> NotificationAddresses;
+        public List<int> ProcessIdList; 
 
     }
 }
