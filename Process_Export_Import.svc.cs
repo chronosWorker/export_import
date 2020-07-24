@@ -181,7 +181,7 @@ namespace Process_Export_Import
 		}
 
 		[OperationContract]
-		public List<string> Check_Import(string fileName , int personId)
+		public string Check_Import(string fileName , int personId)
 		{
 
 			List<string> insertResultInfo = new List<string>();
@@ -381,7 +381,10 @@ namespace Process_Export_Import
 					FkManager reportCalcFieldFormulaTreeNodeId = new FkManager("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE", "Report_Calculated_Field_Formula_Tree_Node_ID");
 					reportCalcFieldFormulaTreeNodeId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
-					FkManager reportCalcFieldFormulaTreeNodeValueId = new FkManager("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE", "Report_Calculated_Field_Formula_Tree_Node_ID");
+                    FkManager calcFieldFormulaSteps = new FkManager("T_CALCFIELD_FORMULA_STEPS", "CALCFIELD_FORMULA_STEPS_ID");
+                    calcFieldFormulaSteps.changeAllIdInDbFileToFitSqlServer(connectionManager);
+
+                    FkManager reportCalcFieldFormulaTreeNodeValueId = new FkManager("T_REPORT_CALCULATED_FIELD_FORMULA_TREE_NODE_VALUE", "Report_Calculated_Field_Formula_Tree_Node_ID");
 					reportCalcFieldFormulaTreeNodeValueId.changeAllIdInDbFileToFitSqlServer(connectionManager);
 
 					FkManager reportFieldId = new FkManager("T_REPORT_FIELD", "Report_Field_ID");
@@ -458,7 +461,7 @@ namespace Process_Export_Import
 					FkManager calcFieldConstantType = new FkManager("T_CALCULATED_FIELD_CONSTANT_TYPE", "Name");
 					calcFieldConstantType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
-					FkManager calcFieldResultType = new FkManager("T_CALCULATED_FIELD_RESULT_TYPE_ID", "Name");
+                    FkManager calcFieldResultType = new FkManager("T_CALCULATED_FIELD_RESULT_TYPE_ID", "Name");
 					calcFieldResultType.deleteUnnecessaryRecordsFromTypeTables(connectionManager);
 
 					FkManager chartFieldType = new FkManager("T_CHART_FIELD_TYPE", "Name");
@@ -544,16 +547,15 @@ namespace Process_Export_Import
 					int mainProcessId = general.getMainProcessId(connectionManager);
 				//	general.updateMainProcessIdForSubprocesses(connectionManager, mainProcessId);
                     response.ProcessIdList = general.getProcessIdList(connectionManager);
+                    response.responseCode = 1;
 
-					if (general.detectNotificationEmailAddress(connectionManager))
+                    if (general.detectNotificationEmailAddress(connectionManager))
 					{
 					
 						general.deleteNotificationAddresses(connectionManager);
 
                     }
 						
-					var result = JsonConvert.SerializeObject(response);
-					insertResultInfo.Add(result);
                     #endregion
                     #region docRef
                     List<int> FieldIdsForDocRefList = new List<int>();
@@ -620,13 +622,17 @@ namespace Process_Export_Import
                 }
                 catch (Exception ex)
 				{
-					insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
-				}
+                    response.responseCode = -1;
+                    response.ErrorMessage = ex.Message.ToString() + ex.StackTrace.ToString();
+                    //insertResultInfo.Add(ex.Message.ToString() + ex.StackTrace.ToString());
+                }
 			}
+			var result = JsonConvert.SerializeObject(response);
+			insertResultInfo.Add(result);
 			connectionManager.closeSqLiteConnection();
 			connectionManager.closeSqlServerConnection();
 
-			return insertResultInfo;
+			return result;
 
 		}
      
